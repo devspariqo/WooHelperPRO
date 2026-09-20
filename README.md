@@ -297,14 +297,21 @@ integrations are live. Nothing silently pretends to be configured.
 | --- | --- |
 | `npm run dev` | Development server with `--watch` |
 | `npm start` | Production server |
-| `npm run db:push` | Push the Prisma schema to SQLite |
+| `npm run build` | `prisma generate` — generates the Prisma Client (also runs on `postinstall`) |
+| `npm run db:push` | Push the Prisma schema to the database |
 | `npm run db:seed` | Seed the demo dataset |
 | `npm run db:reset` | Drop and recreate the database |
+| `npm run db:provider <name>` | Switch the datasource between `sqlite` / `postgresql` / `mysql` |
 | `npm run setup` | `db:push` + `db:seed` |
 | `npm run smoke` | End-to-end HTTP sweep against a running server |
 | `npm run lint:views` | Audit view/locals contracts |
 | `npm run lint:views:selftest` | Prove the view auditor can detect faults |
 | `npm run lint:view <file>` | Audit a single view and print its required locals |
+
+> `npm run build` and `postinstall` both run `prisma generate`. Prisma Client is generated
+> code — it lives in `node_modules/.prisma` and is not committed, so a fresh clone has no
+> client until one of these runs. Without it the app crashes on the first query with
+> `Cannot find module '.prisma/client/default'`.
 
 ---
 
@@ -312,9 +319,20 @@ integrations are live. Nothing silently pretends to be configured.
 
 The schema targets SQLite for zero-setup local development. To move to a server database:
 
-1. Change the `datasource` provider in `prisma/schema.prisma`.
+1. Switch the provider with the bundled script:
+   ```bash
+   npm run db:provider postgresql   # or: mysql
+   npm run db:provider              # report the current provider
+   ```
 2. Point `DATABASE_URL` at the new server.
 3. Re-run `npm run db:push` (or generate a migration).
 
 Because SQLite lacks enums, the enum-typed columns are already plain `String`s, so the
-schema needs no restructuring to move — only the provider and connection string.
+schema needs no restructuring to move — only the provider and connection string. The schema
+has been validated against both providers.
+
+> **Deploying to Hostinger? Read [docs/DEPLOY-HOSTINGER.md](docs/DEPLOY-HOSTINGER.md) first.**
+> SQLite will not survive there: the host runs your app from a versioned build directory that
+> is replaced on every deploy, so a database file written at runtime is lost on the next push.
+> Postgres is required. That guide covers the migration, the Hostinger deploy settings, the
+> environment variables, and the failure modes people hit.

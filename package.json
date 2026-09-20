@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
+    "postinstall": "prisma generate",
+    "build": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
     "db:reset": "node scripts/reset-db.js",
@@ -14,7 +16,8 @@
     "smoke": "bash scripts/smoke-test.sh",
     "lint:views": "node scripts/audit-view-locals.js",
     "lint:views:selftest": "node scripts/audit-view-locals.js --selftest",
-    "lint:view": "node scripts/run-audit.js"
+    "lint:view": "node scripts/run-audit.js",
+    "db:provider": "node scripts/set-db-provider.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -43,11 +46,9 @@
     "helmet": "^8.0.0",
     "method-override": "^3.0.0",
     "morgan": "^1.10.0",
-    "multer": "^2.0.1",
     "nanoid": "^3.3.8",
     "nodemailer": "^10.0.10",
-    "prisma": "^5.22.0",
-    "sharp": "^0.35.4"
+    "prisma": "^5.22.0"
   },
   "engines": {
     "node": ">=18"
