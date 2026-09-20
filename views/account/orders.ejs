@@ -1,0 +1,71 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>My orders</h1>
+    <p class="meta-line muted mb-0">Every build you have ordered from us, newest first.</p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-primary" href="/packages">Order another package</a>
+  </div>
+</section>
+
+<% if (C && C.ORDER_STATUS) { %>
+  <div class="tabs mt-3">
+    <a class="<%= !activeStatus ? 'active' : '' %>" href="/account/orders">All</a>
+    <% Object.keys(C.ORDER_STATUS).forEach(function (key) { %>
+      <a class="<%= activeStatus === key ? 'active' : '' %>" href="/account/orders?status=<%= key %>">
+        <%= C.ORDER_STATUS[key].en %>
+      </a>
+    <% }); %>
+  </div>
+<% } %>
+
+<div class="card mt-4">
+  <div class="card-pad-0">
+    <% if (!orders.length) { %>
+      <div class="card-body">
+        <div class="empty-state">
+          <div class="empty-icon">▣</div>
+          <h3>No orders here</h3>
+          <p class="muted">
+            <%= activeStatus ? 'Nothing matches that status filter.' : 'You have not ordered a website yet.' %>
+          </p>
+          <a class="btn btn-primary" href="/packages">Browse packages</a>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data" data-sortable>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Package</th>
+              <th>Status</th>
+              <th>Progress</th>
+              <th class="num">Total</th>
+              <th class="num no-sort"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(function (o) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/account/orders/<%= o.id %>"><%= o.orderNumber %></a>
+                  <br><small class="muted"><%= fmt.date(o.createdAt, 'medium') %></small>
+                </td>
+                <td><%= o.package ? o.package.name : 'Custom build' %></td>
+                <td><%- helpers.statusBadge(o.status, C.ORDER_STATUS) %></td>
+                <td>
+                  <%- helpers.progressBar(o.progress || 0, o.progress === 100 ? 'success' : 'primary') %>
+                </td>
+                <td class="num strong"><%= fmt.bdt(o.total) %></td>
+                <td class="row-actions">
+                  <a class="btn btn-outline btn-sm" href="/account/orders/<%= o.id %>">Open</a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

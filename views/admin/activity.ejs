@@ -1,0 +1,98 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Activity log</h1>
+    <p class="meta-line muted mb-0">
+      Immutable audit trail. Every status change, verification, price edit and
+      deletion is recorded here with the staff member who made it.
+    </p>
+  </div>
+</section>
+
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Recent activity</h3>
+      <span class="sub muted">
+        <%= fmt.number(pagination.total) %> event(s) ·
+        page <%= pagination.page %> of <%= pagination.pages || 1 %>
+      </span>
+    </div>
+  </div>
+
+  <div class="card-pad-0">
+    <% if (!logs.length) { %>
+      <div class="card-body"><%- helpers.emptyState('No activity recorded yet.') %></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>When</th><th>Who</th><th>Action</th>
+              <th>Entity</th><th>Detail</th><th>IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% logs.forEach(function (l) { %>
+              <tr>
+                <td>
+                  <%= fmt.datetime(l.createdAt) %>
+                  <br><small class="muted"><%= fmt.relative(l.createdAt) %></small>
+                </td>
+                <td>
+                  <% if (l.user) { %>
+                    <span class="strong"><%= l.user.name %></span>
+                    <br><small class="muted"><%= C.ROLES[l.user.role] || l.user.role %></small>
+                  <% } else { %>
+                    <span class="muted">System</span>
+                  <% } %>
+                </td>
+                <td>
+                  <span class="badge badge-<%
+                    /delete|refund|cancel|reject|suspend|void/.test(l.action) ? 'danger'
+                    : /created|verified|completed|paid|delivered|converted/.test(l.action) ? 'success'
+                    : /updated|changed|assigned|moved/.test(l.action) ? 'info' : 'muted' %>">
+                    <%= l.action %>
+                  </span>
+                </td>
+                <td>
+                  <% if (l.entityType && l.entityId) { %>
+                    <small class="muted"><%= l.entityType %></small>
+                  <% } else { %>
+                    <small class="muted">—</small>
+                  <% } %>
+                </td>
+                <td style="max-width:360px"><%= l.detail || '—' %></td>
+                <td><small class="muted"><%= l.ip || '—' %></small></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<% if (pagination.pages > 1) { %>
+  <nav class="pagination" aria-label="Activity pages">
+    <% if (pagination.page > 1) { %>
+      <a href="/admin/activity?page=<%= pagination.page - 1 %>">Prev</a>
+    <% } else { %>
+      <span class="disabled">Prev</span>
+    <% } %>
+    <% for (var i = 1; i <= pagination.pages; i++) { %>
+      <% if (i === pagination.page) { %>
+        <span class="current"><%= i %></span>
+      <% } else if (i <= 3 || i > pagination.pages - 3 || Math.abs(i - pagination.page) <= 1) { %>
+        <a href="/admin/activity?page=<%= i %>"><%= i %></a>
+      <% } else if (Math.abs(i - pagination.page) === 2) { %>
+        <span class="info">…</span>
+      <% } %>
+    <% } %>
+    <% if (pagination.page < pagination.pages) { %>
+      <a href="/admin/activity?page=<%= pagination.page + 1 %>">Next</a>
+    <% } else { %>
+      <span class="disabled">Next</span>
+    <% } %>
+    <span class="info"><%= fmt.number(pagination.total) %> events</span>
+  </nav>
+<% } %>

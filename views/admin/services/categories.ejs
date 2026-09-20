@@ -1,0 +1,208 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Service categories</h1>
+    <p class="meta-line muted mb-0">
+      Categories group services on the public site. A category can only be removed
+      once every service inside it has been moved elsewhere.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/services">&larr; Back to services</a>
+  </div>
+</section>
+
+<div class="dash-grid cols-2 mt-4">
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">All categories</h3>
+        <span class="sub muted"><%= fmt.number(categories.length) %> total</span>
+      </div>
+    </div>
+
+    <div class="card-pad-0">
+      <% if (!categories.length) { %>
+        <div class="card-body">
+          <%- helpers.emptyState('No categories yet — create the first one on the right.') %>
+        </div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table data">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Slug</th>
+                <th class="num">Services</th>
+                <th>Status</th>
+                <th class="num">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% categories.forEach(function (cat) { %>
+                <% var serviceCount = cat._count ? cat._count.services : 0; %>
+                <tr>
+                  <td>
+                    <span class="strong"><%= cat.icon || '◆' %> <%= cat.name %></span>
+                    <% if (cat.nameBn) { %>
+                      <br><small class="muted"><%= cat.nameBn %></small>
+                    <% } %>
+                  </td>
+                  <td><code class="muted"><%= cat.slug %></code></td>
+                  <td class="num"><%= fmt.number(serviceCount) %></td>
+                  <td>
+                    <span class="badge badge-<%= cat.isActive ? 'success' : 'muted' %>">
+                      <%= cat.isActive ? 'Active' : 'Hidden' %>
+                    </span>
+                  </td>
+                  <td class="num">
+                    <div class="row-actions">
+                      <% if (serviceCount > 0) { %>
+                        <button type="button" class="btn btn-sm btn-outline"
+                                data-toggle-category="<%= cat.id %>" title="Edit this category">Edit</button>
+                      <% } else { %>
+                        <form method="post" action="/admin/services/categories/<%= cat.id %>/delete"
+                              onsubmit="return confirm('Delete the category “<%= cat.name %>”? This cannot be undone.');">
+                          <%- csrfField %>
+                          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 class="mt-0 mb-0">Add a category</h3>
+    </div>
+    <div class="card-body">
+      <form method="post" action="/admin/services/categories" class="form-grid two">
+        <%- csrfField %>
+
+        <div class="field">
+          <label for="cat-name">Name <span class="req">*</span></label>
+          <input type="text" id="cat-name" name="name" required maxlength="80"
+                 placeholder="e.g. Ecommerce Development">
+        </div>
+
+        <div class="field">
+          <label for="cat-name-bn">Name (Bangla)</label>
+          <input type="text" id="cat-name-bn" name="nameBn" maxlength="80"
+                 placeholder="ই-কমার্স ডেভেলপমেন্ট">
+          <span class="hint">Shown when the visitor switches to Bangla.</span>
+        </div>
+
+        <div class="field">
+          <label for="cat-slug">Slug</label>
+          <input type="text" id="cat-slug" name="slug" maxlength="80"
+                 placeholder="ecommerce-development">
+          <span class="hint">Leave blank to generate from the name.</span>
+        </div>
+
+        <div class="field">
+          <label for="cat-icon">Icon</label>
+          <input type="text" id="cat-icon" name="icon" maxlength="8" value="layout"
+                 placeholder="layout">
+          <span class="hint">A short glyph or icon name.</span>
+        </div>
+
+        <div class="field">
+          <label for="cat-sort">Sort order</label>
+          <input type="number" id="cat-sort" name="sortOrder" value="0" step="1" min="0">
+          <span class="hint">Lower numbers appear first.</span>
+        </div>
+
+        <div class="field">
+          <label>Visibility</label>
+          <label class="check-row" for="cat-active">
+            <input type="checkbox" id="cat-active" name="isActive" checked>
+            <span>Show on the public website</span>
+          </label>
+        </div>
+
+        <div class="field full form-actions">
+          <button type="submit" class="btn btn-primary">Create category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%# ---------------------------------------------------------------
+     Inline edit forms. Rendered once per row, hidden by default, so an
+     admin can rename a category without leaving the page. Categories
+     that still hold services are edited here; the server refuses to
+     delete them, so we never offer the action.
+     --------------------------------------------------------------- %>
+<% categories.forEach(function (cat) { %>
+  <div class="card mt-4" id="cat-edit-<%= cat.id %>" hidden>
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Edit &ldquo;<%= cat.name %>&rdquo;</h3>
+        <button type="button" class="btn btn-sm btn-outline" data-toggle-category="<%= cat.id %>">Close</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="post" action="/admin/services/categories/<%= cat.id %>" class="form-grid two">
+        <%- csrfField %>
+
+        <div class="field">
+          <label for="e-name-<%= cat.id %>">Name <span class="req">*</span></label>
+          <input type="text" id="e-name-<%= cat.id %>" name="name" required maxlength="80"
+                 value="<%= cat.name %>">
+        </div>
+
+        <div class="field">
+          <label for="e-namebn-<%= cat.id %>">Name (Bangla)</label>
+          <input type="text" id="e-namebn-<%= cat.id %>" name="nameBn" maxlength="80"
+                 value="<%= cat.nameBn || '' %>">
+        </div>
+
+        <div class="field">
+          <label for="e-icon-<%= cat.id %>">Icon</label>
+          <input type="text" id="e-icon-<%= cat.id %>" name="icon" maxlength="8"
+                 value="<%= cat.icon || 'layout' %>">
+        </div>
+
+        <div class="field">
+          <label for="e-sort-<%= cat.id %>">Sort order</label>
+          <input type="number" id="e-sort-<%= cat.id %>" name="sortOrder" step="1" min="0"
+                 value="<%= cat.sortOrder %>">
+        </div>
+
+        <div class="field full">
+          <label for="e-desc-<%= cat.id %>">Description</label>
+          <textarea id="e-desc-<%= cat.id %>" name="description" rows="3"
+                    maxlength="400"><%= cat.description || '' %></textarea>
+        </div>
+
+        <div class="field full">
+          <label>Visibility</label>
+          <label class="check-row" for="e-active-<%= cat.id %>">
+            <input type="checkbox" id="e-active-<%= cat.id %>" name="isActive"
+                   <%= cat.isActive ? 'checked' : '' %>>
+            <span>Show on the public website</span>
+          </label>
+          <span class="hint">
+            <%= cat._count ? cat._count.services : 0 %> service(s) sit in this category.
+            <%= cat._count && cat._count.services > 0
+                ? 'Move them out before it can be deleted.'
+                : 'It is empty, so it can be deleted.' %>
+          </span>
+        </div>
+
+        <div class="field full form-actions">
+          <button type="submit" class="btn btn-primary">Save changes</button>
+          <button type="button" class="btn btn-outline" data-toggle-category="<%= cat.id %>">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+<% }); %>

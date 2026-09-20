@@ -1,0 +1,163 @@
+<%
+  /*
+   * New subscription. Every plan must be attached to a real customer, and the
+   * amount is derived from the chosen package unless it is typed in manually.
+   */
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1>New subscription</h1>
+    <p class="meta-line muted mb-0">
+      Put a customer on a recurring plan. The first invoice is raised automatically
+      and emailed to them as soon as the subscription is created.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/subscriptions">&larr; Back to subscriptions</a>
+  </div>
+</section>
+
+<div class="dash-grid cols-2 mt-4">
+
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Plan details</h3></div>
+    <div class="card-body">
+      <form method="post" action="/admin/subscriptions" class="form-grid two">
+        <%- csrfField %>
+
+        <div class="field full">
+          <label for="userId">Customer <span class="req">*</span></label>
+          <select id="userId" name="userId" required>
+            <option value="">— select a customer —</option>
+            <% customers.forEach(function (c) { %>
+              <option value="<%= c.id %>" <%= preselect === c.id ? 'selected' : '' %>>
+                <%= c.name %> — <%= c.email %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="packageId">Package</label>
+          <select id="packageId" name="packageId">
+            <option value="">— custom plan —</option>
+            <% packages.forEach(function (pk) { %>
+              <option value="<%= pk.id %>"
+                      data-monthly="<%= pk.monthlyPrice %>"
+                      data-yearly="<%= pk.yearlyPrice %>"
+                      data-name="<%= pk.name %>">
+                <%= pk.name %> (<%= fmt.bdt(pk.monthlyPrice) %>/mo · <%= fmt.bdt(pk.yearlyPrice) %>/yr)
+              </option>
+            <% }); %>
+          </select>
+          <span class="hint">Choosing a package fills in the plan name and amount for you.</span>
+        </div>
+
+        <div class="field">
+          <label for="planName">Plan name</label>
+          <input type="text" id="planName" name="planName" maxlength="120"
+                 placeholder="Growth Plan">
+          <span class="hint">Required for a custom plan.</span>
+        </div>
+
+        <div class="field">
+          <label for="billingCycle">Billing cycle <span class="req">*</span></label>
+          <select id="billingCycle" name="billingCycle" required>
+            <% ['MONTHLY', 'QUARTERLY', 'HALF_YEARLY', 'YEARLY'].forEach(function (key) { %>
+              <option value="<%= key %>" <%= key === 'MONTHLY' ? 'selected' : '' %>>
+                <%= cycles[key].en %> (<%= cycles[key].months %> month<%= cycles[key].months > 1 ? 's' : '' %>)
+              </option>
+            <% }); %>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="amount">Amount per cycle (৳)</label>
+          <input type="number" id="amount" name="amount" step="1" min="0" value="0">
+          <span class="hint">Leave 0 to use the package price.</span>
+        </div>
+
+        <div class="field">
+          <label for="setupFee">Setup fee (৳)</label>
+          <input type="number" id="setupFee" name="setupFee" step="1" min="0" value="0">
+          <span class="hint">Charged on the first invoice only.</span>
+        </div>
+
+        <div class="field">
+          <label for="discountPercent">Standing discount (%)</label>
+          <input type="number" id="discountPercent" name="discountPercent" step="1" min="0" max="100" value="0">
+        </div>
+
+        <div class="field">
+          <label for="trialDays">Trial period (days)</label>
+          <input type="number" id="trialDays" name="trialDays" step="1" min="0" max="90" value="0">
+          <span class="hint">0 starts the plan immediately.</span>
+        </div>
+
+        <div class="field full">
+          <label for="notes">Internal notes</label>
+          <textarea id="notes" name="notes" rows="2" maxlength="500"></textarea>
+        </div>
+
+        <div class="field full">
+          <label>Add-ons</label>
+          <div class="radio-cards">
+            <% addonCatalog.forEach(function (a) { %>
+              <label class="radio-card" for="addon-<%= a.name.replace(/[^a-z0-9]+/gi, '-') %>">
+                <input type="checkbox" id="addon-<%= a.name.replace(/[^a-z0-9]+/gi, '-') %>"
+                       name="addons" value="<%= a.name %>">
+                <span>
+                  <strong><%= a.name %></strong>
+                  <br><small class="muted">
+                    <%= fmt.bdt(a.price) %> / <%= a.cycle === 'ONE_TIME' ? 'one time' : a.cycle.toLowerCase() %>
+                  </small>
+                </span>
+              </label>
+            <% }); %>
+          </div>
+        </div>
+
+        <div class="field full form-actions">
+          <button type="submit" class="btn btn-primary">Create subscription &amp; raise invoice</button>
+          <a class="btn btn-outline" href="/admin/subscriptions">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">How this behaves</h3></div>
+    <div class="card-body">
+      <ul class="summary-list">
+        <li><span class="label">First invoice</span><span class="value">Raised immediately</span></li>
+        <li><span class="label">Setup fee</span><span class="value">First invoice only</span></li>
+        <li><span class="label">Discount</span><span class="value">Applied every cycle</span></li>
+        <li><span class="label">VAT</span><span class="value">Applied per config</span></li>
+        <li><span class="label">Renewal</span><span class="value">Date advanced on payment</span></li>
+      </ul>
+
+      <div class="alert alert-info mt-3">
+        <strong>Billing is not automatic.</strong>
+        The sweep only expires and flags plans — it never charges a card. On bKash,
+        Nagad and Rocket there is no merchant recurring mandate, so the customer
+        pays each cycle and accounts verifies it. Auto-renew is a reminder, not a debit.
+      </div>
+
+      <h4>Cycle lengths</h4>
+      <div class="mini-stats">
+        <% ['MONTHLY', 'QUARTERLY', 'HALF_YEARLY', 'YEARLY'].forEach(function (key) { %>
+          <div class="mini-stat">
+            <span class="label"><%= cycles[key].en %></span>
+            <span class="value"><%= cycles[key].months %><small class="muted"> mo</small></span>
+          </div>
+        <% }); %>
+      </div>
+
+      <p class="hint muted mt-3 mb-0">
+        MRR divides each plan's amount by its cycle length, so a yearly plan counts
+        as one twelfth of its value each month.
+      </p>
+    </div>
+  </div>
+</div>

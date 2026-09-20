@@ -1,0 +1,185 @@
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <p class="section-kicker">Step 1 of 2</p>
+      <h1 class="mt-0">Tell us what to build</h1>
+      <p class="muted mb-0">
+        No account needed — we will create one for you using this email so you can track the build.
+      </p>
+    </div>
+
+    <form id="checkoutForm" method="post" action="/order/checkout" class="grid grid-2 mt-4" style="align-items:start">
+      <%- csrfField %>
+
+      <%
+        // POST /order/checkout posts its raw body as `values` on validation
+        // failure; GET passes {}. Field names therefore have to match the
+        // route's own destructuring exactly.
+        const v = values || {};
+        const pkgSelected = v.packageId || (selectedPackage ? selectedPackage.id : '');
+        const me = currentUser || {};
+      %>
+
+      <div>
+        <div class="card">
+          <div class="card-header"><h3 class="mt-0 mb-0">Your project</h3></div>
+          <div class="card-body">
+
+            <div class="field">
+              <label for="packageId">Package <span class="req">*</span></label>
+              <select id="packageId" name="packageId" required>
+                <option value="">Select a package</option>
+                <% packages.forEach(function (p) { %>
+                  <option value="<%= p.id %>"
+                    <%= pkgSelected === p.id ? 'selected' : '' %>
+                    data-monthly="<%= p.monthlyPrice || 0 %>"
+                    data-yearly="<%= p.yearlyPrice || 0 %>"
+                    data-onetime="<%= p.price || 0 %>">
+                    <%= p.name %> —
+                    <%= p.monthlyPrice > 0 ? fmt.bdt(p.monthlyPrice) + '/mo' : fmt.bdt(p.price) + ' one-time' %>
+                  </option>
+                <% }); %>
+              </select>
+            </div>
+
+            <%# An "Additional service" select used to live here, guarded by
+                `typeof services !== 'undefined'`. No route ever passed
+                `services`, so it never rendered -- and it was incoherent
+                anyway: POST /order/checkout derives the service from the
+                chosen package and never reads a `serviceId` field. Removed
+                rather than left as markup that can't work. %>
+
+            <fieldset class="field">
+              <legend>Payment mode <span class="req">*</span></legend>
+              <div class="radio-cards">
+                <label class="radio-card <%= v.paymentMode !== 'monthly' && v.paymentMode !== 'yearly' ? 'selected' : '' %>">
+                  <input type="radio" name="paymentMode" value="one_time"
+                         <%= v.paymentMode !== 'monthly' && v.paymentMode !== 'yearly' ? 'checked' : '' %>>
+                  <span class="name">One-time</span>
+                  <span class="note">Pay once, own the build. No renewal.</span>
+                </label>
+                <label class="radio-card <%= v.paymentMode === 'monthly' ? 'selected' : '' %>">
+                  <input type="radio" name="paymentMode" value="monthly"
+                         <%= v.paymentMode === 'monthly' ? 'checked' : '' %>>
+                  <span class="name">Monthly</span>
+                  <span class="note">Hosting, updates and support billed every month.</span>
+                </label>
+                <label class="radio-card <%= v.paymentMode === 'yearly' ? 'selected' : '' %>">
+                  <input type="radio" name="paymentMode" value="yearly"
+                         <%= v.paymentMode === 'yearly' ? 'checked' : '' %>>
+                  <span class="name">Yearly</span>
+                  <span class="note">Same plan billed annually — two months free.</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="field">
+              <label for="projectName">Project / business name <span class="req">*</span></label>
+              <input id="projectName" name="projectName" type="text" required
+                     value="<%= v.projectName || '' %>"
+                     placeholder="e.g. Ahmed Fashion">
+            </div>
+
+            <% if (businessTypes && businessTypes.length) { %>
+              <div class="field">
+                <label for="businessType">Business type</label>
+                <select id="businessType" name="businessType">
+                  <option value="">Not sure / other</option>
+                  <% businessTypes.forEach(function (bt) { %>
+                    <option value="<%= bt %>" <%= v.businessType === bt ? 'selected' : '' %>><%= bt %></option>
+                  <% }); %>
+                </select>
+              </div>
+            <% } %>
+
+            <div class="field">
+              <label for="requirements">What do you need built?</label>
+              <textarea id="requirements" name="requirements" rows="4"
+                        placeholder="Products, delivery areas, whether you want bKash checkout, existing logo and photos..."><%= v.requirements || '' %></textarea>
+            </div>
+
+            <div class="form-grid two">
+              <div class="field">
+                <label for="domainName">Preferred domain</label>
+                <input id="domainName" name="domainName" type="text"
+                       value="<%= v.domainName || '' %>" placeholder="yourbusiness.com.bd">
+              </div>
+              <div class="field">
+                <label for="district">District <span class="req">*</span></label>
+                <select id="district" name="district" required>
+                  <option value="">Select district</option>
+                  <% districts.forEach(function (d) { %>
+                    <option value="<%= d[0] %>" <%= v.district === d[0] ? 'selected' : '' %>>
+                      <%= d[0] %> — <%= d[1] %>
+                    </option>
+                  <% }); %>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-header"><h3 class="mt-0 mb-0">Your details</h3></div>
+          <div class="card-body">
+            <div class="form-grid two">
+              <div class="field">
+                <label for="contactName">Contact person <span class="req">*</span></label>
+                <input id="contactName" name="contactName" type="text" required
+                       value="<%= v.contactName || me.name || '' %>">
+              </div>
+              <div class="field">
+                <label for="contactPhone">Mobile number <span class="req">*</span></label>
+                <input id="contactPhone" name="contactPhone" type="tel" required
+                       value="<%= v.contactPhone || me.phone || '' %>"
+                       placeholder="01XXXXXXXXX">
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="contactEmail">Email address</label>
+              <input id="contactEmail" name="contactEmail" type="email"
+                     value="<%= v.contactEmail || me.email || '' %>">
+              <% if (typeof isAuthenticated !== 'undefined' && isAuthenticated) { %>
+                <span class="hint">Signed in — this order will be attached to your account.</span>
+              <% } else { %>
+                <span class="hint">Leave this and we will create your account from your mobile number.</span>
+              <% } %>
+            </div>
+
+            <div class="field">
+              <label for="company">Business name</label>
+              <input id="company" name="company" type="text" value="<%= v.company || '' %>">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="field">
+          <label for="couponCode">Coupon code</label>
+          <input id="couponCode" name="couponCode" type="text" value="<%= v.couponCode || '' %>"
+                 placeholder="Have a discount code?">
+        </div>
+
+        <div class="mt-3">
+          <%- include('../partials/order-summary', { quote: quote }) %>
+        </div>
+
+        <div class="form-actions mt-3">
+          <button class="btn btn-outline btn-block" type="button" data-quote-refresh>
+            Update summary
+          </button>
+          <button class="btn btn-primary btn-block btn-lg" type="submit">
+            Place order
+          </button>
+        </div>
+
+        <p class="muted mt-3 mb-0">
+          Placing the order creates an invoice. You can pay by bKash, Nagad, Rocket or bank
+          transfer — we verify each transfer by hand within one business day.
+        </p>
+      </aside>
+    </form>
+  </div>
+</section>

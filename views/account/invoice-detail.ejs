@@ -1,0 +1,230 @@
+<nav class="muted mb-3">
+  <a href="/account">Dashboard</a> <span>/</span>
+  <a href="/account/invoices">Invoices</a> <span>/</span>
+  <span><%= invoice.invoiceNumber %></span>
+</nav>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1>Invoice <%= invoice.invoiceNumber %></h1>
+    <p class="meta-line muted mb-0">
+      <%- helpers.statusBadge(invoice.status, C.INVOICE_STATUS) %>
+      <span>&middot;</span>
+      <span>Issued <%= fmt.date(invoice.issueDate, 'medium') %></span>
+      <span>&middot;</span>
+      <span>Due <%= fmt.date(invoice.dueDate, 'medium') %></span>
+    </p>
+  </div>
+  <div class="actions no-print">
+    <button class="btn btn-outline" type="button" onclick="window.print()">Print</button>
+    <a class="btn btn-ghost" href="/account/invoices">All invoices</a>
+  </div>
+</section>
+
+<div class="card mt-4 invoice-doc">
+  <div class="card-body">
+    <div class="invoice-head">
+      <div class="issuer">
+        <h2 class="mt-0 mb-1"><%= settings.siteName || 'WooHelperPro' %></h2>
+        <% if (settings.officeAddress) { %><p class="muted mb-0"><%= settings.officeAddress %></p><% } %>
+        <% if (settings.supportPhone) { %><p class="muted mb-0">Phone: <%= settings.supportPhone %></p><% } %>
+        <% if (settings.supportEmail) { %><p class="muted mb-0">Email: <%= settings.supportEmail %></p><% } %>
+      </div>
+      <div class="invoice-meta">
+        <table class="table data">
+          <tbody>
+            <tr><th>Invoice number</th><td class="strong"><%= invoice.invoiceNumber %></td></tr>
+            <tr><th>Issue date</th><td><%= fmt.date(invoice.issueDate, 'long') %></td></tr>
+            <tr><th>Due date</th><td><%= fmt.date(invoice.dueDate, 'long') %></td></tr>
+            <tr><th>Status</th><td><%- helpers.statusBadge(invoice.status, C.INVOICE_STATUS) %></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid grid-2 mt-4">
+      <div>
+        <h4 class="mt-0">Billed to</h4>
+        <p class="mb-0">
+          <strong><%= invoice.user ? invoice.user.name : currentUser.name %></strong><br>
+          <% const billTo = invoice.user || currentUser; %>
+          <% if (billTo.company) { %><%= billTo.company %><br><% } %>
+          <% if (billTo.email) { %><%= billTo.email %><br><% } %>
+          <% if (billTo.phone) { %><%= billTo.phone %><br><% } %>
+          <% if (billTo.address) { %><%= billTo.address %><br><% } %>
+          <% if (billTo.district) { %><%= billTo.district %><% } %>
+        </p>
+      </div>
+      <div>
+        <h4 class="mt-0">Reference</h4>
+        <p class="mb-0">
+          <% if (invoice.order) { %>
+            Order: <a href="/account/orders/<%= invoice.order.id %>"><%= invoice.order.orderNumber %></a><br>
+          <% } %>
+          <% if (invoice.subscription) { %>
+            Plan: <a href="/account/subscriptions/<%= invoice.subscription.id %>"><%= invoice.subscription.planName %></a><br>
+          <% } %>
+          <% if (invoice.description) { %><%= invoice.description %><% } %>
+        </p>
+      </div>
+    </div>
+
+    <h4 class="mt-4">Charges</h4>
+    <div class="table-wrap">
+      <table class="table data">
+        <thead>
+          <tr><th>Description</th><th class="num">Amount</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><%= invoice.description || 'Website design and hosting services' %></td>
+            <td class="num"><%= fmt.bdt(invoice.subtotal || invoice.total) %></td>
+          </tr>
+          <% if (invoice.discountAmount > 0) { %>
+            <tr class="summary-discount">
+              <td>Discount<% if (invoice.couponCode) { %> (<%= invoice.couponCode %>)<% } %></td>
+              <td class="num">− <%= fmt.bdt(invoice.discountAmount) %></td>
+            </tr>
+          <% } %>
+          <% if (invoice.taxAmount > 0) { %>
+            <tr>
+              <td>VAT (<%= settings.vatPercent || 5 %>%)</td>
+              <td class="num"><%= fmt.bdt(invoice.taxAmount) %></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <ul class="summary-list mt-3">
+      <li class="total">
+        <span class="label">Invoice total</span>
+        <span class="value"><%= fmt.bdt(invoice.total) %></span>
+      </li>
+      <li>
+        <span class="label">Amount paid</span>
+        <span class="value"><%= fmt.bdt(invoice.amountPaid || 0) %></span>
+      </li>
+      <li class="<%= invoice.balance > 0 ? 'summary-tax' : '' %>">
+        <span class="label">Balance due</span>
+        <span class="value"><%= fmt.bdt(invoice.balance || 0) %></span>
+      </li>
+    </ul>
+
+    <% if (invoice.notes) { %>
+      <p class="muted mt-3 mb-0"><%= invoice.notes %></p>
+    <% } %>
+  </div>
+</div>
+
+<% if (invoice.payments && invoice.payments.length) { %>
+  <div class="card mt-4 no-print">
+    <div class="card-header"><h3 class="mt-0 mb-0">Payments recorded against this invoice</h3></div>
+    <div class="card-pad-0">
+      <table class="table data">
+        <thead>
+          <tr><th>Reference</th><th>Method</th><th>Transaction ID</th><th>Date</th><th>Status</th><th class="num">Amount</th></tr>
+        </thead>
+        <tbody>
+          <% invoice.payments.forEach(function (pay) { %>
+            <tr>
+              <td class="strong"><%= pay.reference || '—' %></td>
+              <td><%= C.PAYMENT_METHOD[pay.method] ? C.PAYMENT_METHOD[pay.method].en : pay.method %></td>
+              <td><%= pay.transactionId || '—' %></td>
+              <td><%= fmt.date(pay.createdAt, 'medium') %></td>
+              <td><%- helpers.statusBadge(pay.status, C.PAYMENT_STATUS) %></td>
+              <td class="num"><%= fmt.bdt(pay.amount) %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+
+<% if (invoice.balance > 0) { %>
+  <div class="card mt-4 no-print">
+    <div class="card-header">
+      <h3 class="mt-0 mb-0">Pay <%= fmt.bdt(invoice.balance) %></h3>
+    </div>
+    <div class="card-body">
+      <p class="muted">
+        Send the amount using one of the methods below, then record the transaction ID from your
+        confirmation SMS. Our team verifies each transfer by hand within one business day.
+      </p>
+
+      <form id="paymentForm" method="post" action="/account/invoices/<%= invoice.id %>/pay">
+        <%- csrfField %>
+
+        <fieldset class="field">
+          <legend>Payment method <span class="req">*</span></legend>
+          <div class="radio-cards">
+            <% gateways.forEach(function (g, i) { %>
+              <label class="radio-card <%= i === 0 ? 'selected' : '' %>">
+                <input type="radio" name="method" value="<%= g.key %>" <%= i === 0 ? 'checked' : '' %>>
+                <span class="name"><%= g.label %></span>
+                <span class="note"><%= g.labelBn %> — <%= g.configured ? 'automatic' : 'manual verification' %></span>
+              </label>
+            <% }); %>
+          </div>
+        </fieldset>
+
+        <div id="paymentInstructions">
+          <% gateways.forEach(function (g, i) { %>
+            <div class="pay-steps" data-gateway="<%= g.key %>" <%= i === 0 ? '' : 'hidden' %>>
+              <h4 class="mt-0"><%= g.instructions.title %></h4>
+              <ol>
+                <% g.instructions.steps.forEach(function (step) { %>
+                  <li><%= step %></li>
+                <% }); %>
+              </ol>
+              <p class="muted mb-0"><%= g.instructions.note %></p>
+            </div>
+          <% }); %>
+        </div>
+
+        <div class="form-grid two mt-3">
+          <div class="field">
+            <label for="transactionId">Transaction ID <span class="req">*</span></label>
+            <input id="transactionId" name="transactionId" type="text" required
+                   placeholder="e.g. 9A7B2C4D1E" autocomplete="off">
+            <span class="hint">Copy it from the confirmation SMS you received.</span>
+          </div>
+          <div class="field">
+            <label for="senderNumber">Your wallet number</label>
+            <input id="senderNumber" name="senderNumber" type="tel"
+                   value="<%= currentUser.phone || '' %>" placeholder="01XXXXXXXXX">
+            <span class="hint">The number you sent the money from.</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="amount">Amount paid <span class="req">*</span></label>
+          <input id="amount" name="amount" type="number" step="0.01" min="1"
+                 max="<%= invoice.balance %>" value="<%= invoice.balance %>" required>
+          <span class="hint">
+            Pay the full <%= fmt.bdt(invoice.balance) %>, or a part of it if we agreed a split.
+          </span>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary btn-lg" type="submit">Submit payment for verification</button>
+          <a class="btn btn-ghost" href="/account/tickets">Having trouble? Open a ticket</a>
+        </div>
+
+        <p class="muted mt-3 mb-0">
+          Your payment shows as <strong>pending</strong> until an administrator verifies it. You will
+          see the status change here and on your payments page.
+        </p>
+      </form>
+    </div>
+  </div>
+<% } else { %>
+  <div class="card mt-4 no-print">
+    <div class="card-body">
+      <p class="mb-0 accent-ok">
+        <strong>This invoice is fully paid.</strong> Thank you — nothing further is due.
+      </p>
+    </div>
+  </div>
+<% } %>

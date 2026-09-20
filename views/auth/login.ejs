@@ -1,0 +1,54 @@
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-head center">
+      <a class="brand brand-text" href="/"><span class="brand-mark">W</span> <%= settings.siteName || 'WooHelperPro' %></a>
+      <h1 class="mt-3 mb-1">Welcome back</h1>
+      <p class="muted mb-0">Sign in to track your orders, subscriptions and invoices.</p>
+    </div>
+
+    <form method="post" action="/login" class="auth-body" novalidate>
+      <%- csrfField %>
+
+      <% if (typeof returnTo !== 'undefined' && returnTo) { %>
+        <input type="hidden" name="returnTo" value="<%= returnTo %>">
+      <% } %>
+
+      <div class="field">
+        <label for="email">Email address <span class="req">*</span></label>
+        <input id="email" name="email" type="email" autocomplete="email" required
+               value="<%= typeof email !== 'undefined' && email ? email : '' %>"
+               placeholder="you@example.com">
+      </div>
+
+      <div class="field">
+        <label for="password">Password <span class="req">*</span></label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required
+               placeholder="Your password">
+        <a class="hint" href="/forgot-password">Forgot your password?</a>
+      </div>
+
+      <label class="check-row">
+        <input type="checkbox" name="remember" value="1" <%= typeof remember !== 'undefined' && remember ? 'checked' : '' %>>
+        <span>Keep me signed in on this device</span>
+      </label>
+
+      <div class="form-actions">
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Sign in</button>
+      </div>
+    </form>
+
+    <div class="auth-alt center">
+      <p class="mb-0">
+        New to <%= settings.siteName || 'WooHelperPro' %>?
+        <a href="/register">Create an account</a>
+      </p>
+    </div>
+
+    <div class="auth-foot center">
+      <p class="muted mb-0">
+        Having trouble signing in? Call
+        <a href="tel:<%= settings.supportPhone || '' %>"><%= settings.supportPhone || 'our support line' %></a>.
+      </p>
+    </div>
+  </div>
+</div>

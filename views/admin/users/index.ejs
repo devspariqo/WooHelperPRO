@@ -1,0 +1,160 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Users</h1>
+    <p class="meta-line muted mb-0">
+      Customers and staff. Lifetime value counts every order except cancelled and refunded ones.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-primary" href="/admin/users/new">Add user</a>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Customers</div>
+    <div class="kpi-value"><%= fmt.number(roleCounts.CUSTOMER || 0) %></div>
+    <div class="kpi-foot">Buying accounts</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Staff</div>
+    <div class="kpi-value">
+      <%= fmt.number((roleCounts.SUPER_ADMIN || 0) + (roleCounts.ADMIN || 0) + (roleCounts.MANAGER || 0)
+                    + (roleCounts.STAFF || 0) + (roleCounts.SUPPORT || 0)) %>
+    </div>
+    <div class="kpi-foot">
+      <%= fmt.number(roleCounts.SUPER_ADMIN || 0) %> super admin ·
+      <%= fmt.number(roleCounts.SUPPORT || 0) %> support
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Matching filter</div>
+    <div class="kpi-value"><%= fmt.number(pagination.total) %></div>
+    <div class="kpi-foot">Users in this result set</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Page</div>
+    <div class="kpi-value"><%= fmt.number(pagination.page) %></div>
+    <div class="kpi-foot">of <%= fmt.number(pagination.pages || 1) %></div>
+  </div>
+</div>
+
+<form method="get" action="/admin/users" class="filters mt-4">
+  <div class="field grow">
+    <label for="q">Search</label>
+    <input type="search" id="q" name="q" value="<%= filters.q %>"
+           placeholder="Name, email, phone or company">
+  </div>
+  <div class="field">
+    <label for="role">Role</label>
+    <select id="role" name="role">
+      <option value="">All roles</option>
+      <% Object.keys(roles).forEach(function (key) { %>
+        <option value="<%= key %>" <%= filters.role === key ? 'selected' : '' %>>
+          <%= roles[key] %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">All statuses</option>
+      <% ['ACTIVE', 'PENDING_VERIFICATION', 'INACTIVE', 'SUSPENDED'].forEach(function (key) { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>>
+          <%= C.USER_STATUS[key] ? C.USER_STATUS[key].en : key %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="field">
+    <label>&nbsp;</label>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </div>
+  <% if (filters.q || filters.role || filters.status) { %>
+    <div class="field">
+      <label>&nbsp;</label>
+      <a class="btn btn-outline" href="/admin/users">Reset</a>
+    </div>
+  <% } %>
+</form>
+
+<div class="card">
+  <div class="card-pad-0">
+    <% if (!users.length) { %>
+      <div class="card-body">
+        <%- helpers.emptyState('No users match these filters.',
+              '<a class="btn btn-primary" href="/admin/users/new">Add user</a>') %>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>User</th><th>Role</th><th>Company</th><th>District</th>
+              <th>KYC</th><th>Status</th>
+              <th class="num">Orders</th><th class="num">Lifetime value</th><th>Joined</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach(function (u) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/admin/users/<%= u.id %>"><%= u.name %></a>
+                  <% if (u.emailVerified) { %> <span title="Email verified">✓</span><% } %>
+                  <br><small class="muted"><%= u.email %></small>
+                  <% if (u.phone) { %>
+                    <br><small class="muted"><%= u.phone %></small>
+                  <% } %>
+                </td>
+                <td>
+                  <span class="badge badge-<%= ['SUPER_ADMIN', 'ADMIN'].includes(u.role) ? 'danger'
+                      : u.role === 'CUSTOMER' ? 'muted' : 'info' %>">
+                    <%= roles[u.role] || u.role %>
+                  </span>
+                </td>
+                <td><%= u.company || '—' %></td>
+                <td><%= u.district || '—' %></td>
+                <td><%- helpers.statusBadge(u.kycStatus, C.KYC_STATUS) %></td>
+                <td><%- helpers.statusBadge(u.status, C.USER_STATUS) %></td>
+                <td class="num">
+                  <%= fmt.number(u._count ? u._count.orders : 0) %>
+                  <% if (u._count && u._count.subscriptions) { %>
+                    <br><small class="muted">+<%= fmt.number(u._count.subscriptions) %> sub</small>
+                  <% } %>
+                </td>
+                <td class="num strong"><%= u.lifetimeValue > 0 ? fmt.bdt(u.lifetimeValue) : '—' %></td>
+                <td><%= fmt.date(u.createdAt, 'medium') %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<% if (pagination.pages > 1) { %>
+  <nav class="pagination" aria-label="User pages">
+    <% if (pagination.page > 1) { %>
+      <a href="/admin/users?page=<%= pagination.page - 1 %>&role=<%= filters.role %>&status=<%= filters.status %>&q=<%= filters.q %>">Prev</a>
+    <% } else { %>
+      <span class="disabled">Prev</span>
+    <% } %>
+    <% for (var i = 1; i <= pagination.pages; i++) { %>
+      <% if (i === pagination.page) { %>
+        <span class="current"><%= i %></span>
+      <% } else if (i <= 3 || i > pagination.pages - 3 || Math.abs(i - pagination.page) <= 1) { %>
+        <a href="/admin/users?page=<%= i %>&role=<%= filters.role %>&status=<%= filters.status %>&q=<%= filters.q %>"><%= i %></a>
+      <% } else if (Math.abs(i - pagination.page) === 2) { %>
+        <span class="info">…</span>
+      <% } %>
+    <% } %>
+    <% if (pagination.page < pagination.pages) { %>
+      <a href="/admin/users?page=<%= pagination.page + 1 %>&role=<%= filters.role %>&status=<%= filters.status %>&q=<%= filters.q %>">Next</a>
+    <% } else { %>
+      <span class="disabled">Next</span>
+    <% } %>
+    <span class="info"><%= fmt.number(pagination.total) %> users</span>
+  </nav>
+<% } %>

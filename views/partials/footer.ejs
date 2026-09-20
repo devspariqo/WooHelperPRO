@@ -1,0 +1,87 @@
+<footer class="site-footer">
+  <div class="container">
+
+    <div class="footer-grid">
+
+      <div class="footer-col footer-about">
+        <a href="/" class="brand">
+          <span class="brand-mark" aria-hidden="true">W</span>
+          <span class="brand-text">
+            <strong><%= settings.siteName %></strong>
+            <small>Bangladesh web studio</small>
+          </span>
+        </a>
+        <p>
+          <%= settings.tagline || 'We design, build and manage e-commerce websites for Bangladeshi businesses — complete with payment gateways, courier integration and ongoing maintenance.' %>
+        </p>
+
+        <div class="footer-contact">
+          <% if (settings.supportPhone) { %>
+            <span>Phone: <a href="tel:<%= settings.supportPhone %>"><%= settings.supportPhone %></a></span>
+          <% } %>
+          <% if (settings.whatsappNumber) { %>
+            <span>WhatsApp: <a href="https://wa.me/<%= settings.whatsappNumber %>" target="_blank" rel="noopener">+<%= settings.whatsappNumber %></a></span>
+          <% } %>
+          <% if (settings.supportEmail) { %>
+            <span>Email: <a href="mailto:<%= settings.supportEmail %>"><%= settings.supportEmail %></a></span>
+          <% } %>
+          <% if (settings.officeAddress) { %>
+            <span><%= settings.officeAddress %></span>
+          <% } %>
+        </div>
+
+        <div class="pay-logos">
+          <span>bKash</span><span>Nagad</span><span>Rocket</span>
+          <span>SSLCommerz</span><span>Bank transfer</span>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="/services">All services</a></li>
+          <li><a href="/packages">Packages &amp; pricing</a></li>
+          <li><a href="/order/checkout">Order a website</a></li>
+          <li><a href="/portfolio">Our work</a></li>
+          <li><a href="/services?category=ecommerce">E-commerce builds</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about">About us</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/contact#faq">FAQ</a></li>
+          <li><a href="/register">Create an account</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="/login">Sign in</a></li>
+          <li><a href="/account/tickets">Open a ticket</a></li>
+          <li><a href="/account/subscriptions">Manage subscription</a></li>
+          <li><a href="/legal/terms">Terms &amp; conditions</a></li>
+          <li><a href="/legal/privacy">Privacy policy</a></li>
+          <li><a href="/legal/refund">Refund policy</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <span>&copy; <%= new Date().getFullYear() %> <%= settings.siteName %>. All rights reserved.</span>
+
+      <div class="footer-social">
+        <% if (settings.facebookUrl) { %><a href="<%= settings.facebookUrl %>" target="_blank" rel="noopener">Facebook</a><% } %>
+        <% if (settings.youtubeUrl) { %><a href="<%= settings.youtubeUrl %>" target="_blank" rel="noopener">YouTube</a><% } %>
+        <% if (settings.linkedinUrl) { %><a href="<%= settings.linkedinUrl %>" target="_blank" rel="noopener">LinkedIn</a><% } %>
+        <a href="/api/health">System status</a>
+      </div>
+    </div>
+
+  </div>
+</footer>

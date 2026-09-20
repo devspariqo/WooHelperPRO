@@ -1,0 +1,143 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Support tickets</h1>
+    <p class="meta-line muted mb-0">
+      Customer support queue. Tickets move to <em>waiting customer</em> automatically
+      when a reply is sent, unless you pick another status.
+    </p>
+  </div>
+</section>
+
+<div class="dash-grid cols-3 mt-4">
+  <% Object.keys(ticketStatuses).forEach(function (key) { %>
+    <% if (statusCounts[key]) { %>
+      <div class="kpi">
+        <div class="kpi-label"><%- helpers.statusBadge(key, ticketStatuses) %></div>
+        <div class="kpi-value"><%= fmt.number(statusCounts[key]) %></div>
+        <div class="kpi-foot">ticket(s)</div>
+      </div>
+    <% } %>
+  <% }); %>
+</div>
+
+<form method="get" action="/admin/tickets" class="filters mt-4">
+  <div class="field grow">
+    <label for="q">Search</label>
+    <input type="search" id="q" name="q" value="<%= filters.q %>"
+           placeholder="Ticket number, subject or customer email">
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">All statuses</option>
+      <% Object.keys(ticketStatuses).forEach(function (key) { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>>
+          <%= ticketStatuses[key].en %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="category">Category</label>
+    <select id="category" name="category">
+      <option value="">All categories</option>
+      <% categories.forEach(function (cat) { %>
+        <option value="<%= cat %>" <%= filters.category === cat ? 'selected' : '' %>>
+          <%= cat.replace('_', ' ').toLowerCase() %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="field">
+    <label>&nbsp;</label>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </div>
+  <% if (filters.q || filters.status || filters.category) { %>
+    <div class="field">
+      <label>&nbsp;</label>
+      <a class="btn btn-outline" href="/admin/tickets">Reset</a>
+    </div>
+  <% } %>
+</form>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Ticket queue</h3>
+      <span class="sub muted">
+        <%= fmt.number(pagination.total) %> matching ·
+        page <%= pagination.page %> of <%= pagination.pages || 1 %>
+      </span>
+    </div>
+  </div>
+
+  <div class="card-pad-0">
+    <% if (!tickets.length) { %>
+      <div class="card-body"><%- helpers.emptyState('No tickets match these filters.') %></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Ticket</th><th>Customer</th><th>Subject</th>
+              <th>Category</th><th>Replies</th><th>Status</th><th>Opened</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% tickets.forEach(function (t) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/admin/tickets/<%= t.id %>"><%= t.ticketNumber %></a>
+                  <% if (t.priority && t.priority !== 'NORMAL') { %>
+                    <br><span class="badge badge-<%= t.priority === 'URGENT' ? 'danger' : 'warn' %>">
+                      <%= t.priority %>
+                    </span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (t.user) { %>
+                    <a href="/admin/users/<%= t.user.id %>"><%= t.user.name %></a>
+                    <br><small class="muted"><%= t.user.email %></small>
+                  <% } %>
+                </td>
+                <td><%= t.subject %></td>
+                <td><small><%= t.category.replace('_', ' ').toLowerCase() %></small></td>
+                <td><%= fmt.number(t._count ? t._count.replies : 0) %></td>
+                <td><%- helpers.statusBadge(t.status, ticketStatuses) %></td>
+                <td>
+                  <%= fmt.date(t.createdAt, 'medium') %>
+                  <br><small class="muted"><%= fmt.relative(t.updatedAt) %></small>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<% if (pagination.pages > 1) { %>
+  <nav class="pagination" aria-label="Ticket pages">
+    <% if (pagination.page > 1) { %>
+      <a href="/admin/tickets?page=<%= pagination.page - 1 %>&status=<%= filters.status %>&category=<%= filters.category %>&q=<%= filters.q %>">Prev</a>
+    <% } else { %>
+      <span class="disabled">Prev</span>
+    <% } %>
+    <% for (var i = 1; i <= pagination.pages; i++) { %>
+      <% if (i === pagination.page) { %>
+        <span class="current"><%= i %></span>
+      <% } else if (i <= 3 || i > pagination.pages - 3 || Math.abs(i - pagination.page) <= 1) { %>
+        <a href="/admin/tickets?page=<%= i %>&status=<%= filters.status %>&category=<%= filters.category %>&q=<%= filters.q %>"><%= i %></a>
+      <% } else if (Math.abs(i - pagination.page) === 2) { %>
+        <span class="info">…</span>
+      <% } %>
+    <% } %>
+    <% if (pagination.page < pagination.pages) { %>
+      <a href="/admin/tickets?page=<%= pagination.page + 1 %>&status=<%= filters.status %>&category=<%= filters.category %>&q=<%= filters.q %>">Next</a>
+    <% } else { %>
+      <span class="disabled">Next</span>
+    <% } %>
+    <span class="info"><%= fmt.number(pagination.total) %> tickets</span>
+  </nav>
+<% } %>

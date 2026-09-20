@@ -1,0 +1,93 @@
+<div class="auth-wrap">
+  <div class="auth-card wide">
+    <div class="auth-head center">
+      <a class="brand brand-text" href="/"><span class="brand-mark">W</span> <%= settings.siteName || 'WooHelperPro' %></a>
+      <h1 class="mt-3 mb-1">Create your account</h1>
+      <p class="muted mb-0">
+        Free to open. You only pay when you order a package or start a subscription.
+      </p>
+    </div>
+
+    <form method="post" action="/register" class="auth-body" novalidate>
+      <%- csrfField %>
+
+      <%
+        // The route only passes `values` on a validation failure re-render,
+        // so default it here rather than expecting it on first paint.
+        const v = typeof values !== 'undefined' && values ? values : {};
+      %>
+
+      <div class="form-grid two">
+        <div class="field">
+          <label for="name">Full name <span class="req">*</span></label>
+          <input id="name" name="name" type="text" required autocomplete="name"
+                 value="<%= v.name || '' %>" placeholder="Karim Ahmed">
+        </div>
+
+        <div class="field">
+          <label for="phone">Mobile number <span class="req">*</span></label>
+          <input id="phone" name="phone" type="tel" required autocomplete="tel"
+                 value="<%= v.phone || '' %>" placeholder="01XXXXXXXXX">
+          <span class="hint">Bangladeshi number — we use this for delivery and bKash confirmation.</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email address <span class="req">*</span></label>
+        <input id="email" name="email" type="email" required autocomplete="email"
+               value="<%= v.email || '' %>" placeholder="you@example.com">
+      </div>
+
+      <div class="form-grid two">
+        <div class="field">
+          <label for="company">Business name</label>
+          <input id="company" name="company" type="text" autocomplete="organization"
+                 value="<%= v.company || '' %>" placeholder="Optional">
+        </div>
+
+        <div class="field">
+          <label for="district">District</label>
+          <select id="district" name="district">
+            <option value="">Select your district</option>
+            <% districts.forEach(function (d) { %>
+              <option value="<%= d[0] %>" <%= v.district === d[0] ? 'selected' : '' %>>
+                <%= d[0] %> — <%= d[1] %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid two">
+        <div class="field">
+          <label for="password">Password <span class="req">*</span></label>
+          <input id="password" name="password" type="password" required autocomplete="new-password"
+                 placeholder="At least 8 characters">
+          <span class="hint">Minimum 8 characters, with a letter and a number.</span>
+        </div>
+
+        <div class="field">
+          <label for="confirmPassword">Confirm password <span class="req">*</span></label>
+          <input id="confirmPassword" name="confirmPassword" type="password" required
+                 autocomplete="new-password" placeholder="Repeat password">
+        </div>
+      </div>
+
+      <label class="check-row">
+        <input type="checkbox" name="terms" value="1" required>
+        <span>
+          I agree to the <a href="/legal/terms" target="_blank">terms of service</a> and the
+          <a href="/legal/privacy" target="_blank">privacy policy</a>.
+        </span>
+      </label>
+
+      <div class="form-actions">
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Create account</button>
+      </div>
+    </form>
+
+    <div class="auth-alt center">
+      <p class="mb-0">Already have an account? <a href="/login">Sign in instead</a></p>
+    </div>
+  </div>
+</div>

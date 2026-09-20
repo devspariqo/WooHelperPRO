@@ -1,0 +1,21 @@
+<section class="section">
+  <div class="container container-narrow center">
+    <div class="empty-state">
+      <div class="empty-icon">500</div>
+      <h1 class="mt-0">Something broke on our side</h1>
+      <p class="muted">
+        The request reached the server but the server could not finish it. The error has been
+        logged. Try again, and if it keeps happening contact us so we can look at the log.
+      </p>
+
+      <% if (typeof message !== 'undefined' && message) { %>
+        <p class="muted"><code><%= message %></code></p>
+      <% } %>
+
+      <div class="form-actions center">
+        <a class="btn btn-primary" href="/">Back to home</a>
+        <a class="btn btn-outline" href="/contact">Report this</a>
+      </div>
+    </div>
+  </div>
+</section>

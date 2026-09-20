@@ -1,0 +1,133 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>My profile</h1>
+    <p class="meta-line muted mb-0">
+      Keep these details current — we use them on invoices and to reach you about your build.
+    </p>
+  </div>
+  <div class="actions">
+    <%- helpers.statusBadge(currentUser.status || 'ACTIVE', C.USER_STATUS) %>
+  </div>
+</section>
+
+<div class="dash-grid cols-2 mt-4" style="align-items:start">
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Account details</h3></div>
+    <div class="card-body">
+      <form method="post" action="/account/profile">
+        <%- csrfField %>
+
+        <div class="field">
+          <label for="name">Full name <span class="req">*</span></label>
+          <input id="name" name="name" type="text" required value="<%= currentUser.name %>">
+        </div>
+
+        <div class="form-grid two">
+          <div class="field">
+            <label for="phone">Mobile number <span class="req">*</span></label>
+            <input id="phone" name="phone" type="tel" required
+                   value="<%= currentUser.phone || '' %>" placeholder="01XXXXXXXXX">
+          </div>
+          <div class="field">
+            <label for="company">Business name</label>
+            <input id="company" name="company" type="text"
+                   value="<%= currentUser.company || '' %>" placeholder="Optional">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" value="<%= currentUser.email %>">
+          <span class="hint">Changing your email changes how you sign in.</span>
+        </div>
+
+        <div class="field">
+          <label for="address">Delivery / billing address</label>
+          <textarea id="address" name="address" rows="2"
+                    placeholder="House, road, area"><%= currentUser.address || '' %></textarea>
+        </div>
+
+        <div class="field">
+          <label for="district">District</label>
+          <select id="district" name="district">
+            <option value="">Select district</option>
+            <% districts.forEach(function (d) { %>
+              <option value="<%= d[0] %>" <%= currentUser.district === d[0] ? 'selected' : '' %>>
+                <%= d[0] %> — <%= d[1] %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Change password</h3></div>
+      <div class="card-body">
+        <form method="post" action="/account/profile/password">
+          <%- csrfField %>
+
+          <div class="field">
+            <label for="currentPassword">Current password <span class="req">*</span></label>
+            <input id="currentPassword" name="currentPassword" type="password" required
+                   autocomplete="current-password">
+          </div>
+
+          <div class="field">
+            <label for="newPassword">New password <span class="req">*</span></label>
+            <input id="newPassword" name="newPassword" type="password" required
+                   autocomplete="new-password" placeholder="At least 8 characters">
+            <span class="hint">Minimum 8 characters, with a letter and a number.</span>
+          </div>
+
+          <div class="field">
+            <label for="confirmPassword">Confirm new password <span class="req">*</span></label>
+            <input id="confirmPassword" name="confirmPassword" type="password" required
+                   autocomplete="new-password">
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn-outline" type="submit">Update password</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><h3 class="mt-0 mb-0">Verification</h3></div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <dt>Email</dt>
+            <dd>
+              <% if (currentUser.emailVerified) { %>
+                <span class="badge badge-success">Verified</span>
+              <% } else { %>
+                <span class="badge badge-warn">Not verified</span>
+              <% } %>
+            </dd>
+          </div>
+          <div class="info-item">
+            <dt>Identity (KYC)</dt>
+            <dd><%- helpers.statusBadge(currentUser.kycStatus || 'NOT_SUBMITTED', C.KYC_STATUS) %></dd>
+          </div>
+          <div class="info-item">
+            <dt>Member since</dt>
+            <dd><%= fmt.date(currentUser.createdAt, 'long') %></dd>
+          </div>
+        </div>
+
+        <p class="muted mt-3 mb-0">
+          KYC verification is only needed for plans that involve payment collection on your behalf.
+          Contact support if you think you need it.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,169 @@
+<nav class="muted mb-3">
+  <a href="/account">Dashboard</a> <span>/</span>
+  <a href="/account/subscriptions">Subscriptions</a> <span>/</span>
+  <span><%= subscription.planName %></span>
+</nav>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1><%= subscription.planName %></h1>
+    <p class="meta-line muted mb-0">
+      <%- helpers.statusBadge(subscription.status, C.SUBSCRIPTION_STATUS) %>
+      <span>&middot;</span>
+      <span><%= subscription.subscriptionNumber %></span>
+    </p>
+  </div>
+  <div class="actions">
+    <% if (!['CANCELLED', 'EXPIRED'].includes(subscription.status)) { %>
+      <form method="post" action="/account/subscriptions/<%= subscription.id %>/auto-renew" class="inline-form">
+        <%- csrfField %>
+        <input type="hidden" name="autoRenew" value="<%= subscription.autoRenew ? 'off' : 'on' %>">
+        <button class="btn <%= subscription.autoRenew ? 'btn-outline' : 'btn-primary' %>" type="submit">
+          <%= subscription.autoRenew ? 'Turn auto-renew off' : 'Turn auto-renew on' %>
+        </button>
+      </form>
+    <% } %>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Amount per cycle</div>
+    <div class="kpi-value sm"><%= fmt.bdt(subscription.amount) %></div>
+    <div class="kpi-foot">
+      <%= C.BILLING_CYCLE[subscription.billingCycle] ? C.BILLING_CYCLE[subscription.billingCycle].en : subscription.billingCycle %>
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Current period ends</div>
+    <div class="kpi-value sm"><%= fmt.date(subscription.currentPeriodEnd, 'medium') %></div>
+    <div class="kpi-foot"><%= subscription.periodEndLabel || '' %></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Days remaining</div>
+    <div class="kpi-value"><%= subscription.daysRemaining === null || subscription.daysRemaining === undefined ? '—' : subscription.daysRemaining %></div>
+    <div class="kpi-foot">Auto-renew <%= subscription.autoRenew ? 'is on' : 'is off' %></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Started</div>
+    <div class="kpi-value sm"><%= fmt.date(subscription.startedAt || subscription.createdAt, 'medium') %></div>
+    <div class="kpi-foot">Months per cycle: <%= subscription.monthsPerCycle || 1 %></div>
+  </div>
+</div>
+
+<div class="dash-grid cols-2 mt-4">
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Next payment</h3></div>
+    <div class="card-body">
+      <% if (quote && quote.lineItems) { %>
+        <ul class="summary-list">
+          <% quote.lineItems.forEach(function (item) { %>
+            <li class="<%= item.amount < 0 ? 'summary-discount' : '' %>">
+              <span class="label"><%= item.label %></span>
+              <span class="value">
+                <%= item.amount < 0 ? '− ' + fmt.bdt(Math.abs(item.amount)) : fmt.bdt(item.amount) %>
+              </span>
+            </li>
+          <% }); %>
+          <% if (quote.discount > 0) { %>
+            <li class="summary-discount">
+              <span class="label">Discount</span>
+              <span class="value">− <%= fmt.bdt(quote.discount) %></span>
+            </li>
+          <% } %>
+          <li class="total">
+            <span class="label">Renewal total</span>
+            <span class="value"><%= fmt.bdt(quote.total) %></span>
+          </li>
+        </ul>
+        <p class="muted mt-3 mb-0">
+          This is what renews on <%= fmt.date(subscription.currentPeriodEnd, 'medium') %>.
+          Pay it from your invoices page.
+        </p>
+      <% } else { %>
+        <p class="muted mb-0">No renewal quote available for this plan.</p>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Add-ons</h3></div>
+    <div class="card-body">
+      <% if (subscription.addons && subscription.addons.length) { %>
+        <table class="table data">
+          <thead><tr><th>Add-on</th><th class="num">Qty</th><th class="num">Price</th></tr></thead>
+          <tbody>
+            <% subscription.addons.forEach(function (a) { %>
+              <tr>
+                <td><%= a.name %></td>
+                <td class="num"><%= a.quantity || 1 %></td>
+                <td class="num"><%= fmt.bdt(a.price) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } else { %>
+        <p class="muted">
+          No add-ons on this plan. Ask support to attach SEO, ads management or priority support.
+        </p>
+      <% } %>
+
+      <div class="form-actions mt-3">
+        <a class="btn btn-outline btn-sm" href="/account/tickets">Request an add-on</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header"><h3 class="mt-0 mb-0">Billing history</h3></div>
+  <div class="card-pad-0">
+    <% if (!subscription.invoices || !subscription.invoices.length) { %>
+      <div class="card-body"><p class="muted mb-0">No invoices raised against this plan yet.</p></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr><th>Invoice</th><th>Issued</th><th>Status</th><th class="num">Total</th><th class="num">Balance</th><th></th></tr>
+          </thead>
+          <tbody>
+            <% subscription.invoices.forEach(function (inv) { %>
+              <tr>
+                <td class="strong"><%= inv.invoiceNumber %></td>
+                <td><%= fmt.date(inv.issueDate, 'medium') %></td>
+                <td><%- helpers.statusBadge(inv.status, C.INVOICE_STATUS) %></td>
+                <td class="num"><%= fmt.bdt(inv.total) %></td>
+                <td class="num"><%= fmt.bdt(inv.balance || (inv.total - (inv.amountPaid || 0))) %></td>
+                <td class="row-actions">
+                  <a class="btn btn-outline btn-sm" href="/account/invoices/<%= inv.id %>">View</a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<% if (!['CANCELLED', 'EXPIRED'].includes(subscription.status)) { %>
+  <div class="card mt-4">
+    <div class="card-header"><h3 class="mt-0 mb-0">Cancel this plan</h3></div>
+    <div class="card-body">
+      <p class="muted">
+        Cancelling stops the next renewal. Your site keeps running until
+        <%= fmt.date(subscription.currentPeriodEnd, 'medium') %>, the end of the paid period.
+        Hosting and support end after that date.
+      </p>
+      <form method="post" action="/account/subscriptions/<%= subscription.id %>/cancel"
+            data-confirm="Cancel this subscription? Your site keeps running until the end of the paid period.">
+        <%- csrfField %>
+        <div class="field">
+          <label for="reason">Reason (optional)</label>
+          <input id="reason" name="reason" type="text" placeholder="Tell us why — it helps us improve">
+        </div>
+        <button class="btn btn-danger" type="submit">Cancel subscription</button>
+      </form>
+    </div>
+  </div>
+<% } %>

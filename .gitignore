@@ -1,0 +1,17 @@
+node_modules/
+.env
+*.log
+npm-debug.log*
+public/uploads/*
+!public/uploads/.gitkeep
+prisma/*.db
+prisma/*.db-journal
+.DS_Store
+coverage/
+dist/
+tmp/
+.vscode/
+.idea/
+
+# Agent workspace (local notes, not project source)
+.workbuddy-ai/

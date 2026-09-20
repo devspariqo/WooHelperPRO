@@ -1,0 +1,289 @@
+<%
+  /*
+   * Site settings singleton. `site` is the SiteSetting row (created on first
+   * visit if missing). `paymentConfig`, `mailConfig` and `courierConfig` are
+   * read-only environment config — shown so an operator can see which gateways
+   * and SMTP are actually wired up without opening the .env file.
+   */
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1>Site settings</h1>
+    <p class="meta-line muted mb-0">
+      Public identity, payment destinations and tax configuration. Changes take
+      effect immediately across the website and every invoice.
+    </p>
+  </div>
+</section>
+
+<% if (site.maintenanceMode) { %>
+  <div class="alert alert-warning mt-4">
+    <strong>Maintenance mode is on.</strong>
+    The public website is not serving customers. Turn this off once you are finished.
+  </div>
+<% } %>
+
+<form method="post" action="/admin/settings" class="mt-4">
+  <%- csrfField %>
+
+  <div class="dash-grid cols-2">
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Brand &amp; contact</h3></div>
+      <div class="card-body">
+        <div class="form-grid two">
+          <div class="field">
+            <label for="siteName">Site name <span class="req">*</span></label>
+            <input type="text" id="siteName" name="siteName" required maxlength="80"
+                   value="<%= site.siteName %>">
+          </div>
+          <div class="field">
+            <label for="supportEmail">Support email</label>
+            <input type="email" id="supportEmail" name="supportEmail" maxlength="160"
+                   value="<%= site.supportEmail %>">
+          </div>
+          <div class="field full">
+            <label for="tagline">Tagline (English)</label>
+            <input type="text" id="tagline" name="tagline" maxlength="200"
+                   value="<%= site.tagline %>"
+                   placeholder="Bangladesh's ecommerce website specialists">
+          </div>
+          <div class="field full">
+            <label for="taglineBn">Tagline (Bangla)</label>
+            <input type="text" id="taglineBn" name="taglineBn" maxlength="200"
+                   value="<%= site.taglineBn %>">
+          </div>
+          <div class="field">
+            <label for="supportPhone">Support phone</label>
+            <input type="tel" id="supportPhone" name="supportPhone" maxlength="24"
+                   value="<%= site.supportPhone %>" placeholder="+8801700000000">
+          </div>
+          <div class="field">
+            <label for="whatsappNumber">WhatsApp number</label>
+            <input type="tel" id="whatsappNumber" name="whatsappNumber" maxlength="20"
+                   value="<%= site.whatsappNumber %>" placeholder="8801700000000">
+            <span class="hint">Digits only, with country code. Powers the floating WhatsApp button.</span>
+          </div>
+          <div class="field full">
+            <label for="officeAddress">Office address</label>
+            <textarea id="officeAddress" name="officeAddress" rows="2"
+                      maxlength="400"><%= site.officeAddress %></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Payment destinations</h3></div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3">
+          These numbers are shown to customers on the checkout and invoice pages when
+          they choose a manual mobile-wallet transfer. Every transfer is verified by
+          hand, so they must be the accounts you actually monitor.
+        </div>
+        <div class="form-grid two">
+          <div class="field">
+            <label for="bkashNumber">bKash merchant number</label>
+            <input type="text" id="bkashNumber" name="bkashNumber" maxlength="20"
+                   value="<%= site.bkashNumber %>" placeholder="01XXXXXXXXX">
+          </div>
+          <div class="field">
+            <label for="nagadNumber">Nagad number</label>
+            <input type="text" id="nagadNumber" name="nagadNumber" maxlength="20"
+                   value="<%= site.nagadNumber %>">
+          </div>
+          <div class="field">
+            <label for="rocketNumber">Rocket number</label>
+            <input type="text" id="rocketNumber" name="rocketNumber" maxlength="24"
+                   value="<%= site.rocketNumber %>">
+          </div>
+          <div class="field">
+            <label for="vatPercent">VAT rate (%)</label>
+            <input type="number" id="vatPercent" name="vatPercent" step="0.5" min="0" max="30"
+                   value="<%= site.vatPercent %>">
+            <span class="hint">
+              5% is the common services rate in Bangladesh. Applied to every order,
+              invoice and renewal.
+            </span>
+          </div>
+          <div class="field full">
+            <label for="bankDetails">Bank transfer details</label>
+            <textarea id="bankDetails" name="bankDetails" rows="3" maxlength="600"
+                      placeholder="Account name, bank, branch, account number, routing number."><%= site.bankDetails %></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-grid cols-3 mt-4">
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Search engine defaults</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="metaTitle">Default meta title</label>
+            <input type="text" id="metaTitle" name="metaTitle" maxlength="160"
+                   value="<%= site.metaTitle %>">
+          </div>
+          <div class="field">
+            <label for="metaDescription">Default meta description</label>
+            <textarea id="metaDescription" name="metaDescription" rows="3"
+                      maxlength="320"><%= site.metaDescription %></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Social profiles</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="facebookUrl">Facebook page</label>
+            <input type="url" id="facebookUrl" name="facebookUrl" maxlength="250"
+                   value="<%= site.facebookUrl %>">
+          </div>
+          <div class="field">
+            <label for="youtubeUrl">YouTube channel</label>
+            <input type="url" id="youtubeUrl" name="youtubeUrl" maxlength="250"
+                   value="<%= site.youtubeUrl %>">
+          </div>
+          <div class="field">
+            <label for="linkedinUrl">LinkedIn page</label>
+            <input type="url" id="linkedinUrl" name="linkedinUrl" maxlength="250"
+                   value="<%= site.linkedinUrl %>">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Availability</h3></div>
+      <div class="card-body">
+        <label class="check-row" for="maintenanceMode">
+          <input type="checkbox" id="maintenanceMode" name="maintenanceMode"
+                 <%= site.maintenanceMode ? 'checked' : '' %>>
+          <span>
+            <strong>Maintenance mode</strong><br>
+            <small class="muted">Takes the public website offline. The admin panel stays reachable.</small>
+          </span>
+        </label>
+
+        <hr>
+        <p class="hint muted mb-0">
+          Last saved <%= fmt.datetime(site.updatedAt) %>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-body form-actions">
+      <button type="submit" class="btn btn-primary">Save settings</button>
+      <a class="btn btn-outline" href="/admin">Cancel</a>
+    </div>
+  </div>
+</form>
+
+<!-- ================= Read-only environment status ================= -->
+<div class="dash-grid cols-3 mt-4">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Payment gateways</h3>
+        <span class="sub muted">from environment</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <% var gateways = [
+        ['bKash', paymentConfig && paymentConfig.bkash],
+        ['Nagad', paymentConfig && paymentConfig.nagad],
+        ['SSLCommerz', paymentConfig && paymentConfig.sslcommerz],
+      ]; %>
+      <ul class="summary-list">
+        <% gateways.forEach(function (g) { %>
+          <li>
+            <span class="label"><%= g[0] %></span>
+            <span class="value">
+              <% var on = !!(g[1] && (g[1].enabled || g[1].storeId || g[1].merchantNumber || g[1].apiKey)); %>
+              <span class="badge badge-<%= on ? 'success' : 'muted' %>">
+                <%= on ? 'Configured' : 'Not configured' %>
+              </span>
+            </span>
+          </li>
+        <% }); %>
+      </ul>
+      <p class="hint muted mb-0">
+        Unconfigured gateways fall back to manual transfer with receipt submission,
+        which is the standard workflow for most Bangladeshi merchants.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Email delivery</h3>
+        <span class="sub muted">from environment</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <% var smtpOn = !!(mailConfig && mailConfig.host); %>
+      <ul class="summary-list">
+        <li>
+          <span class="label">SMTP host</span>
+          <span class="value"><%= smtpOn ? mailConfig.host : '—' %></span>
+        </li>
+        <li>
+          <span class="label">Status</span>
+          <span class="value">
+            <span class="badge badge-<%= smtpOn ? 'success' : 'warn' %>">
+              <%= smtpOn ? 'Live' : 'Log only' %>
+            </span>
+          </span>
+        </li>
+      </ul>
+      <% if (!smtpOn) { %>
+        <div class="alert alert-warning">
+          No SMTP is configured, so outbound email is written to the server log
+          instead of sent. Customers will not receive invoices or status updates —
+          relay anything important by phone or WhatsApp.
+        </div>
+      <% } else { %>
+        <p class="hint muted mb-0">Transactional email is delivered over SMTP.</p>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Courier integrations</h3>
+        <span class="sub muted">from environment</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <% var couriers = [
+        ['Pathao', courierConfig && courierConfig.pathao],
+        ['Steadfast', courierConfig && courierConfig.steadfast],
+        ['RedX', courierConfig && courierConfig.redx],
+      ]; %>
+      <ul class="summary-list">
+        <% couriers.forEach(function (c) { %>
+          <li>
+            <span class="label"><%= c[0] %></span>
+            <span class="value">
+              <span class="badge badge-<%= (c[1] && c[1].enabled) ? 'success' : 'muted' %>">
+                <%= (c[1] && c[1].enabled) ? 'Enabled' : 'Off' %>
+              </span>
+            </span>
+          </li>
+        <% }); %>
+      </ul>
+      <p class="hint muted mb-0">
+        Courier booking is handled outside this panel until credentials are added.
+      </p>
+    </div>
+  </div>
+</div>

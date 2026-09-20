@@ -1,0 +1,281 @@
+<%
+  /*
+   * Revenue analytics.
+   *
+   * `series` is month-by-month invoiced / collected / order counts. The bar
+   * heights are computed here as inline percentages — there is no charting
+   * library in this build, and a scaled CSS bar reads clearly without one.
+   */
+  var maxVal = 1;
+  series.forEach(function (m) {
+    if (m.invoiced > maxVal) maxVal = m.invoiced;
+    if (m.collected > maxVal) maxVal = m.collected;
+  });
+
+  var totalInvoiced = series.reduce(function (s, m) { return s + m.invoiced; }, 0);
+  var totalCollected = series.reduce(function (s, m) { return s + m.collected; }, 0);
+  var totalOrders = series.reduce(function (s, m) { return s + m.orders; }, 0);
+  var collectionRate = totalInvoiced > 0 ? Math.round((totalCollected / totalInvoiced) * 100) : 0;
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1>Reports</h1>
+    <p class="meta-line muted mb-0">
+      Revenue, collections and demand over the last <%= months %> months.
+      Invoiced counts everything raised; collected counts money actually received.
+    </p>
+  </div>
+  <div class="actions">
+    <form method="get" action="/admin/reports" class="row-form">
+      <label for="months" class="muted" style="font-size:13px">Range</label>
+      <select id="months" name="months" onchange="this.form.submit()">
+        <% [3, 6, 12, 24].forEach(function (m) { %>
+          <option value="<%= m %>" <%= months === m ? 'selected' : '' %>><%= m %> months</option>
+        <% }); %>
+      </select>
+      <noscript><button type="submit" class="btn btn-sm btn-outline">Apply</button></noscript>
+    </form>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Invoiced</div>
+    <div class="kpi-value sm"><%= fmt.bdt(totalInvoiced, { compact: true }) %></div>
+    <div class="kpi-foot">Over <%= months %> month(s)</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Collected</div>
+    <div class="kpi-value sm"><%= fmt.bdt(totalCollected, { compact: true }) %></div>
+    <div class="kpi-foot">
+      <span class="delta <%= collectionRate >= 80 ? 'up' : 'down' %>"><%= collectionRate %>%</span>
+      of the invoiced total
+    </div>
+  </div>
+  <div class="kpi <%= totalInvoiced - totalCollected > 0 ? 'accent-warn' : 'accent-ok' %>">
+    <div class="kpi-label">Uncollected</div>
+    <div class="kpi-value sm"><%= fmt.bdt(Math.max(0, totalInvoiced - totalCollected), { compact: true }) %></div>
+    <div class="kpi-foot">Invoiced but not yet received</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Orders</div>
+    <div class="kpi-value"><%= fmt.number(totalOrders) %></div>
+    <div class="kpi-foot">
+      Average <%= fmt.bdt(totalOrders ? Math.round(totalInvoiced / totalOrders) : 0) %> per order
+    </div>
+  </div>
+</div>
+
+<!-- ================= Monthly chart ================= -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Month by month</h3>
+      <span class="sub muted">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--brand-600)"></span> invoiced
+        <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--ok-500);margin-left:12px"></span> collected
+      </span>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="table data">
+      <thead>
+        <tr><th>Month</th><th style="width:55%">Volume</th><th class="num">Invoiced</th><th class="num">Collected</th><th class="num">Orders</th></tr>
+      </thead>
+      <tbody>
+        <% series.forEach(function (m) { %>
+          <tr>
+            <td class="strong"><%= m.label %></td>
+            <td>
+              <div class="progress" style="max-width:none;display:block">
+                <span class="progress-fill" style="width:<%= Math.round((m.invoiced / maxVal) * 100) %>%"></span>
+              </div>
+              <div class="progress" style="max-width:none;display:block;margin-top:4px">
+                <span class="progress-fill progress-success" style="width:<%= Math.round((m.collected / maxVal) * 100) %>%"></span>
+              </div>
+            </td>
+            <td class="num"><%= fmt.bdt(m.invoiced) %></td>
+            <td class="num"><%= fmt.bdt(m.collected) %></td>
+            <td class="num"><%= fmt.number(m.orders) %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="dash-grid cols-2 mt-4">
+  <!-- ================= By district ================= -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Demand by district</h3>
+        <span class="sub muted">top 10 by order value</span>
+      </div>
+    </div>
+    <div class="card-pad-0">
+      <% if (!byDistrict.length) { %>
+        <div class="card-body"><p class="muted mb-0">No orders recorded yet.</p></div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table data">
+            <thead>
+              <tr><th>District</th><th class="num">Orders</th><th class="num">Value</th></tr>
+            </thead>
+            <tbody>
+              <% byDistrict.forEach(function (d) { %>
+                <tr>
+                  <td class="strong"><%= d.district || 'Not specified' %></td>
+                  <td class="num"><%= fmt.number(d._count) %></td>
+                  <td class="num"><%= fmt.bdt(d._sum.total || 0) %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ================= By service ================= -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Revenue by service</h3>
+        <span class="sub muted">top 8</span>
+      </div>
+    </div>
+    <div class="card-pad-0">
+      <% if (!byService.length) { %>
+        <div class="card-body"><p class="muted mb-0">No service-linked orders yet.</p></div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table data">
+            <thead>
+              <tr><th>Service</th><th class="num">Orders</th><th class="num">Revenue</th></tr>
+            </thead>
+            <tbody>
+              <% byService.forEach(function (s) { %>
+                <tr>
+                  <td class="strong"><%= s.name %></td>
+                  <td class="num"><%= fmt.number(s.count) %></td>
+                  <td class="num"><%= fmt.bdt(s.revenue) %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="dash-grid cols-2 mt-4">
+  <!-- ================= Top customers ================= -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Top customers</h3>
+        <span class="sub muted">by lifetime value</span>
+      </div>
+    </div>
+    <div class="card-pad-0">
+      <% if (!topCustomers.length) { %>
+        <div class="card-body"><p class="muted mb-0">No customers recorded.</p></div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table data">
+            <thead>
+              <tr><th>Customer</th><th>District</th><th class="num">Orders</th><th class="num">Lifetime value</th></tr>
+            </thead>
+            <tbody>
+              <% topCustomers.forEach(function (c) { %>
+                <tr>
+                  <td>
+                    <a class="strong" href="/admin/users/<%= c.id %>"><%= c.name %></a>
+                    <br><small class="muted"><%= c.email %></small>
+                  </td>
+                  <td><%= c.district || '—' %></td>
+                  <td class="num"><%= fmt.number(c.orderCount) %></td>
+                  <td class="num strong"><%= fmt.bdt(c.lifetimeValue) %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ================= Payments & order mix ================= -->
+  <div>
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Payment position</h3></div>
+      <div class="card-body">
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <span class="label">Received</span>
+            <span class="value" style="font-size:16px"><%= fmt.bdt(payments.receivedAmount, { compact: true }) %></span>
+            <small class="muted"><%= fmt.number(payments.receivedCount) %> payment(s)</small>
+          </div>
+          <div class="mini-stat">
+            <span class="label">Pending</span>
+            <span class="value" style="font-size:16px"><%= fmt.bdt(payments.pendingAmount, { compact: true }) %></span>
+            <small class="muted"><%= fmt.number(payments.pendingCount) %> awaiting check</small>
+          </div>
+          <div class="mini-stat">
+            <span class="label">Refunded</span>
+            <span class="value" style="font-size:16px"><%= fmt.bdt(payments.refundedAmount, { compact: true }) %></span>
+            <small class="muted"><%= fmt.number(payments.refundedCount) %> refund(s)</small>
+          </div>
+        </div>
+
+        <% if (payments.byMethod && payments.byMethod.length) { %>
+          <h4 class="mt-3">Collected by method</h4>
+          <ul class="summary-list">
+            <% payments.byMethod.forEach(function (m) { %>
+              <li>
+                <span class="label"><%= C.PAYMENT_METHOD[m.method] ? C.PAYMENT_METHOD[m.method].en : m.method %></span>
+                <span class="value"><%= fmt.bdt(m.amount) %> <small class="muted">(<%= fmt.number(m.count) %>)</small></span>
+              </li>
+            <% }); %>
+          </ul>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-header"><h3 class="mt-0 mb-0">Orders by status</h3></div>
+      <div class="card-body">
+        <% if (!Object.keys(statusCounts).length) { %>
+          <p class="muted mb-0">No orders recorded.</p>
+        <% } else { %>
+          <div class="mini-stats">
+            <% Object.keys(orderStatuses).forEach(function (key) { %>
+              <% if (statusCounts[key]) { %>
+                <div class="mini-stat">
+                  <span class="label"><%- helpers.statusBadge(key, orderStatuses) %></span>
+                  <span class="value"><%= fmt.number(statusCounts[key]) %></span>
+                </div>
+              <% } %>
+            <% }); %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-body">
+    <p class="hint muted mb-0">
+      <strong>How to read this.</strong>
+      &ldquo;Invoiced&rdquo; includes draft-free invoices only, so a voided or draft
+      invoice never inflates revenue. &ldquo;Collected&rdquo; counts payments marked
+      SUCCESS — a payment left pending verification is excluded until someone approves
+      it on the Payments page. A large gap between the two is uncollected revenue, not
+      a reporting error.
+    </p>
+  </div>
+</div>

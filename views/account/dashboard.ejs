@@ -1,0 +1,188 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Welcome back, <%= currentUser.name.split(' ')[0] %></h1>
+    <p class="meta-line muted mb-0">
+      Here is where your projects, plans and invoices stand today.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-primary" href="/packages">Order another package</a>
+    <a class="btn btn-outline" href="/account/tickets">Open a ticket</a>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Orders placed</div>
+    <div class="kpi-value"><%= fmt.number(stats.orderCount) %></div>
+    <div class="kpi-foot"><%= stats.completedCount %> completed &amp; delivered</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Active subscriptions</div>
+    <div class="kpi-value"><%= fmt.number(stats.activeSubs) %></div>
+    <div class="kpi-foot">Renewing automatically where enabled</div>
+  </div>
+  <div class="kpi <%= stats.outstanding > 0 ? 'accent-warn' : 'accent-ok' %>">
+    <div class="kpi-label">Amount outstanding</div>
+    <div class="kpi-value sm"><%= fmt.bdt(stats.outstanding) %></div>
+    <div class="kpi-foot"><%= stats.outstanding > 0 ? 'Payment due on open invoices' : 'Nothing owed — thank you' %></div>
+  </div>
+</div>
+
+<% if (renewals && renewals.length) { %>
+  <div class="card mt-4">
+    <div class="card-header">
+      <h3 class="mt-0 mb-0">Renewals in the next 30 days</h3>
+    </div>
+    <div class="card-body">
+      <table class="table data">
+        <thead>
+          <tr><th>Plan</th><th>Renews</th><th class="num">Amount</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% renewals.forEach(function (sub) { %>
+            <tr>
+              <td class="strong"><%= sub.planName %></td>
+              <td><%= fmt.date(sub.currentPeriodEnd, 'medium') %></td>
+              <td class="num"><%= fmt.bdt(sub.amount) %></td>
+              <td class="row-actions">
+                <a class="btn btn-outline btn-sm" href="/account/subscriptions/<%= sub.id %>">Review</a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+
+<div class="dash-grid cols-2 mt-4">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Recent orders</h3>
+        <a class="sub" href="/account/orders">View all</a>
+      </div>
+    </div>
+    <div class="card-pad-0">
+      <% if (!orders.length) { %>
+        <div class="card-body">
+          <div class="empty-state">
+            <div class="empty-icon">▣</div>
+            <p class="muted mb-0">You have not placed an order yet.</p>
+            <a class="btn btn-primary btn-sm" href="/packages">Browse packages</a>
+          </div>
+        </div>
+      <% } else { %>
+        <table class="table data">
+          <thead>
+            <tr><th>Order</th><th>Status</th><th class="num">Total</th></tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(function (o) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/account/orders/<%= o.id %>"><%= o.orderNumber %></a>
+                  <br><small class="muted"><%= o.package ? o.package.name : 'Custom build' %></small>
+                </td>
+                <td><%- helpers.statusBadge(o.status, C.ORDER_STATUS) %></td>
+                <td class="num"><%= fmt.bdt(o.total) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Recent invoices</h3>
+        <a class="sub" href="/account/invoices">View all</a>
+      </div>
+    </div>
+    <div class="card-pad-0">
+      <% if (!invoices.length) { %>
+        <div class="card-body">
+          <div class="empty-state">
+            <div class="empty-icon">▭</div>
+            <p class="muted mb-0">No invoices yet.</p>
+          </div>
+        </div>
+      <% } else { %>
+        <table class="table data">
+          <thead>
+            <tr><th>Invoice</th><th>Status</th><th class="num">Balance</th></tr>
+          </thead>
+          <tbody>
+            <% invoices.forEach(function (inv) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/account/invoices/<%= inv.id %>"><%= inv.invoiceNumber %></a>
+                  <br><small class="muted"><%= inv.dueLabel %></small>
+                </td>
+                <td><%- helpers.statusBadge(inv.status, C.INVOICE_STATUS) %></td>
+                <td class="num"><%= fmt.bdt(inv.balance) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="dash-grid cols-2 mt-4">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Your subscriptions</h3>
+        <a class="sub" href="/account/subscriptions">View all</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <% if (!subscriptions.length) { %>
+        <p class="muted mb-0">
+          No active plans. A monthly plan covers hosting, updates and support once your site is live.
+        </p>
+      <% } else { %>
+        <div class="mini-stats">
+          <% subscriptions.forEach(function (sub) { %>
+            <div class="mini-stat">
+              <span class="label"><%= sub.planName %></span>
+              <span class="value"><%= fmt.bdt(sub.amount) %><small class="muted">/<%= sub.billingCycle === 'YEARLY' ? 'yr' : 'mo' %></small></span>
+              <%- helpers.statusBadge(sub.status, C.SUBSCRIPTION_STATUS) %>
+              <a class="btn btn-ghost btn-sm" href="/account/subscriptions/<%= sub.id %>">Manage</a>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Support tickets</h3>
+        <a class="sub" href="/account/tickets">View all</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <% if (!tickets.length) { %>
+        <p class="muted mb-0">No tickets open. Anything you raise appears here with our replies.</p>
+      <% } else { %>
+        <% tickets.forEach(function (t) { %>
+          <div class="feed">
+            <div class="feed-ico">✉</div>
+            <div class="feed-body">
+              <a class="strong" href="/account/tickets/<%= t.id %>"><%= t.subject %></a>
+              <div class="muted"><small><%= t.ticketNumber %> · <%= fmt.relative(t.updatedAt) %></small></div>
+            </div>
+            <%- helpers.statusBadge(t.status, C.TICKET_STATUS) %>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+  </div>
+</div>

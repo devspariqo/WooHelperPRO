@@ -1,0 +1,163 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Testimonials</h1>
+    <p class="meta-line muted mb-0">
+      Client reviews shown on the public site. Only approved testimonials appear;
+      featured ones are surfaced on the homepage.
+    </p>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Total</div>
+    <div class="kpi-value"><%= fmt.number(testimonials.length) %></div>
+    <div class="kpi-foot">Reviews collected</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Approved</div>
+    <div class="kpi-value"><%= fmt.number(testimonials.filter(function (t) { return t.isApproved; }).length) %></div>
+    <div class="kpi-foot">Visible on the website</div>
+  </div>
+  <div class="kpi <%= testimonials.filter(function (t) { return !t.isApproved; }).length ? 'accent-warn' : 'accent-ok' %>">
+    <div class="kpi-label">Awaiting moderation</div>
+    <div class="kpi-value"><%= fmt.number(testimonials.filter(function (t) { return !t.isApproved; }).length) %></div>
+    <div class="kpi-foot">Not yet published</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Featured</div>
+    <div class="kpi-value"><%= fmt.number(testimonials.filter(function (t) { return t.isFeatured; }).length) %></div>
+    <div class="kpi-foot">Pinned to the homepage</div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-pad-0">
+    <% if (!testimonials.length) { %>
+      <div class="card-body"><%- helpers.emptyState('No testimonials yet — add the first one below.') %></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Client</th><th>Review</th><th>Rating</th>
+              <th>Approved</th><th>Featured</th><th>Added</th><th class="num">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% testimonials.forEach(function (t) { %>
+              <tr>
+                <td>
+                  <span class="strong"><%= t.clientName %></span>
+                  <% if (t.company) { %><br><small class="muted"><%= t.company %></small><% } %>
+                  <% if (t.district) { %><br><small class="muted"><%= t.district %></small><% } %>
+                </td>
+                <td style="max-width:340px"><%= fmt.truncate(t.body, 140) %></td>
+                <td><span class="tst-stars"><%= '★'.repeat(t.rating) %><%= '☆'.repeat(5 - t.rating) %></span></td>
+                <td>
+                  <span class="badge badge-<%= t.isApproved ? 'success' : 'warn' %>">
+                    <%= t.isApproved ? 'Approved' : 'Pending' %>
+                  </span>
+                </td>
+                <td>
+                  <% if (t.isFeatured) { %><span class="badge badge-info">Featured</span><% } else { %><small class="muted">—</small><% } %>
+                </td>
+                <td><%= fmt.date(t.createdAt, 'medium') %></td>
+                <td class="num">
+                  <div class="row-actions">
+                    <form method="post" action="/admin/testimonials/<%= t.id %>">
+                      <%- csrfField %>
+                      <input type="hidden" name="body" value="<%= t.body %>">
+                      <input type="hidden" name="rating" value="<%= t.rating %>">
+                      <input type="hidden" name="isApproved" value="<%= t.isApproved ? 'off' : 'on' %>">
+                      <input type="hidden" name="isFeatured" value="<%= t.isFeatured ? 'on' : 'off' %>">
+                      <button type="submit" class="btn btn-sm <%= t.isApproved ? 'btn-outline' : 'btn-success' %>">
+                        <%= t.isApproved ? 'Unapprove' : 'Approve' %>
+                      </button>
+                    </form>
+
+                    <form method="post" action="/admin/testimonials/<%= t.id %>">
+                      <%- csrfField %>
+                      <input type="hidden" name="body" value="<%= t.body %>">
+                      <input type="hidden" name="rating" value="<%= t.rating %>">
+                      <input type="hidden" name="isApproved" value="on">
+                      <input type="hidden" name="isFeatured" value="<%= t.isFeatured ? 'off' : 'on' %>">
+                      <button type="submit" class="btn btn-sm btn-outline">
+                        <%= t.isFeatured ? 'Unfeature' : 'Feature' %>
+                      </button>
+                    </form>
+
+                    <form method="post" action="/admin/testimonials/<%= t.id %>/delete"
+                          onsubmit="return confirm('Delete the testimonial from <%= t.clientName %>?');">
+                      <%- csrfField %>
+                      <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header"><h3 class="mt-0 mb-0">Add a testimonial</h3></div>
+  <div class="card-body">
+    <form method="post" action="/admin/testimonials" class="form-grid two">
+      <%- csrfField %>
+      <div class="field">
+        <label for="clientName">Client name <span class="req">*</span></label>
+        <input type="text" id="clientName" name="clientName" required maxlength="120">
+      </div>
+      <div class="field">
+        <label for="company">Company</label>
+        <input type="text" id="company" name="company" maxlength="120">
+      </div>
+      <div class="field">
+        <label for="district">District</label>
+        <select id="district" name="district">
+          <option value="">— not set —</option>
+          <% districts.forEach(function (d) { %>
+            <% var dn = Array.isArray(d) ? d[0] : d; %>
+            <option value="<%= dn %>"><%= dn %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="field">
+        <label for="rating">Rating</label>
+        <select id="rating" name="rating">
+          <% [5, 4, 3, 2, 1].forEach(function (r) { %>
+            <option value="<%= r %>"><%= '★'.repeat(r) %> (<%= r %>)</option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="field full">
+        <label for="body">Review <span class="req">*</span></label>
+        <textarea id="body" name="body" rows="3" required maxlength="1000"
+                  placeholder="What the client said about the work."></textarea>
+        <span class="hint">At least a full sentence.</span>
+      </div>
+      <div class="field full">
+        <label for="bodyBn">Review (Bangla)</label>
+        <textarea id="bodyBn" name="bodyBn" rows="2" maxlength="1000"></textarea>
+      </div>
+      <div class="field">
+        <label>Publishing</label>
+        <label class="check-row" for="isApproved">
+          <input type="checkbox" id="isApproved" name="isApproved">
+          <span>Approve immediately</span>
+        </label>
+        <label class="check-row mt-0" for="isFeatured">
+          <input type="checkbox" id="isFeatured" name="isFeatured">
+          <span>Feature on the homepage</span>
+        </label>
+      </div>
+      <div class="field" style="justify-content:flex-end">
+        <button type="submit" class="btn btn-primary">Add testimonial</button>
+      </div>
+    </form>
+  </div>
+</div>

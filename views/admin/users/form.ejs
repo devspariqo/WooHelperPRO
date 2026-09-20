@@ -1,0 +1,193 @@
+<%
+  /*
+   * User create / edit form.
+   *
+   * `user` is null on create, an object on edit, and — when the create POST
+   * bounces back with a validation error — the raw req.body spread with id:null.
+   * That is why every field reads through a guard.
+   *
+   * Role assignment is super-admin only; the route silently downgrades any
+   * privileged role chosen by a lesser admin.
+   */
+  var u = (typeof user !== 'undefined' && user) ? user : {};
+  var isEdit = !!(u && u.id);
+  var action = isEdit ? '/admin/users/' + u.id : '/admin/users';
+  var currentRole = u.role || 'CUSTOMER';
+  var currentStatus = u.status || 'ACTIVE';
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1><%= isEdit ? 'Edit ' + u.name : 'Add user' %></h1>
+    <p class="meta-line muted mb-0">
+      <%= isEdit
+          ? 'Update the account record. Passwords are reset separately, from the user page.'
+          : 'Create a customer or staff account. The user is emailed a welcome message.' %>
+    </p>
+  </div>
+  <div class="actions">
+    <% if (isEdit) { %>
+      <a class="btn btn-outline" href="/admin/users/<%= u.id %>">View profile</a>
+    <% } %>
+    <a class="btn btn-outline" href="/admin/users">&larr; All users</a>
+  </div>
+</section>
+
+<form method="post" action="<%= action %>" class="mt-4">
+  <%- csrfField %>
+
+  <div class="dash-grid cols-2">
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Identity</h3></div>
+      <div class="card-body">
+        <div class="form-grid two">
+          <div class="field">
+            <label for="name">Full name <span class="req">*</span></label>
+            <input type="text" id="name" name="name" required maxlength="120"
+                   value="<%= u.name || '' %>" placeholder="Shahidul Islam">
+          </div>
+
+          <div class="field">
+            <label for="email">Email <span class="req">*</span></label>
+            <input type="email" id="email" name="email" required maxlength="160"
+                   value="<%= u.email || '' %>" placeholder="name@example.com.bd">
+            <span class="hint">Also the login identifier. Must be unique.</span>
+          </div>
+
+          <div class="field">
+            <label for="phone">Mobile</label>
+            <input type="tel" id="phone" name="phone" maxlength="20"
+                   value="<%= u.phone || '' %>" placeholder="01712345678">
+            <span class="hint">Bangladeshi format — stored normalised as +880…</span>
+          </div>
+
+          <div class="field">
+            <label for="company">Company</label>
+            <input type="text" id="company" name="company" maxlength="120"
+                   value="<%= u.company || '' %>">
+          </div>
+
+          <div class="field">
+            <label for="district">District</label>
+            <select id="district" name="district">
+              <option value="">— not set —</option>
+              <% districts.forEach(function (d) { %>
+                <% var dn = Array.isArray(d) ? d[0] : d; %>
+                <option value="<%= dn %>" <%= u.district === dn ? 'selected' : '' %>><%= dn %></option>
+              <% }); %>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="status">Account status</label>
+            <select id="status" name="status">
+              <option value="ACTIVE" <%= currentStatus === 'ACTIVE' ? 'selected' : '' %>>Active</option>
+              <option value="PENDING_VERIFICATION" <%= currentStatus === 'PENDING_VERIFICATION' ? 'selected' : '' %>>Pending verification</option>
+              <option value="INACTIVE" <%= currentStatus === 'INACTIVE' ? 'selected' : '' %>>Inactive</option>
+              <option value="SUSPENDED" <%= currentStatus === 'SUSPENDED' ? 'selected' : '' %>>Suspended</option>
+            </select>
+            <span class="hint">Suspended users cannot sign in.</span>
+          </div>
+
+          <div class="field full">
+            <label for="address">Address</label>
+            <textarea id="address" name="address" rows="2" maxlength="400"><%= u.address || '' %></textarea>
+          </div>
+
+          <% if (!isEdit) { %>
+            <div class="field full">
+              <label for="password">Temporary password <span class="req">*</span></label>
+              <input type="text" id="password" name="password" required maxlength="72"
+                     autocomplete="new-password" placeholder="At least 8 characters">
+              <span class="hint">
+                Share it over a secure channel. The user should change it after the first sign-in.
+              </span>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Access &amp; notes</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="role">Role</label>
+            <% if (canAssignRoles) { %>
+              <select id="role" name="role">
+                <% Object.keys(roles).forEach(function (key) { %>
+                  <option value="<%= key %>" <%= currentRole === key ? 'selected' : '' %>>
+                    <%= roles[key] %>
+                  </option>
+                <% }); %>
+              </select>
+              <span class="hint">
+                Staff roles unlock the admin panel, scoped by the permission matrix.
+                You cannot change your own role.
+              </span>
+            <% } else { %>
+              <input type="text" value="<%= roles[currentRole] || currentRole %>" disabled>
+              <input type="hidden" name="role" value="<%= currentRole %>">
+              <span class="hint">Only a super admin can change roles.</span>
+            <% } %>
+          </div>
+
+          <div class="field">
+            <label for="adminNotes">Internal notes</label>
+            <textarea id="adminNotes" name="adminNotes" rows="6" maxlength="1000"
+                      placeholder="Visible to staff only."><%= u.adminNotes || '' %></textarea>
+          </div>
+
+          <div class="field">
+            <h4 class="mb-0">What each role can reach</h4>
+            <ul class="summary-list">
+              <li><span class="label">Super admin</span><span class="value">Everything, including role changes and deletion</span></li>
+              <li><span class="label">Admin</span><span class="value">Everything except role management</span></li>
+              <li><span class="label">Manager</span><span class="value">Sales, catalogue, billing, content — no user deletion</span></li>
+              <li><span class="label">Staff</span><span class="value">Orders, projects, services, tickets</span></li>
+              <li><span class="label">Support</span><span class="value">Orders, tickets and leads only</span></li>
+              <li><span class="label">Customer</span><span class="value">Their own dashboard only</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-body form-actions">
+      <button type="submit" class="btn btn-primary">
+        <%= isEdit ? 'Save changes' : 'Create user' %>
+      </button>
+      <a class="btn btn-outline" href="/admin/users">Cancel</a>
+      <% if (isEdit) { %>
+        <span class="muted" style="margin-left:auto;font-size:13px">
+          Joined <%= fmt.date(u.createdAt, 'medium') %>
+          <% if (u.emailVerified) { %> · email verified<% } %>
+        </span>
+      <% } %>
+    </div>
+  </div>
+</form>
+
+<%# Deletion is super-admin only and lives outside the edit form.
+    `canDelete` is only passed by the detail route, not the form route — and the
+    admin always has the super-admin permission here, so gate on that. %>
+<% if (isEdit && can ? can('usersDelete') : false) { %>
+  <div class="card mt-4" style="border-color:var(--err-500)">
+    <div class="card-header"><h3 class="mt-0 mb-0" style="color:var(--err-700)">Danger zone</h3></div>
+    <div class="card-body">
+      <p class="muted">
+        A customer with orders or subscriptions is <strong>archived</strong> (set inactive),
+        never deleted — deleting would cascade away their invoices and corrupt the
+        revenue reports. Staff accounts with no financial history are removed outright.
+      </p>
+      <form method="post" action="/admin/users/<%= u.id %>/delete"
+            onsubmit="return confirm('Delete or archive <%= u.name %>? This cannot be undone.');">
+        <%- csrfField %>
+        <button type="submit" class="btn btn-danger">Delete this account</button>
+      </form>
+    </div>
+  </div>
+<% } %>

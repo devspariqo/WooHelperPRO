@@ -1,0 +1,67 @@
+<div id="orderSummary">
+  <% if (quote) { %>
+    <div class="card">
+      <div class="card-header">
+        <h3 class="mt-0 mb-0"><%= quote.package ? quote.package.name : 'Your order' %></h3>
+        <% if (quote.package && quote.package.billingCycle) { %>
+          <span class="pill"><%= C.BILLING_CYCLE[quote.package.billingCycle] ? C.BILLING_CYCLE[quote.package.billingCycle].en : quote.package.billingCycle %></span>
+        <% } %>
+      </div>
+
+      <div class="card-body">
+        <%
+          // `quote.lineItems` already contains the discount and VAT rows, so the
+          // list below renders them once. Only the total is added on top.
+          const items = quote.lineItems.filter(function (i) { return i.amount !== 0; });
+          const isRecurring = quote.paymentMode === 'monthly' || quote.paymentMode === 'yearly';
+        %>
+        <ul class="summary-list">
+          <% items.forEach(function (item) { %>
+            <li class="<%= item.amount < 0 ? 'summary-discount' : '' %>">
+              <span class="label"><%= item.label %></span>
+              <span class="value"><%= item.amount < 0 ? '− ' + fmt.bdt(Math.abs(item.amount)) : fmt.bdt(item.amount) %></span>
+            </li>
+          <% }); %>
+
+          <li class="total">
+            <span class="label">Total payable</span>
+            <span class="value"><%= fmt.bdt(quote.total) %></span>
+          </li>
+        </ul>
+
+        <% if (isRecurring) { %>
+          <p class="summary-note ok">
+            Recurring plan — <%= fmt.bdt(quote.total) %> every
+            <%= quote.paymentMode === 'yearly' ? 'year' : 'month' %>.
+            Renews automatically until you cancel.
+          </p>
+        <% } else { %>
+          <p class="summary-note">One-time payment. No automatic renewal.</p>
+        <% } %>
+
+        <% if (quote.coupon) { %>
+          <p class="summary-note ok">Coupon <strong><%= quote.coupon.code %></strong> applied — you saved <%= fmt.bdt(quote.discount) %>.</p>
+        <% } else if (quote.couponMessage && quote.couponMessage !== 'No coupon applied.') { %>
+          <p class="summary-note err"><%= quote.couponMessage %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <p class="muted mt-3 mb-0">
+      Prices in Bangladeshi Taka, inclusive of VAT. Payment is confirmed manually for bKash,
+      Nagad and Rocket transfers.
+    </p>
+  <% } else { %>
+    <div class="card">
+      <div class="card-header">
+        <h3 class="mt-0 mb-0">Order summary</h3>
+      </div>
+      <div class="card-body">
+        <p class="muted mb-0">
+          Choose a package and a payment mode, then press <strong>Update summary</strong> to see
+          the exact amount you will pay.
+        </p>
+      </div>
+    </div>
+  <% } %>
+</div>

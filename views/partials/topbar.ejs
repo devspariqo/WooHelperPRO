@@ -1,0 +1,39 @@
+<header class="app-topbar">
+
+  <button class="sidebar-toggle" type="button" aria-label="Toggle sidebar" data-sidebar-toggle>
+    <span></span><span></span><span></span>
+  </button>
+
+  <div class="topbar-title">
+    <h1><%= title %></h1>
+    <% if (typeof subtitle !== 'undefined' && subtitle) { %>
+      <p class="subtitle"><%= subtitle %></p>
+    <% } %>
+  </div>
+
+  <div class="topbar-actions">
+
+    <% if (panel === 'admin') { %>
+      <form action="/admin/orders" method="GET" class="topbar-search" role="search">
+        <input type="search" name="q" placeholder="Search orders, phone, email…" aria-label="Search orders" value="">
+      </form>
+    <% } %>
+
+    <a href="/lang/<%= lang === 'bn' ? 'en' : 'bn' %>" class="lang-toggle" title="Switch language">
+      <%= lang === 'bn' ? 'EN' : 'বাং' %>
+    </a>
+
+    <a href="/theme/<%= theme === 'dark' ? 'light' : 'dark' %>" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
+      <%= theme === 'dark' ? '☀' : '☾' %>
+    </a>
+
+    <a href="/" class="icon-btn" title="View website" aria-label="View website">⌂</a>
+
+    <form action="/logout" method="POST" class="inline-form">
+      <%- csrfField %>
+      <button type="submit" class="btn btn-outline btn-sm">Sign out</button>
+    </form>
+
+  </div>
+
+</header>

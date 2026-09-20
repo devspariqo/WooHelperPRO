@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= theme %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= typeof metaTitle !== 'undefined' && metaTitle ? metaTitle : title %></title>
+  <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/site.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>" data-panel="<%= panel || 'admin' %>">
+
+<div class="app-shell">
+
+  <%- include('../partials/sidebar') %>
+
+  <div class="app-main">
+
+    <%- include('../partials/topbar') %>
+
+    <div class="app-content">
+      <%- include('../partials/flash') %>
+      <%- body %>
+    </div>
+
+    <footer class="app-footer">
+      <span>&copy; <%= new Date().getFullYear() %> <%= settings.siteName %></span>
+      <span class="muted">
+        <%= panel === 'admin' ? 'Admin panel' : 'Customer account' %>
+        &middot; v1.0.0
+        &middot; <%= env === 'production' ? 'Production' : 'Development' %>
+      </span>
+    </footer>
+
+  </div>
+</div>
+
+<!-- Mobile sidebar backdrop -->
+<div class="sidebar-backdrop" hidden></div>
+
+<script src="/js/site.js" defer></script>
+<script src="/js/dashboard.js" defer></script>
+</body>
+</html>

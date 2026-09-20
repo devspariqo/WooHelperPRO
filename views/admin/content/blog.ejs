@@ -1,0 +1,97 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Blog posts</h1>
+    <p class="meta-line muted mb-0">
+      Long-form guides published to the public blog. Drafts are invisible to visitors.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/blog" target="_blank" rel="noopener">View on site</a>
+    <a class="btn btn-primary" href="/admin/blog/new">New post</a>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Total posts</div>
+    <div class="kpi-value"><%= fmt.number(posts.length) %></div>
+    <div class="kpi-foot"><%= fmt.number(posts.filter(function (p) { return p.status === 'PUBLISHED'; }).length) %> published</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Drafts</div>
+    <div class="kpi-value"><%= fmt.number(posts.filter(function (p) { return p.status !== 'PUBLISHED'; }).length) %></div>
+    <div class="kpi-foot">Not yet live</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Total views</div>
+    <div class="kpi-value"><%= fmt.number(posts.reduce(function (s, p) { return s + (p.views || 0); }, 0)) %></div>
+    <div class="kpi-foot">Across every post</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Featured</div>
+    <div class="kpi-value"><%= fmt.number(posts.filter(function (p) { return p.isFeatured; }).length) %></div>
+    <div class="kpi-foot">Pinned on the blog index</div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-pad-0">
+    <% if (!posts.length) { %>
+      <div class="card-body">
+        <%- helpers.emptyState('No posts yet.',
+              '<a class="btn btn-primary" href="/admin/blog/new">Write the first post</a>') %>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Post</th><th>Category</th><th>Status</th>
+              <th class="num">Views</th><th>Updated</th><th>Published</th><th class="num">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% posts.forEach(function (p) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/admin/blog/<%= p.id %>/edit"><%= p.title %></a>
+                  <% if (p.isFeatured) { %> <span class="badge badge-info">Featured</span><% } %>
+                  <br><small class="muted"><%= p.slug %></small>
+                </td>
+                <td><%= p.category || '—' %></td>
+                <td>
+                  <span class="badge badge-<%= p.status === 'PUBLISHED' ? 'success' : 'muted' %>">
+                    <%= p.status === 'PUBLISHED' ? 'Published' : 'Draft' %>
+                  </span>
+                </td>
+                <td class="num"><%= fmt.number(p.views || 0) %></td>
+                <td><%= fmt.relative(p.updatedAt) %></td>
+                <td>
+                  <% if (p.publishedAt) { %>
+                    <%= fmt.date(p.publishedAt, 'medium') %>
+                  <% } else { %>
+                    <small class="muted">—</small>
+                  <% } %>
+                </td>
+                <td class="num">
+                  <div class="row-actions">
+                    <a class="btn btn-sm btn-outline" href="/admin/blog/<%= p.id %>/edit">Edit</a>
+                    <% if (p.status === 'PUBLISHED') { %>
+                      <a class="btn btn-sm btn-outline" href="/blog/<%= p.slug %>"
+                         target="_blank" rel="noopener">View</a>
+                    <% } %>
+                    <form method="post" action="/admin/blog/<%= p.id %>/delete"
+                          onsubmit="return confirm('Delete the post “<%= p.title %>”?');">
+                      <%- csrfField %>
+                      <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

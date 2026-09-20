@@ -1,0 +1,55 @@
+{
+  "name": "woohelperpro",
+  "version": "1.0.0",
+  "description": "WooHelperPro - Bangladesh e-commerce website design agency platform with admin panel, user management, service & package management, and monthly/yearly subscription billing.",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "db:push": "prisma db push",
+    "db:seed": "node prisma/seed.js",
+    "db:reset": "node scripts/reset-db.js",
+    "setup": "npm run db:push && npm run db:seed",
+    "smoke": "bash scripts/smoke-test.sh",
+    "lint:views": "node scripts/audit-view-locals.js",
+    "lint:views:selftest": "node scripts/audit-view-locals.js --selftest",
+    "lint:view": "node scripts/run-audit.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "keywords": [
+    "bangladesh",
+    "ecommerce",
+    "website-design",
+    "subscription",
+    "saas",
+    "admin-panel"
+  ],
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-ejs-layouts": "^2.5.1",
+    "express-rate-limit": "^7.4.1",
+    "express-session": "^1.18.1",
+    "helmet": "^8.0.0",
+    "method-override": "^3.0.0",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.1",
+    "nanoid": "^3.3.8",
+    "nodemailer": "^10.0.10",
+    "prisma": "^5.22.0",
+    "sharp": "^0.35.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

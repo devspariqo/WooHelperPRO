@@ -1,0 +1,83 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>My subscriptions</h1>
+    <p class="meta-line muted mb-0">
+      Monthly and yearly plans covering hosting, security updates, backups and support.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-primary" href="/packages">Add a plan</a>
+  </div>
+</section>
+
+<% if (!subscriptions.length) { %>
+  <div class="card mt-4">
+    <div class="card-body">
+      <div class="empty-state">
+        <div class="empty-icon">↻</div>
+        <h3>No subscriptions yet</h3>
+        <p class="muted">
+          A monthly plan keeps your site hosted, patched and supported after launch.
+          You can also buy one as a standalone care plan.
+        </p>
+        <a class="btn btn-primary" href="/packages?billing=MONTHLY">See monthly plans</a>
+      </div>
+    </div>
+  </div>
+<% } else { %>
+  <div class="dash-grid cols-2 mt-4">
+    <% subscriptions.forEach(function (sub) { %>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-row">
+            <h3 class="mt-0 mb-0"><%= sub.planName %></h3>
+            <%- helpers.statusBadge(sub.status, C.SUBSCRIPTION_STATUS) %>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="mini-stats">
+            <div class="mini-stat">
+              <span class="label">Amount</span>
+              <span class="value"><%= fmt.bdt(sub.amount) %></span>
+            </div>
+            <div class="mini-stat">
+              <span class="label">Cycle</span>
+              <span class="value">
+                <%= C.BILLING_CYCLE[sub.billingCycle] ? C.BILLING_CYCLE[sub.billingCycle].en : sub.billingCycle %>
+              </span>
+            </div>
+            <div class="mini-stat">
+              <span class="label">Renews</span>
+              <span class="value"><%= sub.periodEndLabel || fmt.date(sub.currentPeriodEnd, 'medium') %></span>
+            </div>
+          </div>
+
+          <% if (sub.daysRemaining !== null && sub.daysRemaining !== undefined) { %>
+            <p class="muted mt-3 mb-2">
+              <% if (sub.daysRemaining < 0) { %>
+                Expired <%= Math.abs(sub.daysRemaining) %> day(s) ago.
+              <% } else if (sub.daysRemaining === 0) { %>
+                Renews today.
+              <% } else { %>
+                <%= sub.daysRemaining %> day(s) left in this period.
+              <% } %>
+            </p>
+          <% } %>
+
+          <p class="muted mb-2">
+            Auto-renew is
+            <strong><%= sub.autoRenew ? 'on' : 'off' %></strong>.
+            <% if (sub.addons && sub.addons.length) { %>
+              &middot; <%= sub.addons.length %> add-on(s) attached.
+            <% } %>
+          </p>
+
+          <div class="form-actions mt-3">
+            <a class="btn btn-outline btn-sm" href="/account/subscriptions/<%= sub.id %>">Manage plan</a>
+            <a class="btn btn-ghost btn-sm" href="/account/invoices">Invoices</a>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+<% } %>

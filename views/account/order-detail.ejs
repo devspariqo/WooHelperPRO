@@ -1,0 +1,278 @@
+<nav class="muted mb-3">
+  <a href="/account">Dashboard</a> <span>/</span>
+  <a href="/account/orders">Orders</a> <span>/</span>
+  <span><%= order.orderNumber %></span>
+</nav>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1><%= order.orderNumber %></h1>
+    <p class="meta-line muted mb-0">
+      <%- helpers.statusBadge(order.status, C.ORDER_STATUS) %>
+      <span>&middot;</span>
+      <span><%= order.package ? order.package.name : 'Custom build' %></span>
+      <span>&middot;</span>
+      <span>Placed <%= fmt.date(order.createdAt, 'medium') %></span>
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/account/invoices">All invoices</a>
+    <% if (nextStatuses && nextStatuses.includes('CANCELLED')) { %>
+      <form method="post" action="/account/orders/<%= order.id %>/cancel" class="inline-form"
+            data-confirm="Cancel this order? Any payment already made is handled under our refund policy.">
+        <%- csrfField %>
+        <input type="hidden" name="reason" value="Customer cancelled before production">
+        <button class="btn btn-danger" type="submit">Cancel order</button>
+      </form>
+    <% } %>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Order total</div>
+    <div class="kpi-value sm"><%= fmt.bdt(order.total) %></div>
+    <div class="kpi-foot">Incl. VAT</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Amount paid</div>
+    <div class="kpi-value sm"><%= fmt.bdt(order.paidAmount || 0) %></div>
+    <div class="kpi-foot"><%= order.payments ? order.payments.length : 0 %> payment(s) recorded</div>
+  </div>
+  <div class="kpi <%= order.balance > 0 ? 'accent-warn' : 'accent-ok' %>">
+    <div class="kpi-label">Balance due</div>
+    <div class="kpi-value sm"><%= fmt.bdt(order.balance || 0) %></div>
+    <div class="kpi-foot"><%= order.balance > 0 ? 'Pay to start production' : 'Fully paid' %></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Delivery</div>
+    <div class="kpi-value sm"><%= order.dueLabel || '—' %></div>
+    <div class="kpi-foot">
+      <% if (order.deliveryDate) { %>
+        Delivered <%= fmt.date(order.deliveryDate, 'medium') %>
+      <% } else { %>
+        <%= order.deliveryDays || '—' %> day build
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="dash-grid cols-2 mt-4">
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Project progress</h3></div>
+    <div class="card-body">
+      <% if (order.project) { %>
+        <%
+          const miles = (order.project.milestones || []);
+          const doneCount = miles.filter(function (m) { return m.isDone; }).length;
+        %>
+        <div class="mb-3">
+          <%- helpers.progressBar(order.project.progress || 0, (order.project.progress || 0) === 100 ? 'success' : 'primary') %>
+        </div>
+        <p class="muted">
+          Stage: <strong><%= order.project.currentStage || (C.PROJECT_STATUS[order.project.status] || {}).en || '—' %></strong>
+          <% if (miles.length) { %>
+            &middot; <%= doneCount %> of <%= miles.length %> milestones complete
+          <% } %>
+        </p>
+
+        <% if (miles.length) { %>
+          <div class="timeline">
+            <% miles.forEach(function (m) { %>
+              <div class="<%= m.isDone ? 'done' : 'current' %>">
+                <span class="dot"></span>
+                <div>
+                  <strong><%= m.title %></strong>
+                  <% if (m.description) { %><div class="muted"><small><%= m.description %></small></div><% } %>
+                  <div class="muted"><small>
+                    <%= m.isDone && m.completedAt ? 'Completed ' + fmt.date(m.completedAt, 'medium') : (m.dueDate ? 'Due ' + fmt.date(m.dueDate, 'medium') : 'Pending') %>
+                  </small></div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
+
+        <% if (order.project.stagingUrl || order.project.liveUrl || order.project.repoUrl) { %>
+          <div class="form-actions mt-3">
+            <% if (order.project.stagingUrl) { %>
+              <a class="btn btn-outline btn-sm" href="<%= order.project.stagingUrl %>" target="_blank" rel="noopener">Staging site ↗</a>
+            <% } %>
+            <% if (order.project.liveUrl) { %>
+              <a class="btn btn-primary btn-sm" href="<%= order.project.liveUrl %>" target="_blank" rel="noopener">Live site ↗</a>
+            <% } %>
+            <% if (order.project.repoUrl) { %>
+              <a class="btn btn-ghost btn-sm" href="<%= order.project.repoUrl %>" target="_blank" rel="noopener">Repository ↗</a>
+            <% } %>
+          </div>
+        <% } %>
+      <% } else { %>
+        <p class="muted mb-0">
+          A project tracker opens as soon as your payment is verified and we begin work.
+        </p>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Order details</h3></div>
+    <div class="card-body">
+      <div class="info-grid">
+        <div class="info-item">
+          <dt>Package</dt>
+          <dd><%= order.package ? order.package.name : 'Custom build' %></dd>
+        </div>
+        <div class="info-item">
+          <dt>Payment mode</dt>
+          <dd><%= order.paymentMode === 'SUBSCRIPTION' ? 'Subscription' : 'One-time' %></dd>
+        </div>
+        <div class="info-item">
+          <dt>Billing cycle</dt>
+          <dd>
+            <%= order.billingCycle && C.BILLING_CYCLE[order.billingCycle] ? C.BILLING_CYCLE[order.billingCycle].en : (order.billingCycle || '—') %>
+          </dd>
+        </div>
+        <div class="info-item">
+          <dt>Project type</dt>
+          <dd><%= order.projectType || '—' %></dd>
+        </div>
+        <div class="info-item">
+          <dt>Domain</dt>
+          <dd><%= order.domainName || 'Not provided' %></dd>
+        </div>
+        <div class="info-item">
+          <dt>District</dt>
+          <dd><%= order.district || '—' %></dd>
+        </div>
+        <% if (order.subtotal) { %>
+          <div class="info-item">
+            <dt>Subtotal</dt>
+            <dd><%= fmt.bdt(order.subtotal) %></dd>
+          </div>
+        <% } %>
+        <% if (order.discountAmount) { %>
+          <div class="info-item">
+            <dt>Discount</dt>
+            <dd>− <%= fmt.bdt(order.discountAmount) %></dd>
+          </div>
+        <% } %>
+        <% if (order.taxAmount) { %>
+          <div class="info-item">
+            <dt>VAT</dt>
+            <dd><%= fmt.bdt(order.taxAmount) %></dd>
+          </div>
+        <% } %>
+      </div>
+
+      <% if (selectedPages && selectedPages.length) { %>
+        <h4 class="mt-3">Pages requested</h4>
+        <div class="form-actions">
+          <% selectedPages.forEach(function (pg) { %>
+            <span class="pill"><%= pg %></span>
+          <% }); %>
+        </div>
+      <% } %>
+
+      <% if (order.requirements) { %>
+        <h4 class="mt-3">Your brief</h4>
+        <p class="muted"><%= order.requirements %></p>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<% if (order.balance > 0) { %>
+  <div class="card mt-4">
+    <div class="card-header">
+      <h3 class="mt-0 mb-0">Pay <%= fmt.bdt(order.balance) %> to start</h3>
+    </div>
+    <div class="card-body">
+      <p class="muted">
+        Send the amount to any of the wallets below, then record the transaction ID.
+        Our team verifies each transfer by hand, usually within one business day.
+      </p>
+
+      <div class="pay-grid">
+        <% gateways.forEach(function (g) { %>
+          <div class="pay-option">
+            <span class="name"><%= g.label %><% if (!g.configured) { %> <span class="badge badge-muted">manual</span><% } %></span>
+            <span class="note"><%= g.labelBn %></span>
+          </div>
+        <% }); %>
+      </div>
+
+      <%
+        const sendTo = gateways.find(function (g) { return g.key === 'BKASH'; }) || gateways[0];
+      %>
+      <% if (sendTo) { %>
+        <div class="pay-steps">
+          <h4 class="mt-0">How to pay</h4>
+          <ol>
+            <% sendTo.instructions.steps.forEach(function (step) { %>
+              <li><%= step %></li>
+            <% }); %>
+          </ol>
+          <p class="muted mb-0"><%= sendTo.instructions.note %></p>
+        </div>
+      <% } %>
+
+      <div class="form-actions mt-3">
+        <a class="btn btn-primary" href="/account/invoices">Open the invoice to record payment</a>
+        <a class="btn btn-outline" href="/account/tickets">Need help paying?</a>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+<div class="card mt-4">
+  <div class="card-header"><h3 class="mt-0 mb-0">Invoices</h3></div>
+  <div class="card-pad-0">
+    <% if (!order.invoices || !order.invoices.length) { %>
+      <div class="card-body"><p class="muted mb-0">No invoice raised yet.</p></div>
+    <% } else { %>
+      <table class="table data">
+        <thead>
+          <tr><th>Invoice</th><th>Issued</th><th>Status</th><th class="num">Total</th><th class="num">Balance</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% order.invoices.forEach(function (inv) { %>
+            <tr>
+              <td class="strong"><%= inv.invoiceNumber %></td>
+              <td><%= fmt.date(inv.issueDate, 'medium') %></td>
+              <td><%- helpers.statusBadge(inv.status, C.INVOICE_STATUS) %></td>
+              <td class="num"><%= fmt.bdt(inv.total) %></td>
+              <td class="num"><%= fmt.bdt(inv.balance || (inv.total - (inv.amountPaid || 0))) %></td>
+              <td class="row-actions">
+                <a class="btn btn-outline btn-sm" href="/account/invoices/<%= inv.id %>">View</a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<% if (order.payments && order.payments.length) { %>
+  <div class="card mt-4">
+    <div class="card-header"><h3 class="mt-0 mb-0">Payments made</h3></div>
+    <div class="card-pad-0">
+      <table class="table data">
+        <thead>
+          <tr><th>Reference</th><th>Method</th><th>Date</th><th>Status</th><th class="num">Amount</th></tr>
+        </thead>
+        <tbody>
+          <% order.payments.forEach(function (pay) { %>
+            <tr>
+              <td><%= pay.reference || pay.transactionId || '—' %></td>
+              <td><%= C.PAYMENT_METHOD[pay.method] ? C.PAYMENT_METHOD[pay.method].en : pay.method %></td>
+              <td><%= fmt.date(pay.createdAt, 'medium') %></td>
+              <td><%- helpers.statusBadge(pay.status, C.PAYMENT_STATUS) %></td>
+              <td class="num"><%= fmt.bdt(pay.amount) %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>

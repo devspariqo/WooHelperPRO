@@ -1,0 +1,204 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Subscriptions</h1>
+    <p class="meta-line muted mb-0">
+      Recurring plans, ordered by the renewal date nearest to today.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/subscriptions/new">New subscription</a>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Monthly recurring revenue</div>
+    <div class="kpi-value sm"><%= fmt.bdt(mrr, { compact: true }) %></div>
+    <div class="kpi-foot">Normalised across all billing cycles</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Annual run rate</div>
+    <div class="kpi-value sm"><%= fmt.bdt(arr, { compact: true }) %></div>
+    <div class="kpi-foot">MRR × 12</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Active subscriptions</div>
+    <div class="kpi-value"><%= fmt.number(statusCounts.ACTIVE || 0) %></div>
+    <div class="kpi-foot">
+      <%= fmt.number(statusCounts.PAST_DUE || 0) %> past due ·
+      <%= fmt.number(statusCounts.PAUSED || 0) %> paused
+    </div>
+  </div>
+  <div class="kpi <%= renewals.length ? 'accent-warn' : 'accent-ok' %>">
+    <div class="kpi-label">Renewals in 14 days</div>
+    <div class="kpi-value"><%= fmt.number(renewals.length) %></div>
+    <div class="kpi-foot">Worth <%= fmt.bdt(renewals.reduce(function (s, r) { return s + Number(r.amount); }, 0)) %></div>
+  </div>
+</div>
+
+<form method="get" action="/admin/subscriptions" class="filters mt-4">
+  <div class="field grow">
+    <label for="q">Search</label>
+    <input type="search" id="q" name="q" value="<%= filters.q %>"
+           placeholder="Subscription number, plan, customer or email">
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">All statuses</option>
+      <% Object.keys(subscriptionStatuses).forEach(function (key) { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>>
+          <%= subscriptionStatuses[key].en %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="field">
+    <label>&nbsp;</label>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </div>
+  <% if (filters.q || filters.status) { %>
+    <div class="field">
+      <label>&nbsp;</label>
+      <a class="btn btn-outline" href="/admin/subscriptions">Reset</a>
+    </div>
+  <% } %>
+</form>
+
+<% if (renewals.length) { %>
+  <div class="card mb-3">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Renewals due in the next 14 days</h3>
+        <form method="post" action="/admin/subscriptions/run-billing">
+          <%- csrfField %>
+          <input type="hidden" name="dryRun" value="on">
+          <button type="submit" class="btn btn-sm btn-outline">Dry-run billing sweep</button>
+        </form>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="feed">
+        <% renewals.forEach(function (r) { %>
+          <div class="feed-ico">↻</div>
+          <div class="feed-body">
+            <a class="strong" href="/admin/subscriptions/<%= r.id %>"><%= r.planName %></a>
+            <div class="muted">
+              <small>
+                <%= r.user ? r.user.name : 'Customer' %> ·
+                <%= r.billingCycle.replace('_', ' ').toLowerCase() %> ·
+                <%= fmt.date(r.currentPeriodEnd, 'medium') %>
+              </small>
+            </div>
+          </div>
+          <span class="strong"><%= fmt.bdt(r.amount) %></span>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">All subscriptions</h3>
+      <span class="sub muted">
+        <%= fmt.number(pagination.total) %> matching ·
+        page <%= pagination.page %> of <%= pagination.pages || 1 %>
+      </span>
+    </div>
+  </div>
+
+  <div class="card-pad-0">
+    <% if (!subscriptions.length) { %>
+      <div class="card-body">
+        <%- helpers.emptyState('No subscriptions match these filters.',
+              '<a class="btn btn-primary" href="/admin/subscriptions/new">New subscription</a>') %>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Subscription</th>
+              <th>Customer</th>
+              <th>Plan</th>
+              <th>Cycle</th>
+              <th class="num">Amount</th>
+              <th>Renews</th>
+              <th>Status</th>
+              <th class="num">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% subscriptions.forEach(function (s) { %>
+              <% var overdue = s.renewalOverdue; %>
+              <tr>
+                <td>
+                  <a class="strong" href="/admin/subscriptions/<%= s.id %>"><%= s.subscriptionNumber %></a>
+                  <% if (overdue) { %>
+                    <br><small style="color:var(--err-700);font-weight:600">
+                      <%= Math.abs(s.daysRemaining) %> day(s) overdue
+                    </small>
+                  <% } %>
+                </td>
+                <td>
+                  <a href="/admin/users/<%= s.userId %>"><%= s.user ? s.user.name : '—' %></a>
+                  <br><small class="muted"><%= s.user ? s.user.email : '' %></small>
+                </td>
+                <td>
+                  <%= s.planName %>
+                  <% if (s.addons && s.addons.length) { %>
+                    <br><small class="muted">+<%= s.addons.length %> add-on(s)</small>
+                  <% } %>
+                </td>
+                <td>
+                  <% var cyc = C.BILLING_CYCLE[s.billingCycle]; %>
+                  <%= cyc ? cyc.en : s.billingCycle %>
+                </td>
+                <td class="num strong"><%= fmt.bdt(s.amount) %></td>
+                <td>
+                  <%= fmt.date(s.currentPeriodEnd, 'medium') %>
+                  <br><small class="muted">
+                    <%= overdue ? 'overdue' : 'in ' + s.daysRemaining + ' day(s)' %>
+                  </small>
+                </td>
+                <td><%- helpers.statusBadge(s.status, subscriptionStatuses) %></td>
+                <td class="num">
+                  <div class="row-actions">
+                    <a class="btn btn-sm btn-outline" href="/admin/subscriptions/<%= s.id %>">Manage</a>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<% if (pagination.pages > 1) { %>
+  <nav class="pagination" aria-label="Subscription pages">
+    <% if (pagination.page > 1) { %>
+      <a href="/admin/subscriptions?page=<%= pagination.page - 1 %>&status=<%= filters.status %>&q=<%= filters.q %>">Prev</a>
+    <% } else { %>
+      <span class="disabled">Prev</span>
+    <% } %>
+    <% for (var i = 1; i <= pagination.pages; i++) { %>
+      <% if (i === pagination.page) { %>
+        <span class="current"><%= i %></span>
+      <% } else if (i <= 3 || i > pagination.pages - 3 || Math.abs(i - pagination.page) <= 1) { %>
+        <a href="/admin/subscriptions?page=<%= i %>&status=<%= filters.status %>&q=<%= filters.q %>"><%= i %></a>
+      <% } else if (Math.abs(i - pagination.page) === 2) { %>
+        <span class="info">…</span>
+      <% } %>
+    <% } %>
+    <% if (pagination.page < pagination.pages) { %>
+      <a href="/admin/subscriptions?page=<%= pagination.page + 1 %>&status=<%= filters.status %>&q=<%= filters.q %>">Next</a>
+    <% } else { %>
+      <span class="disabled">Next</span>
+    <% } %>
+    <span class="info"><%= fmt.number(pagination.total) %> subscriptions</span>
+  </nav>
+<% } %>

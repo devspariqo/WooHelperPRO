@@ -1,0 +1,91 @@
+<nav class="muted mb-3">
+  <a href="/account">Dashboard</a> <span>/</span>
+  <a href="/account/tickets">Tickets</a> <span>/</span>
+  <span><%= ticket.ticketNumber %></span>
+</nav>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1><%= ticket.subject %></h1>
+    <p class="meta-line muted mb-0">
+      <%- helpers.statusBadge(ticket.status, C.TICKET_STATUS) %>
+      <span>&middot;</span>
+      <span><%= ticket.ticketNumber %></span>
+      <span>&middot;</span>
+      <span>Opened <%= fmt.date(ticket.createdAt, 'medium') %></span>
+      <% if (ticket.category) { %>
+        <span>&middot;</span>
+        <span><%= ticket.category.replace(/_/g, ' ').toLowerCase() %></span>
+      <% } %>
+      <% if (ticket.priority) { %>
+        <span>&middot;</span>
+        <span><%= ticket.priority.toLowerCase() %> priority</span>
+      <% } %>
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/account/tickets">All tickets</a>
+  </div>
+</section>
+
+<div class="card mt-4">
+  <div class="card-header"><h3 class="mt-0 mb-0">Conversation</h3></div>
+  <div class="card-body">
+    <div class="feed">
+      <div class="feed-ico">◉</div>
+      <div class="feed-body">
+        <strong>You</strong>
+        <time class="muted"><small><%= fmt.datetime(ticket.createdAt) %></small></time>
+        <p class="mb-0"><%= ticket.body %></p>
+      </div>
+    </div>
+
+    <% (ticket.replies || []).forEach(function (reply) { %>
+      <div class="feed">
+        <div class="feed-ico"><%= reply.isStaff ? 'W' : '◉' %></div>
+        <div class="feed-body">
+          <strong>
+            <% if (reply.isStaff) { %>
+              <%= reply.user ? reply.user.name : 'WooHelperPro support' %>
+              <span class="badge badge-info">Team</span>
+            <% } else { %>
+              You
+            <% } %>
+          </strong>
+          <time class="muted"><small><%= fmt.datetime(reply.createdAt) %></small></time>
+          <p class="mb-0"><%= reply.body %></p>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+</div>
+
+<% if (!['CLOSED'].includes(ticket.status)) { %>
+  <div class="card mt-4">
+    <div class="card-header"><h3 class="mt-0 mb-0">Add a reply</h3></div>
+    <div class="card-body">
+      <form method="post" action="/account/tickets/<%= ticket.id %>/reply">
+        <%- csrfField %>
+        <div class="field">
+          <label for="body">Your message <span class="req">*</span></label>
+          <textarea id="body" name="body" rows="5" required
+                    placeholder="Add anything that helps us solve this faster — screenshots described, order numbers, error messages."></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit">Send reply</button>
+        </div>
+      </form>
+      <p class="muted mt-3 mb-0">
+        Replying to a resolved ticket reopens it and puts it back in our queue.
+      </p>
+    </div>
+  </div>
+<% } else { %>
+  <div class="card mt-4">
+    <div class="card-body">
+      <p class="mb-0 muted">
+        This ticket is closed. If you need more help, open a new ticket — we keep the history here for reference.
+      </p>
+    </div>
+  </div>
+<% } %>

@@ -1,0 +1,84 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Services</h1>
+    <p class="meta-line muted mb-0">
+      What you sell. A service becomes orderable once it has a package attached.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/services/categories">Categories</a>
+    <a class="btn btn-primary" href="/admin/services/new">Add service</a>
+  </div>
+</section>
+
+<form class="filters mt-3" method="get" action="/admin/services">
+  <div class="field grow">
+    <label for="q">Search</label>
+    <input id="q" name="q" type="search" value="<%= filters.q || '' %>" placeholder="Title or description">
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status" data-auto-submit>
+      <option value="">All statuses</option>
+      <option value="ACTIVE" <%= filters.status === 'ACTIVE' ? 'selected' : '' %>>Active</option>
+      <option value="DRAFT" <%= filters.status === 'DRAFT' ? 'selected' : '' %>>Draft</option>
+      <option value="ARCHIVED" <%= filters.status === 'ARCHIVED' ? 'selected' : '' %>>Archived</option>
+    </select>
+  </div>
+  <div class="field">
+    <button class="btn btn-primary" type="submit">Filter</button>
+  </div>
+</form>
+
+<div class="card mt-4">
+  <div class="card-pad-0">
+    <% if (!services.length) { %>
+      <div class="card-body">
+        <div class="empty-state">
+          <div class="empty-icon">▤</div>
+          <h3>No services found</h3>
+          <p class="muted">Add your first service, then attach a package to it.</p>
+          <a class="btn btn-primary" href="/admin/services/new">Add service</a>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data" data-sortable>
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th class="num">Base price</th>
+              <th class="num">Packages</th>
+              <th class="num no-sort"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% services.forEach(function (svc) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/admin/services/<%= svc.id %>"><%= svc.title %></a>
+                  <br><small class="muted">/services/<%= svc.slug %></small>
+                </td>
+                <td><%= svc.category ? svc.category.name : '—' %></td>
+                <td>
+                  <span class="badge badge-<%= svc.status === 'ACTIVE' ? 'success' : (svc.status === 'DRAFT' ? 'warn' : 'muted') %>">
+                    <%= svc.status.charAt(0) + svc.status.slice(1).toLowerCase() %>
+                  </span>
+                  <% if (svc.isFeatured) { %><span class="badge badge-info">Featured</span><% } %>
+                </td>
+                <td class="num"><%= fmt.bdt(svc.basePrice) %></td>
+                <td class="num"><%= svc._count ? svc._count.packages : 0 %></td>
+                <td class="row-actions">
+                  <a class="btn btn-outline btn-sm" href="/admin/services/<%= svc.id %>/edit">Edit</a>
+                  <a class="btn btn-ghost btn-sm" href="/services/<%= svc.slug %>" target="_blank" rel="noopener">View ↗</a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

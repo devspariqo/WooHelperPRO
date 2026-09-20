@@ -1,0 +1,207 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Coupons</h1>
+    <p class="meta-line muted mb-0">
+      Discount codes applied automatically at checkout. A maximum-uses value of 0
+      means the code never runs out.
+    </p>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Total coupons</div>
+    <div class="kpi-value"><%= fmt.number(coupons.length) %></div>
+    <div class="kpi-foot"><%= fmt.number(coupons.filter(function (c) { return c.isActive; }).length) %> active</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Redemptions</div>
+    <div class="kpi-value"><%= fmt.number(coupons.reduce(function (s, c) { return s + (c.usedCount || 0); }, 0)) %></div>
+    <div class="kpi-foot">Across all codes</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Expired</div>
+    <div class="kpi-value"><%= fmt.number(coupons.filter(function (c) { return c.expired; }).length) %></div>
+    <div class="kpi-foot">Past their end date</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Exhausted</div>
+    <div class="kpi-value">
+      <%= fmt.number(coupons.filter(function (c) { return c.remaining !== null && c.remaining <= 0; }).length) %>
+    </div>
+    <div class="kpi-foot">Used up their allowance</div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-pad-0">
+    <% if (!coupons.length) { %>
+      <div class="card-body">
+        <%- helpers.emptyState('No coupons yet — add the first one below.') %>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Code</th><th>Discount</th><th>Applies to</th>
+              <th class="num">Min order</th><th class="num">Used</th>
+              <th>Expires</th><th>Status</th><th class="num">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% coupons.forEach(function (c) { %>
+              <tr>
+                <td>
+                  <span class="strong"><%= c.code %></span>
+                  <% if (c.description) { %>
+                    <br><small class="muted"><%= c.description %></small>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (c.discountType === 'FIXED') { %>
+                    <%= fmt.bdt(c.discountValue) %> off
+                  <% } else { %>
+                    <%= c.discountValue %>% off
+                  <% } %>
+                </td>
+                <td><small><%= c.appliesTo.toLowerCase() %></small></td>
+                <td class="num"><%= c.minOrder ? fmt.bdt(c.minOrder) : '—' %></td>
+                <td class="num">
+                  <%= fmt.number(c.usedCount) %>
+                  <% if (c.maxUses > 0) { %>
+                    <small class="muted">/ <%= fmt.number(c.maxUses) %></small>
+                  <% } else { %>
+                    <small class="muted">/ ∞</small>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (c.expiresAt) { %>
+                    <%= fmt.date(c.expiresAt, 'medium') %>
+                    <% if (c.expired) { %><br><small style="color:var(--err-700)">expired</small><% } %>
+                  <% } else { %>
+                    <small class="muted">no expiry</small>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (!c.isActive) { %>
+                    <span class="badge badge-muted">Disabled</span>
+                  <% } else if (c.expired) { %>
+                    <span class="badge badge-danger">Expired</span>
+                  <% } else if (c.remaining !== null && c.remaining <= 0) { %>
+                    <span class="badge badge-warn">Exhausted</span>
+                  <% } else { %>
+                    <span class="badge badge-success">Live</span>
+                  <% } %>
+                </td>
+                <td class="num">
+                  <div class="row-actions">
+                    <form method="post" action="/admin/coupons/<%= c.id %>/toggle">
+                      <%- csrfField %>
+                      <button type="submit" class="btn btn-sm btn-outline">
+                        <%= c.isActive ? 'Disable' : 'Enable' %>
+                      </button>
+                    </form>
+                    <form method="post" action="/admin/coupons/<%= c.id %>/delete"
+                          onsubmit="return confirm('Delete coupon <%= c.code %>? <%= c.usedCount %> redemption(s) are recorded against it.');">
+                      <%- csrfField %>
+                      <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="dash-grid cols-2 mt-4">
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Create a coupon</h3></div>
+    <div class="card-body">
+      <form method="post" action="/admin/coupons" class="form-grid two">
+        <%- csrfField %>
+        <div class="field">
+          <label for="code">Code <span class="req">*</span></label>
+          <input type="text" id="code" name="code" required maxlength="40"
+                 placeholder="EID2026" style="text-transform:uppercase">
+          <span class="hint">Stored uppercase. At least 3 characters.</span>
+        </div>
+        <div class="field">
+          <label for="discountType">Discount type</label>
+          <select id="discountType" name="discountType">
+            <option value="PERCENT">Percentage off</option>
+            <option value="FIXED">Fixed amount off</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="discountValue">Discount value <span class="req">*</span></label>
+          <input type="number" id="discountValue" name="discountValue" step="1" min="1" required
+                 placeholder="10">
+          <span class="hint">Percent for PERCENT, taka for FIXED.</span>
+        </div>
+        <div class="field">
+          <label for="appliesTo">Applies to</label>
+          <select id="appliesTo" name="appliesTo">
+            <option value="ALL">Everything</option>
+            <option value="PACKAGE">Packages only</option>
+            <option value="SERVICE">Services only</option>
+            <option value="SUBSCRIPTION">Subscriptions only</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="minOrder">Minimum order (৳)</label>
+          <input type="number" id="minOrder" name="minOrder" step="1" min="0" value="0">
+        </div>
+        <div class="field">
+          <label for="maxUses">Maximum uses</label>
+          <input type="number" id="maxUses" name="maxUses" step="1" min="0" value="0">
+          <span class="hint">0 = unlimited.</span>
+        </div>
+        <div class="field">
+          <label for="expiresAt">Expires on</label>
+          <input type="date" id="expiresAt" name="expiresAt">
+        </div>
+        <div class="field">
+          <label>Availability</label>
+          <label class="check-row" for="isActive">
+            <input type="checkbox" id="isActive" name="isActive" checked>
+            <span>Active immediately</span>
+          </label>
+        </div>
+        <div class="field full">
+          <label for="description">Description</label>
+          <input type="text" id="description" name="description" maxlength="200"
+                 placeholder="Eid campaign — 10% off any store package">
+        </div>
+        <div class="field full">
+          <button type="submit" class="btn btn-primary">Create coupon</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">How discounts are calculated</h3></div>
+    <div class="card-body">
+      <p class="muted">The pricing engine applies a coupon in this order:</p>
+      <ul class="summary-list">
+        <li><span class="label">1. Subtotal</span><span class="value">Package or service price</span></li>
+        <li><span class="label">2. Setup fee</span><span class="value">Added for recurring plans</span></li>
+        <li class="summary-discount"><span class="label">3. Coupon</span><span class="value">On the combined amount</span></li>
+        <li class="summary-tax"><span class="label">4. VAT</span><span class="value">On the discounted amount</span></li>
+      </ul>
+      <div class="alert alert-info mt-3">
+        VAT is charged <strong>after</strong> the discount, so a coupon reduces the tax too.
+        A fixed discount is capped at the order value — it can never produce a negative total.
+      </div>
+      <p class="hint muted mb-0">
+        Minimum order is checked against the pre-discount subtotal, so a
+        &ldquo;10% off orders over ৳20,000&rdquo; code will not trigger on a ৳19,000 basket.
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,286 @@
+<%
+  /*
+   * Invoice detail. `payments` on the invoice are every attempt recorded against
+   * it; `paymentMethods` lets accounts raise a manual receipt for cash or a
+   * direct bank credit.
+   */
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1>
+      <%= invoice.invoiceNumber %>
+      <%- helpers.statusBadge(invoice.status, invoiceStatuses) %>
+      <% if (invoice.balance <= 0 && Number(invoice.amountPaid) > 0) { %>
+        <span class="badge badge-success">settled</span>
+      <% } %>
+    </h1>
+    <p class="meta-line muted mb-0">
+      <%= invoice.title %>
+      · issued <%= fmt.date(invoice.issueDate, 'medium') %>
+      · due <%= fmt.date(invoice.dueDate, 'medium') %>
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/invoices">&larr; All invoices</a>
+    <form method="post" action="/admin/invoices/<%= invoice.id %>/resend">
+      <%- csrfField %>
+      <button type="submit" class="btn btn-primary">Email the customer</button>
+    </form>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Invoice total</div>
+    <div class="kpi-value sm"><%= fmt.bdt(invoice.total) %></div>
+    <div class="kpi-foot">
+      <%= fmt.bdt(invoice.subtotal) %> subtotal
+      <% if (invoice.discount > 0) { %>− <%= fmt.bdt(invoice.discount) %><% } %>
+      <% if (invoice.tax > 0) { %>+ <%= fmt.bdt(invoice.tax) %> VAT<% } %>
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Received</div>
+    <div class="kpi-value sm"><%= fmt.bdt(invoice.amountPaid) %></div>
+    <div class="kpi-foot">
+      <%= invoice.payments.filter(function (p) { return p.status === 'SUCCESS'; }).length %> successful payment(s)
+    </div>
+  </div>
+  <div class="kpi <%= invoice.balance > 0 ? 'accent-warn' : 'accent-ok' %>">
+    <div class="kpi-label">Balance due</div>
+    <div class="kpi-value sm"><%= fmt.bdt(invoice.balance) %></div>
+    <div class="kpi-foot">
+      <% if (invoice.daysUntilDue !== null && invoice.daysUntilDue !== undefined) { %>
+        <% if (invoice.daysUntilDue < 0) { %>
+          <span class="delta down"><%= Math.abs(invoice.daysUntilDue) %> day(s) past due</span>
+        <% } else { %>
+          <span class="delta up"><%= invoice.daysUntilDue %> day(s) left</span>
+        <% } %>
+      <% } else { %>
+        No due date
+      <% } %>
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Raised against</div>
+    <div class="kpi-value sm">
+      <% if (invoice.order) { %>
+        <a href="/admin/orders/<%= invoice.order.id %>"><%= invoice.order.orderNumber %></a>
+      <% } else if (invoice.subscription) { %>
+        <a href="/admin/subscriptions/<%= invoice.subscription.id %>"><%= invoice.subscription.subscriptionNumber %></a>
+      <% } else { %>
+        Standalone
+      <% } %>
+    </div>
+    <div class="kpi-foot">
+      <% if (invoice.order) { %>
+        Order — <%= invoice.order.projectName %>
+      <% } else if (invoice.subscription) { %>
+        Subscription — <%= invoice.subscription.planName %>
+      <% } else { %>
+        Not linked to an order or plan
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="dash-grid cols-2 mt-4">
+
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Invoice document</h3></div>
+    <div class="card-body">
+      <div class="invoice-doc" style="border:0;padding:0">
+        <div class="invoice-head">
+          <div class="issuer">
+            <strong><%= settings.siteName %></strong>
+            <small>
+              <%= settings.officeAddress || 'Dhaka, Bangladesh' %><br>
+              <%= settings.supportEmail %><br>
+              <%= settings.supportPhone %>
+            </small>
+          </div>
+          <div class="invoice-meta">
+            <div class="num"><%= invoice.invoiceNumber %></div>
+            <div>Issued <%= fmt.date(invoice.issueDate, 'long') %></div>
+            <div>Due <%= fmt.date(invoice.dueDate, 'long') %></div>
+            <div class="mt-0">
+              <%- helpers.statusBadge(invoice.status, invoiceStatuses) %>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <dt>Billed to</dt>
+            <dd>
+              <%= invoice.user ? invoice.user.name : '—' %><br>
+              <% if (invoice.user) { %>
+                <small class="muted">
+                  <%= invoice.user.email %><br>
+                  <% if (invoice.user.phone) { %><%= invoice.user.phone %><br><% } %>
+                  <% if (invoice.user.address || invoice.user.district) { %>
+                    <%= [invoice.user.address, invoice.user.district].filter(Boolean).join(', ') %>
+                  <% } %>
+                </small>
+              <% } %>
+            </dd>
+          </div>
+          <% if (invoice.vatNumber) { %>
+            <div class="info-item"><dt>VAT registration</dt><dd><%= invoice.vatNumber %></dd></div>
+          <% } %>
+        </div>
+
+        <% if (invoice.description) { %>
+          <p class="muted mt-3"><%= invoice.description %></p>
+        <% } %>
+
+        <ul class="summary-list mt-3">
+          <li><span class="label">Subtotal</span><span class="value"><%= fmt.bdt(invoice.subtotal) %></span></li>
+          <% if (invoice.discount > 0) { %>
+            <li class="summary-discount">
+              <span class="label">Discount</span>
+              <span class="value">− <%= fmt.bdt(invoice.discount) %></span>
+            </li>
+          <% } %>
+          <li class="summary-tax">
+            <span class="label">VAT</span>
+            <span class="value"><%= fmt.bdt(invoice.tax) %></span>
+          </li>
+          <li class="total"><span>Total</span><span class="value"><%= fmt.bdt(invoice.total) %></span></li>
+          <li><span class="label">Amount received</span><span class="value"><%= fmt.bdt(invoice.amountPaid) %></span></li>
+          <li class="<%= invoice.balance > 0 ? '' : 'summary-discount' %>">
+            <span class="label"><strong>Balance due</strong></span>
+            <span class="value"><%= fmt.bdt(invoice.balance) %></span>
+          </li>
+        </ul>
+
+        <% if (invoice.notes) { %>
+          <p class="muted mt-3 mb-0"><strong>Notes:</strong> <%= invoice.notes %></p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <!-- ============ Status ============ -->
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Change status</h3></div>
+      <div class="card-body">
+        <form method="post" action="/admin/invoices/<%= invoice.id %>/status" class="form-grid two">
+          <%- csrfField %>
+          <div class="field full">
+            <label for="status">Invoice status</label>
+            <select id="status" name="status" required>
+              <% Object.keys(invoiceStatuses).forEach(function (key) { %>
+                <option value="<%= key %>" <%= invoice.status === key ? 'selected' : '' %>>
+                  <%= invoiceStatuses[key].en %>
+                </option>
+              <% }); %>
+            </select>
+            <span class="hint">
+              Marking an invoice PAID here does <strong>not</strong> record a payment or
+              change the balance. Use the manual payment form below, or verify the
+              customer's submitted payment on the Payments page.
+            </span>
+          </div>
+          <div class="field full">
+            <button type="submit" class="btn btn-primary">Update status</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ Manual payment ============ -->
+    <div class="card mt-4">
+      <div class="card-header"><h3 class="mt-0 mb-0">Record a manual payment</h3></div>
+      <div class="card-body">
+        <form method="post" action="/admin/payments/manual" class="form-grid two">
+          <%- csrfField %>
+          <input type="hidden" name="invoiceId" value="<%= invoice.id %>">
+
+          <div class="field">
+            <label for="method">Method</label>
+            <select id="method" name="method" required>
+              <% Object.keys(paymentMethods).forEach(function (key) { %>
+                <option value="<%= key %>" <%= key === 'CASH' ? 'selected' : '' %>>
+                  <%= paymentMethods[key].en %>
+                </option>
+              <% }); %>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="amount">Amount (৳)</label>
+            <input type="number" id="amount" name="amount" step="1" min="1"
+                   value="<%= Math.round(invoice.balance) %>" required>
+          </div>
+
+          <div class="field">
+            <label for="transactionId">Transaction ID</label>
+            <input type="text" id="transactionId" name="transactionId" maxlength="80"
+                   placeholder="bKash TrxID, bank reference">
+          </div>
+
+          <div class="field">
+            <label for="senderNumber">Sender number</label>
+            <input type="tel" id="senderNumber" name="senderNumber" maxlength="20"
+                   placeholder="01XXXXXXXXX">
+          </div>
+
+          <div class="field full">
+            <label for="note">Note</label>
+            <input type="text" id="note" name="note" maxlength="200"
+                   placeholder="e.g. Cash handed over at the Uttara office">
+          </div>
+
+          <div class="field full">
+            <button type="submit" class="btn btn-primary">Record payment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ Payment history ============ -->
+    <div class="card mt-4">
+      <div class="card-header">
+        <div class="card-title-row">
+          <h3 class="mt-0 mb-0">Payments against this invoice</h3>
+          <span class="sub muted"><%= invoice.payments.length %> record(s)</span>
+        </div>
+      </div>
+      <div class="card-pad-0">
+        <% if (!invoice.payments.length) { %>
+          <div class="card-body">
+            <p class="muted mb-0">
+              Nothing received yet. The customer can submit a payment from their own
+              invoice page, and it will appear here for verification.
+            </p>
+          </div>
+        <% } else { %>
+          <div class="table-wrap">
+            <table class="table data">
+              <thead>
+                <tr><th>Reference</th><th>Method</th><th>Status</th><th>Date</th><th class="num">Amount</th></tr>
+              </thead>
+              <tbody>
+                <% invoice.payments.forEach(function (p) { %>
+                  <tr>
+                    <td>
+                      <span class="strong"><%= p.reference %></span>
+                      <br><small class="muted"><%= p.transactionId || 'no TrxID' %></small>
+                    </td>
+                    <td><%= paymentMethods[p.method] ? paymentMethods[p.method].en : p.method %></td>
+                    <td><%- helpers.statusBadge(p.status, C.PAYMENT_STATUS) %></td>
+                    <td><%= fmt.date(p.createdAt, 'medium') %></td>
+                    <td class="num strong"><%= fmt.bdt(p.amount) %></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>

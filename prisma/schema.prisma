@@ -1,0 +1,580 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// USERS, ROLES & PERMISSIONS
+// ============================================================
+
+model User {
+  id            String     @id @default(cuid())
+  name          String
+  email         String     @unique
+  phone         String?
+  passwordHash  String
+  role          String       @default("CUSTOMER")
+  status        String @default("ACTIVE")
+  avatarUrl     String?
+  company       String?
+  designation   String?
+  district      String?
+  address       String?
+  emailVerified Boolean    @default(false)
+  kycStatus     String  @default("NOT_SUBMITTED")
+  adminNotes    String?
+  lastLoginAt   DateTime?
+  lastLoginIp   String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  orders        Order[]
+  subscriptions Subscription[]
+  tickets       Ticket[]
+  ticketReplies TicketReply[]
+  invoices      Invoice[]
+  payments      Payment[]
+  activityLogs  ActivityLog[]
+  notes         ClientNote[]
+  projects      Project[]
+  staffAssigned Project[]    @relation("ProjectManager")
+
+  @@index([role])
+  @@index([status])
+}
+
+model ClientNote {
+  id        String   @id @default(cuid())
+  userId    String
+  authorId  String?
+  body      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String?
+  entityId   String?
+  detail     String?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ============================================================
+// SERVICES CATALOG  (what the agency sells)
+// ============================================================
+
+model ServiceCategory {
+  id          String    @id @default(cuid())
+  name        String
+  nameBn      String
+  slug        String    @unique
+  description String?
+  icon        String?   @default("layout")
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  services Service[]
+}
+
+model Service {
+  id             String        @id @default(cuid())
+  title          String
+  titleBn        String?
+  slug           String        @unique
+  categoryId     String?
+  shortDesc      String
+  shortDescBn    String?
+  description    String
+  descriptionBn  String?
+  icon           String?       @default("layout")
+  imageUrl       String?
+  basePrice      Float         @default(0)
+  features       String        @default("[]") // JSON array
+  featuresBn     String        @default("[]") // JSON array
+  deliveryDays   Int           @default(7)
+  status         String @default("ACTIVE")
+  isFeatured     Boolean       @default(false)
+  sortOrder      Int           @default(0)
+  metaTitle      String?
+  metaDescription String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  category ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  packages Package[]
+
+  @@index([status])
+  @@index([categoryId])
+}
+
+// ============================================================
+// PACKAGES & PLANS (one-time build packages + recurring plans)
+// ============================================================
+
+model Package {
+  id              String       @id @default(cuid())
+  name            String
+  nameBn          String?
+  slug            String       @unique
+  serviceId       String?
+  tier            String  @default("BASIC")
+  tagline         String?
+  taglineBn       String?
+  price           Float        @default(0)          // one-time build price (BDT)
+  setupFee        Float        @default(0)
+  monthlyPrice    Float        @default(0)
+  yearlyPrice     Float        @default(0)
+  discountPercent Int          @default(0)
+  billingCycle    String @default("ONE_TIME")
+  features        String       @default("[]")       // JSON array of strings
+  featuresBn      String       @default("[]")
+  excluded        String       @default("[]")       // JSON array — not-included items
+  excludedBn      String       @default("[]")
+  revisions       Int          @default(2)
+  deliveryDays    Int          @default(7)
+  supportMonths   Int          @default(3)
+  hostingMonths   Int          @default(0)
+  pagesIncluded   Int          @default(5)
+  productsLimit   Int          @default(0)          // 0 = unlimited
+  staffLimit      Int          @default(1)
+  isPopular       Boolean      @default(false)
+  isActive        Boolean      @default(true)
+  isRecurring     Boolean      @default(false)
+  sortOrder       Int          @default(0)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  service     Service?        @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  orders      Order[]
+  subscriptions Subscription[]
+
+  @@index([isActive])
+  @@index([serviceId])
+}
+
+// ============================================================
+// ORDERS  (customer buys a package -> we build a website)
+// ============================================================
+
+model Order {
+  id              String          @id @default(cuid())
+  orderNumber     String          @unique
+  userId          String
+  packageId       String?
+  serviceId       String?
+  projectName     String
+  projectType     String?         // e.g. "Ecommerce Website", "Landing Page"
+  businessName    String?
+  businessType    String?
+  websiteGoal     String?
+  referenceUrls   String?
+  selectedPages   String          @default("[]") // JSON array
+  domainName      String?
+  hostingChoice   String?
+  preferredColors String?
+  brandNotes      String?
+  contactPerson   String?
+  contactPhone    String?
+  contactEmail    String?
+  district        String?
+  billingAddress  String?
+  subtotal        Float           @default(0)
+  discount        Float           @default(0)
+  tax             Float           @default(0)
+  total           Float           @default(0)
+  paidAmount      Float           @default(0)
+  advancePaid     Float           @default(0)
+  currency        String          @default("BDT")
+  couponCode      String?
+  status          String     @default("PENDING")
+  paymentStatus   String   @default("UNPAID")
+  priority        String          @default("NORMAL")
+  assignedTo      String?
+  internalNotes   String?
+  clientNotes     String?
+  dueDate         DateTime?
+  deliveredAt     DateTime?
+  projectUrl      String?
+  adminUrl        String?
+  accessNote      String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package   Package?   @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  project   Project?
+  invoices  Invoice[]
+  payments  Payment[]
+  milestones ProjectMilestone[]
+
+  @@index([status])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ============================================================
+// SUBSCRIPTIONS  (monthly / yearly recurring maintenance plans)
+// ============================================================
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  subscriptionNumber String             @unique
+  userId             String
+  packageId          String?
+  planName           String
+  billingCycle       String       @default("MONTHLY")
+  amount             Float              @default(0)
+  setupFee           Float              @default(0)
+  status             String @default("ACTIVE")
+  autoRenew          Boolean            @default(true)
+  startsAt           DateTime           @default(now())
+  currentPeriodStart DateTime           @default(now())
+  currentPeriodEnd   DateTime
+  trialEndsAt        DateTime?
+  cancelledAt        DateTime?
+  cancelReason       String?
+  nextInvoiceAt      DateTime?
+  gracePeriodDays    Int                @default(7)
+  discountPercent    Int                @default(0)
+  currency           String             @default("BDT")
+  notes              String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package  Package?  @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  invoices Invoice[]
+  addons   SubscriptionAddon[]
+
+  @@index([status])
+  @@index([userId])
+  @@index([currentPeriodEnd])
+}
+
+model SubscriptionAddon {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  name           String
+  nameBn         String?
+  price          Float    @default(0)
+  billingCycle   String @default("MONTHLY")
+  quantity       Int      @default(1)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// INVOICES & PAYMENTS  (bKash / Nagad / Rocket / SSLCommerz / Bank)
+// ============================================================
+
+model Invoice {
+  id             String        @id @default(cuid())
+  invoiceNumber  String        @unique
+  userId         String
+  orderId        String?
+  subscriptionId String?
+  title          String
+  description    String?
+  subtotal       Float         @default(0)
+  discount       Float         @default(0)
+  tax            Float         @default(0)
+  total          Float         @default(0)
+  amountPaid     Float         @default(0)
+  currency       String        @default("BDT")
+  status         String @default("DRAFT")
+  issueDate      DateTime      @default(now())
+  dueDate        DateTime
+  paidAt         DateTime?
+  vatNumber      String?
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order        Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  payments     Payment[]
+
+  @@index([status])
+  @@index([userId])
+}
+
+model Payment {
+  id            String           @id @default(cuid())
+  reference     String           @unique
+  userId        String
+  invoiceId     String?
+  orderId       String?
+  amount        Float
+  currency      String           @default("BDT")
+  method        String    @default("MANUAL")
+  direction     String @default("INBOUND")
+  status        String           @default("PENDING") // PENDING | SUCCESS | FAILED | REFUNDED
+  transactionId String?
+  senderNumber  String?
+  gatewayPayload String?
+  verifiedById  String?
+  verifiedAt    DateTime?
+  failureReason String?
+  paidAt        DateTime?
+  createdAt     DateTime         @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  order   Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([userId])
+}
+
+// ============================================================
+// PROJECT DELIVERY TRACKING
+// ============================================================
+
+model Project {
+  id            String        @id @default(cuid())
+  orderId       String        @unique
+  userId        String
+  name          String
+  status        String @default("NOT_STARTED")
+  progress      Int           @default(0)
+  currentStage  String?
+  managerId     String?
+  stagingUrl    String?
+  liveUrl       String?
+  repoUrl       String?
+  techStack     String?
+  kickoffDate   DateTime?
+  targetDate    DateTime?
+  launchedAt    DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  order     Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manager   User?              @relation("ProjectManager", fields: [managerId], references: [id], onDelete: SetNull)
+  milestones ProjectMilestone[]
+
+  @@index([status])
+}
+
+model ProjectMilestone {
+  id          String    @id @default(cuid())
+  projectId   String
+  orderId     String?
+  title       String
+  description String?
+  isDone      Boolean   @default(false)
+  dueDate     DateTime?
+  completedAt DateTime?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+}
+
+// ============================================================
+// COUPONS & PROMOTIONS
+// ============================================================
+
+model Coupon {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  description   String?
+  discountType  String @default("PERCENT")
+  discountValue Float        @default(0)
+  minOrder      Float        @default(0)
+  maxUses       Int          @default(0)   // 0 = unlimited
+  usedCount     Int          @default(0)
+  appliesTo     String       @default("ALL") // ALL | SERVICE | PACKAGE | SUBSCRIPTION
+  isActive      Boolean      @default(true)
+  startsAt      DateTime     @default(now())
+  expiresAt     DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([code])
+}
+
+// ============================================================
+// SUPPORT TICKETS
+// ============================================================
+
+model Ticket {
+  id        String       @id @default(cuid())
+  ticketNumber String    @unique
+  userId    String
+  subject   String
+  message   String
+  category  String       @default("GENERAL")
+  priority  String       @default("NORMAL")
+  status    String @default("OPEN")
+  assignedTo String?
+  orderId   String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  closedAt  DateTime?
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies TicketReply[]
+
+  @@index([status])
+}
+
+model TicketReply {
+  id         String   @id @default(cuid())
+  ticketId   String
+  userId     String?
+  body       String
+  isStaff    Boolean  @default(false)
+  attachment String?
+  createdAt  DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// ============================================================
+// CONTENT: testimonials, portfolio, blog, FAQ, leads
+// ============================================================
+
+model Testimonial {
+  id         String   @id @default(cuid())
+  clientName String
+  company    String?
+  district   String?
+  avatarUrl  String?
+  rating     Int      @default(5)
+  body       String
+  bodyBn     String?
+  isApproved Boolean  @default(false)
+  isFeatured Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([isApproved])
+}
+
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  title       String
+  titleBn     String?
+  clientName  String?
+  slug        String   @unique
+  category    String?
+  description String?
+  imageUrl    String?
+  liveUrl     String?
+  results     String?
+  techStack   String?
+  isPublished Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([isPublished])
+}
+
+model BlogPost {
+  id              String    @id @default(cuid())
+  title           String
+  titleBn         String?
+  slug            String    @unique
+  excerpt         String?
+  content         String
+  coverImage      String?
+  category        String?
+  tags            String    @default("[]")
+  authorId        String?
+  status          String    @default("DRAFT") // DRAFT | PUBLISHED
+  isFeatured      Boolean   @default(false)
+  views           Int       @default(0)
+  metaTitle       String?
+  metaDescription String?
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+}
+
+model Faq {
+  id        String   @id @default(cuid())
+  question  String
+  questionBn String?
+  answer    String
+  answerBn  String?
+  category  String   @default("GENERAL")
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  phone       String
+  company     String?
+  district    String?
+  serviceType String?
+  budget      String?
+  message     String?
+  source      String   @default("WEBSITE")
+  status      String   @default("NEW") // NEW | CONTACTED | QUALIFIED | CONVERTED | LOST
+  assignedTo  String?
+  followUpAt  DateTime?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@index([status])
+}
+
+// ============================================================
+// SITE SETTINGS (single-row config the admin can edit)
+// ============================================================
+
+model SiteSetting {
+  id              String   @id @default("singleton")
+  siteName        String   @default("WooHelperPro")
+  tagline         String   @default("")
+  taglineBn       String   @default("")
+  supportEmail    String   @default("support@woohelperpro.com")
+  supportPhone    String   @default("+8801700000000")
+  whatsappNumber  String   @default("8801700000000")
+  officeAddress   String   @default("")
+  bkashNumber     String   @default("")
+  nagadNumber     String   @default("")
+  rocketNumber    String   @default("")
+  bankDetails     String   @default("")
+  vatPercent      Float    @default(5)
+  currency        String   @default("BDT")
+  maintenanceMode Boolean  @default(false)
+  metaTitle       String   @default("")
+  metaDescription String   @default("")
+  facebookUrl     String   @default("")
+  youtubeUrl      String   @default("")
+  linkedinUrl     String   @default("")
+  updatedAt       DateTime @updatedAt
+}

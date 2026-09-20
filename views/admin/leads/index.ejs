@@ -1,0 +1,267 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Sales leads</h1>
+    <p class="meta-line muted mb-0">
+      Enquiries from the website contact form. A lead can be converted into a
+      customer account in one step.
+    </p>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <% Object.keys(leadStatuses).forEach(function (key) { %>
+    <div class="kpi <%= key === 'NEW' && statusCounts[key] ? 'accent-warn' : '' %>">
+      <div class="kpi-label"><%- helpers.statusBadge(key, leadStatuses) %></div>
+      <div class="kpi-value"><%= fmt.number(statusCounts[key] || 0) %></div>
+      <div class="kpi-foot"><%= key === 'NEW' ? 'awaiting first contact' : 'lead(s)' %></div>
+    </div>
+  <% }); %>
+</div>
+
+<form method="get" action="/admin/leads" class="filters mt-4">
+  <div class="field grow">
+    <label for="q">Search</label>
+    <input type="search" id="q" name="q" value="<%= filters.q %>"
+           placeholder="Name, phone, email or company">
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">All statuses</option>
+      <% Object.keys(leadStatuses).forEach(function (key) { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>>
+          <%= leadStatuses[key].en %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="field">
+    <label>&nbsp;</label>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </div>
+  <% if (filters.q || filters.status) { %>
+    <div class="field">
+      <label>&nbsp;</label>
+      <a class="btn btn-outline" href="/admin/leads">Reset</a>
+    </div>
+  <% } %>
+</form>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Lead pipeline</h3>
+      <span class="sub muted">
+        <%= fmt.number(pagination.total) %> matching ·
+        page <%= pagination.page %> of <%= pagination.pages || 1 %>
+      </span>
+    </div>
+  </div>
+
+  <div class="card-pad-0">
+    <% if (!leads.length) { %>
+      <div class="card-body"><%- helpers.emptyState('No leads match these filters.') %></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Lead</th><th>Contact</th><th>Interest</th><th>Budget</th>
+              <th>Source</th><th>Status</th><th>Follow up</th><th class="num">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% leads.forEach(function (l) { %>
+              <tr>
+                <td>
+                  <span class="strong"><%= l.name %></span>
+                  <% if (l.company) { %><br><small class="muted"><%= l.company %></small><% } %>
+                  <br><small class="muted">added <%= fmt.date(l.createdAt, 'medium') %></small>
+                </td>
+                <td>
+                  <a href="tel:<%= l.phone %>"><%= l.phone %></a>
+                  <% if (l.email) { %><br><small class="muted"><%= l.email %></small><% } %>
+                  <% if (l.district) { %><br><small class="muted"><%= l.district %></small><% } %>
+                </td>
+                <td><%= l.serviceType || '—' %></td>
+                <td><%= l.budget || '—' %></td>
+                <td><small><%= l.source.toLowerCase() %></small></td>
+                <td><%- helpers.statusBadge(l.status, leadStatuses) %></td>
+                <td>
+                  <% if (l.followUpAt) { %>
+                    <%= fmt.date(l.followUpAt, 'medium') %>
+                    <% var overdue = new Date(l.followUpAt) < new Date() && !['CONVERTED', 'LOST'].includes(l.status); %>
+                    <% if (overdue) { %>
+                      <br><small style="color:var(--err-700)">overdue</small>
+                    <% } %>
+                  <% } else { %>
+                    <small class="muted">—</small>
+                  <% } %>
+                </td>
+                <td class="num">
+                  <div class="row-actions">
+                    <% if (!['CONVERTED', 'LOST'].includes(l.status)) { %>
+                      <button type="button" class="btn btn-sm btn-outline"
+                              data-toggle-lead="<%= l.id %>">Update</button>
+                      <form method="post" action="/admin/leads/<%= l.id %>/convert"
+                            onsubmit="return confirm('Convert <%= l.name %> into a customer account? A temporary password will be generated.');">
+                        <%- csrfField %>
+                        <button type="submit" class="btn btn-sm btn-success">Convert</button>
+                      </form>
+                    <% } else { %>
+                      <small class="muted"><%= l.status.toLowerCase() %></small>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<% if (pagination.pages > 1) { %>
+  <nav class="pagination" aria-label="Lead pages">
+    <% if (pagination.page > 1) { %>
+      <a href="/admin/leads?page=<%= pagination.page - 1 %>&status=<%= filters.status %>&q=<%= filters.q %>">Prev</a>
+    <% } else { %>
+      <span class="disabled">Prev</span>
+    <% } %>
+    <% for (var i = 1; i <= pagination.pages; i++) { %>
+      <% if (i === pagination.page) { %>
+        <span class="current"><%= i %></span>
+      <% } else if (i <= 3 || i > pagination.pages - 3 || Math.abs(i - pagination.page) <= 1) { %>
+        <a href="/admin/leads?page=<%= i %>&status=<%= filters.status %>&q=<%= filters.q %>"><%= i %></a>
+      <% } else if (Math.abs(i - pagination.page) === 2) { %>
+        <span class="info">…</span>
+      <% } %>
+    <% } %>
+    <% if (pagination.page < pagination.pages) { %>
+      <a href="/admin/leads?page=<%= pagination.page + 1 %>&status=<%= filters.status %>&q=<%= filters.q %>">Next</a>
+    <% } else { %>
+      <span class="disabled">Next</span>
+    <% } %>
+    <span class="info"><%= fmt.number(pagination.total) %> leads</span>
+  </nav>
+<% } %>
+
+<!-- ============ Manual lead entry ============ -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Log a lead by hand</h3>
+      <span class="sub muted">Phone enquiries, referrals, walk-ins</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="post" action="/admin/leads" class="form-grid two">
+      <%- csrfField %>
+      <div class="field">
+        <label for="name">Name <span class="req">*</span></label>
+        <input type="text" id="name" name="name" required maxlength="120">
+      </div>
+      <div class="field">
+        <label for="phone">Mobile <span class="req">*</span></label>
+        <input type="tel" id="phone" name="phone" required maxlength="20" placeholder="01712345678">
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" maxlength="160">
+      </div>
+      <div class="field">
+        <label for="company">Company</label>
+        <input type="text" id="company" name="company" maxlength="120">
+      </div>
+      <div class="field">
+        <label for="district">District</label>
+        <select id="district" name="district">
+          <option value="">— not set —</option>
+          <%# DISTRICTS is exposed globally as C.DISTRICTS and is NOT passed as a
+              local on this route; each entry is a [English, Bangla] pair. %>
+          <% C.DISTRICTS.forEach(function (d) { %>
+            <% var dn = Array.isArray(d) ? d[0] : d; %>
+            <option value="<%= dn %>"><%= dn %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="field">
+        <label for="serviceType">Interested in</label>
+        <input type="text" id="serviceType" name="serviceType" maxlength="120"
+               placeholder="Ecommerce website, landing page…">
+      </div>
+      <div class="field">
+        <label for="budget">Budget</label>
+        <input type="text" id="budget" name="budget" maxlength="60" placeholder="৳50,000 – ৳100,000">
+      </div>
+      <div class="field full">
+        <label for="message">What they need</label>
+        <textarea id="message" name="message" rows="3" maxlength="1500"></textarea>
+      </div>
+      <div class="field full">
+        <button type="submit" class="btn btn-primary">Log lead</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Update panels ============ -->
+<% leads.forEach(function (l) { %>
+  <div class="card mt-4" id="lead-edit-<%= l.id %>" hidden>
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Update &ldquo;<%= l.name %>&rdquo;</h3>
+        <button type="button" class="btn btn-sm btn-outline" data-toggle-lead="<%= l.id %>">Close</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="post" action="/admin/leads/<%= l.id %>" class="form-grid two">
+        <%- csrfField %>
+        <div class="field">
+          <label for="l-status-<%= l.id %>">Status</label>
+          <select id="l-status-<%= l.id %>" name="status">
+            <% Object.keys(leadStatuses).forEach(function (key) { %>
+              <option value="<%= key %>" <%= l.status === key ? 'selected' : '' %>>
+                <%= leadStatuses[key].en %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="field">
+          <label for="l-follow-<%= l.id %>">Follow up on</label>
+          <input type="date" id="l-follow-<%= l.id %>" name="followUpAt"
+                 value="<%= l.followUpAt ? new Date(l.followUpAt).toISOString().slice(0, 10) : '' %>">
+        </div>
+        <div class="field">
+          <label for="l-assign-<%= l.id %>">Assigned to</label>
+          <input type="text" id="l-assign-<%= l.id %>" name="assignedTo" maxlength="120"
+                 value="<%= l.assignedTo || '' %>">
+        </div>
+        <div class="field full">
+          <label for="l-notes-<%= l.id %>">Notes</label>
+          <textarea id="l-notes-<%= l.id %>" name="notes" rows="3"
+                    maxlength="2000"><%= l.notes || '' %></textarea>
+        </div>
+        <% if (l.message) { %>
+          <div class="field full">
+            <label>Original enquiry</label>
+            <p class="muted mb-0"><%= l.message %></p>
+          </div>
+        <% } %>
+        <div class="field full form-actions">
+          <button type="submit" class="btn btn-primary">Save lead</button>
+          <button type="button" class="btn btn-outline" data-toggle-lead="<%= l.id %>">Cancel</button>
+          <% if (['CONVERTED', 'LOST'].includes(l.status)) { %>
+            <form method="post" action="/admin/leads/<%= l.id %>/delete"
+                  style="margin-left:auto"
+                  onsubmit="return confirm('Delete this lead permanently?');">
+              <%- csrfField %>
+              <button type="submit" class="btn btn-danger">Delete lead</button>
+            </form>
+          <% } %>
+        </div>
+      </form>
+    </div>
+  </div>
+<% }); %>

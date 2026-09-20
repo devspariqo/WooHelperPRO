@@ -1,0 +1,242 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Projects</h1>
+    <p class="meta-line muted mb-0">
+      Delivery tracker for every order with a project record. Updated whenever the
+      order moves or a milestone is ticked.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/orders">Orders</a>
+  </div>
+</section>
+
+<form method="get" action="/admin/projects" class="filters mt-4">
+  <div class="field grow">
+    <label for="status">Filter by stage</label>
+    <select id="status" name="status">
+      <option value="">All stages</option>
+      <% Object.keys(projectStatuses).forEach(function (key) { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>>
+          <%= projectStatuses[key].en %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="field">
+    <label>&nbsp;</label>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </div>
+  <% if (filters.status) { %>
+    <div class="field">
+      <label>&nbsp;</label>
+      <a class="btn btn-outline" href="/admin/projects">Reset</a>
+    </div>
+  <% } %>
+</form>
+
+<div class="kpi-grid mt-4">
+  <% Object.keys(projectStatuses).forEach(function (key) { %>
+    <% var count = projects.filter(function (p) { return p.status === key; }).length; %>
+    <% if (count) { %>
+      <div class="kpi">
+        <div class="kpi-label"><%- helpers.statusBadge(key, projectStatuses) %></div>
+        <div class="kpi-value"><%= fmt.number(count) %></div>
+        <div class="kpi-foot">project(s)</div>
+      </div>
+    <% } %>
+  <% }); %>
+</div>
+
+<% if (!projects.length) { %>
+  <div class="card mt-4">
+    <div class="card-body">
+      <%- helpers.emptyState('No projects match this filter. Projects are created automatically when an order is placed.') %>
+    </div>
+  </div>
+<% } else { %>
+  <% projects.forEach(function (pr) { %>
+    <%
+      var doneCount = (pr.milestones || []).filter(function (m) { return m.isDone; }).length;
+      var totalCount = (pr.milestones || []).length;
+    %>
+    <div class="card mt-4">
+      <div class="card-header">
+        <div class="card-title-row">
+          <div>
+            <h3 class="mt-0 mb-0">
+              <%= pr.name %>
+              <%- helpers.statusBadge(pr.status, projectStatuses) %>
+            </h3>
+            <p class="muted mb-0" style="font-size:13px">
+              <% if (pr.order) { %>
+                <a href="/admin/orders/<%= pr.orderId %>"><%= pr.order.orderNumber %></a> ·
+              <% } %>
+              <% if (pr.user) { %><%= pr.user.name %><% } %>
+              <% if (pr.manager) { %>
+                · manager <%= pr.manager.name %>
+              <% } else { %>
+                · <span style="color:var(--warn-700)">no manager assigned</span>
+              <% } %>
+            </p>
+          </div>
+          <div class="actions">
+            <% if (pr.order) { %>
+              <a class="btn btn-sm btn-outline" href="/admin/orders/<%= pr.orderId %>">Open order</a>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="dash-grid cols-3">
+          <div>
+            <div class="info-item">
+              <dt>Progress</dt>
+              <dd><%- helpers.progressBar(pr.progress,
+                    pr.status === 'LAUNCHED' || pr.status === 'MAINTENANCE' ? 'success'
+                    : pr.status === 'ON_HOLD' ? 'warn' : 'primary') %></dd>
+            </div>
+            <div class="info-grid mt-3">
+              <div class="info-item"><dt>Current stage</dt><dd><%= pr.currentStage || '—' %></dd></div>
+              <div class="info-item"><dt>Milestones</dt><dd><%= doneCount %> / <%= totalCount %> done</dd></div>
+              <div class="info-item"><dt>Kickoff</dt><dd><%= fmt.date(pr.kickoffDate, 'medium') %></dd></div>
+              <div class="info-item"><dt>Target</dt><dd><%= fmt.date(pr.targetDate, 'medium') %></dd></div>
+              <% if (pr.launchedAt) { %>
+                <div class="info-item"><dt>Launched</dt><dd><%= fmt.date(pr.launchedAt, 'medium') %></dd></div>
+              <% } %>
+              <div class="info-item"><dt>Last updated</dt><dd><%= fmt.relative(pr.updatedAt) %></dd></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="info-item">
+              <dt>Links</dt>
+              <dd>
+                <% if (pr.liveUrl) { %>
+                  <a href="<%= pr.liveUrl %>" target="_blank" rel="noopener">Live site</a><br>
+                <% } %>
+                <% if (pr.stagingUrl) { %>
+                  <a href="<%= pr.stagingUrl %>" target="_blank" rel="noopener">Staging</a><br>
+                <% } %>
+                <% if (pr.repoUrl) { %>
+                  <a href="<%= pr.repoUrl %>" target="_blank" rel="noopener">Repository</a><br>
+                <% } %>
+                <% if (!pr.liveUrl && !pr.stagingUrl && !pr.repoUrl) { %>
+                  <span class="muted">None recorded yet</span>
+                <% } %>
+              </dd>
+            </div>
+            <% if (pr.techStack) { %>
+              <div class="info-item mt-3"><dt>Tech stack</dt><dd><%= pr.techStack %></dd></div>
+            <% } %>
+          </div>
+
+          <div>
+            <div class="info-item">
+              <dt>Milestones</dt>
+              <dd>
+                <% if (!totalCount) { %>
+                  <span class="muted">No milestones</span>
+                <% } else { %>
+                  <ul class="summary-list">
+                    <% pr.milestones.forEach(function (m) { %>
+                      <li>
+                        <span class="label">
+                          <form method="post" action="/admin/projects/milestones/<%= m.id %>/toggle"
+                                class="row-form">
+                            <%- csrfField %>
+                            <button type="submit" class="btn btn-sm <%= m.isDone ? 'btn-success' : 'btn-outline' %>">
+                              <%= m.isDone ? '✓' : '○' %>
+                            </button>
+                            <span<%= m.isDone ? ' class="muted"' : '' %>><%= m.title %></span>
+                          </form>
+                        </span>
+                        <% if (m.dueDate) { %>
+                          <span class="value"><%= fmt.date(m.dueDate, 'medium') %></span>
+                        <% } %>
+                      </li>
+                    <% }); %>
+                  </ul>
+                <% } %>
+              </dd>
+            </div>
+          </div>
+        </div>
+
+        <!-- Milestone add -->
+        <form method="post" action="/admin/projects/<%= pr.id %>/milestones" class="form-grid two mt-3">
+          <%- csrfField %>
+          <div class="field">
+            <label for="m-title-<%= pr.id %>">New milestone</label>
+            <input type="text" id="m-title-<%= pr.id %>" name="title" required maxlength="140"
+                   placeholder="Homepage design approval">
+          </div>
+          <div class="field">
+            <label for="m-due-<%= pr.id %>">Due date</label>
+            <input type="date" id="m-due-<%= pr.id %>" name="dueDate">
+          </div>
+          <div class="field full">
+            <label for="m-desc-<%= pr.id %>">Description</label>
+            <input type="text" id="m-desc-<%= pr.id %>" name="description" maxlength="300">
+          </div>
+          <div class="field full">
+            <button type="submit" class="btn btn-sm btn-outline">Add milestone</button>
+          </div>
+        </form>
+
+        <!-- Project edit -->
+        <details class="mt-3">
+          <summary class="strong" style="cursor:pointer">Edit project details</summary>
+          <form method="post" action="/admin/projects/<%= pr.id %>" class="form-grid two mt-3">
+            <%- csrfField %>
+            <div class="field">
+              <label for="p-status-<%= pr.id %>">Stage</label>
+              <select id="p-status-<%= pr.id %>" name="status">
+                <% Object.keys(projectStatuses).forEach(function (key) { %>
+                  <option value="<%= key %>" <%= pr.status === key ? 'selected' : '' %>>
+                    <%= projectStatuses[key].en %>
+                  </option>
+                <% }); %>
+              </select>
+              <span class="hint">Setting the stage also moves the linked order.</span>
+            </div>
+            <div class="field">
+              <label for="p-stage-<%= pr.id %>">Current stage label</label>
+              <input type="text" id="p-stage-<%= pr.id %>" name="currentStage" maxlength="120"
+                     value="<%= pr.currentStage || '' %>">
+            </div>
+            <div class="field">
+              <label for="p-live-<%= pr.id %>">Live URL</label>
+              <input type="url" id="p-live-<%= pr.id %>" name="liveUrl" maxlength="250"
+                     value="<%= pr.liveUrl || '' %>">
+            </div>
+            <div class="field">
+              <label for="p-staging-<%= pr.id %>">Staging URL</label>
+              <input type="url" id="p-staging-<%= pr.id %>" name="stagingUrl" maxlength="250"
+                     value="<%= pr.stagingUrl || '' %>">
+            </div>
+            <div class="field">
+              <label for="p-repo-<%= pr.id %>">Repository URL</label>
+              <input type="url" id="p-repo-<%= pr.id %>" name="repoUrl" maxlength="250"
+                     value="<%= pr.repoUrl || '' %>">
+            </div>
+            <div class="field">
+              <label for="p-target-<%= pr.id %>">Target date</label>
+              <input type="date" id="p-target-<%= pr.id %>" name="targetDate"
+                     value="<%= pr.targetDate ? new Date(pr.targetDate).toISOString().slice(0, 10) : '' %>">
+            </div>
+            <div class="field full">
+              <label for="p-tech-<%= pr.id %>">Tech stack</label>
+              <input type="text" id="p-tech-<%= pr.id %>" name="techStack" maxlength="200"
+                     value="<%= pr.techStack || '' %>">
+            </div>
+            <div class="field full">
+              <button type="submit" class="btn btn-primary">Save project</button>
+            </div>
+          </form>
+        </details>
+      </div>
+    </div>
+  <% }); %>
+<% } %>

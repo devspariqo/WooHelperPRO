@@ -1,0 +1,205 @@
+<%
+  const isEdit = Boolean(service);
+  const action = isEdit ? `/admin/services/${service.id}` : '/admin/services';
+  const v = service || {};
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1><%= isEdit ? 'Edit service' : 'Add a service' %></h1>
+    <p class="meta-line muted mb-0">
+      <% if (isEdit) { %>
+        Editing <strong><%= service.title %></strong> — changes go live immediately.
+      <% } else { %>
+        Describe what you offer. You can attach packages once it is saved.
+      <% } %>
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-ghost" href="/admin/services">Back to list</a>
+    <% if (isEdit) { %>
+      <a class="btn btn-outline" href="/services/<%= service.slug %>" target="_blank" rel="noopener">View live ↗</a>
+    <% } %>
+  </div>
+</section>
+
+<form method="post" action="<%= action %>" class="mt-4">
+  <%- csrfField %>
+
+  <div class="dash-grid cols-2" style="align-items:start">
+    <div>
+      <div class="card">
+        <div class="card-header"><h3 class="mt-0 mb-0">Basics</h3></div>
+        <div class="card-body">
+          <div class="field">
+            <label for="title">Service title <span class="req">*</span></label>
+            <input id="title" name="title" type="text" required value="<%= v.title || '' %>"
+                   placeholder="e.g. E-commerce Website Design">
+          </div>
+
+          <div class="field">
+            <label for="titleBn">Title in Bangla</label>
+            <input id="titleBn" name="titleBn" type="text" value="<%= v.titleBn || '' %>"
+                   placeholder="ই-কমার্স ওয়েবসাইট ডিজাইন">
+          </div>
+
+          <div class="form-grid two">
+            <div class="field">
+              <label for="categoryId">Category</label>
+              <select id="categoryId" name="categoryId">
+                <option value="">No category</option>
+                <% categories.forEach(function (c) { %>
+                  <option value="<%= c.id %>" <%= v.categoryId === c.id ? 'selected' : '' %>><%= c.name %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="field">
+              <label for="icon">Icon key</label>
+              <input id="icon" name="icon" type="text" value="<%= v.icon || 'layout' %>" placeholder="layout">
+              <span class="hint">One of: cart, layout, globe, search, truck, shield, code, megaphone, chart, server, palette, plug, book, phone, star, bolt, wrench, box</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="shortDesc">Short description <span class="req">*</span></label>
+            <textarea id="shortDesc" name="shortDesc" rows="2" required
+                      placeholder="One sentence used on the services grid and search results."><%= v.shortDesc || '' %></textarea>
+          </div>
+
+          <div class="field">
+            <label for="shortDescBn">Short description in Bangla</label>
+            <textarea id="shortDescBn" name="shortDescBn" rows="2"><%= v.shortDescBn || '' %></textarea>
+          </div>
+
+          <div class="field">
+            <label for="description">Full description <span class="req">*</span></label>
+            <textarea id="description" name="description" rows="6" required
+                      placeholder="What the customer gets, what you need from them, how long it takes."><%= v.description || '' %></textarea>
+          </div>
+
+          <div class="field">
+            <label for="descriptionBn">Full description in Bangla</label>
+            <textarea id="descriptionBn" name="descriptionBn" rows="5"><%= v.descriptionBn || '' %></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header"><h3 class="mt-0 mb-0">What is included</h3></div>
+        <div class="card-body">
+          <div class="form-grid two">
+            <div class="field">
+              <label for="features">Features (English)</label>
+              <textarea id="features" name="features" rows="8"
+                        placeholder="One per line"><%= featureLines || '' %></textarea>
+              <span class="hint">One feature per line — shown as a bullet list.</span>
+            </div>
+            <div class="field">
+              <label for="featuresBn">Features (Bangla)</label>
+              <textarea id="featuresBn" name="featuresBn" rows="8"
+                        placeholder="প্রতি লাইনে একটি"><%= featureBnLines || '' %></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <div class="card-header"><h3 class="mt-0 mb-0">Pricing &amp; delivery</h3></div>
+        <div class="card-body">
+          <div class="field">
+            <label for="basePrice">Starting price (BDT) <span class="req">*</span></label>
+            <input id="basePrice" name="basePrice" type="number" step="1" min="0"
+                   value="<%= v.basePrice || 0 %>" required>
+            <span class="hint">The "from ৳" figure on the public services page.</span>
+          </div>
+
+          <div class="field">
+            <label for="deliveryDays">Typical delivery (days)</label>
+            <input id="deliveryDays" name="deliveryDays" type="number" min="1"
+                   value="<%= v.deliveryDays || 7 %>">
+          </div>
+
+          <div class="field">
+            <label for="slug">URL slug</label>
+            <input id="slug" name="slug" type="text" value="<%= v.slug || '' %>"
+                   placeholder="auto-generated from the title">
+            <span class="hint">Leave blank to generate from the title.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header"><h3 class="mt-0 mb-0">Visibility</h3></div>
+        <div class="card-body">
+          <div class="field">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+              <option value="ACTIVE" <%= v.status === 'ACTIVE' || !isEdit ? 'selected' : '' %>>Active — shown publicly</option>
+              <option value="DRAFT" <%= v.status === 'DRAFT' ? 'selected' : '' %>>Draft — hidden</option>
+              <option value="ARCHIVED" <%= v.status === 'ARCHIVED' ? 'selected' : '' %>>Archived — retired</option>
+            </select>
+          </div>
+
+          <label class="check-row">
+            <input type="checkbox" name="isFeatured" value="on" <%= v.isFeatured ? 'checked' : '' %>>
+            <span>Feature on the homepage</span>
+          </label>
+
+          <div class="field">
+            <label for="sortOrder">Sort order</label>
+            <input id="sortOrder" name="sortOrder" type="number" value="<%= v.sortOrder || 0 %>">
+            <span class="hint">Lower numbers appear first.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header"><h3 class="mt-0 mb-0">SEO</h3></div>
+        <div class="card-body">
+          <div class="field">
+            <label for="metaTitle">Meta title</label>
+            <input id="metaTitle" name="metaTitle" type="text" value="<%= v.metaTitle || '' %>">
+          </div>
+          <div class="field">
+            <label for="metaDescription">Meta description</label>
+            <textarea id="metaDescription" name="metaDescription" rows="3"><%= v.metaDescription || '' %></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions mt-3">
+        <button class="btn btn-primary btn-block btn-lg" type="submit">
+          <%= isEdit ? 'Save changes' : 'Create service' %>
+        </button>
+      </div>
+
+      <% if (isEdit) { %>
+        <div class="card mt-3">
+          <div class="card-header"><h3 class="mt-0 mb-0">Danger zone</h3></div>
+          <div class="card-body">
+            <p class="muted">
+              If this service has never been ordered it is deleted outright. If it has been
+              ordered, it is archived instead so past invoices stay accurate.
+            </p>
+          </div>
+        </div>
+      <% } %>
+    </aside>
+  </div>
+</form>
+
+<% if (isEdit) { %>
+  <!-- Kept outside the main form: nesting forms is invalid HTML and would
+       submit the wrong action. -->
+  <div class="card mt-3" style="max-width:420px">
+    <div class="card-body">
+      <form method="post" action="/admin/services/<%= service.id %>/delete"
+            data-confirm="Delete or archive this service? This cannot be undone.">
+        <%- csrfField %>
+        <button class="btn btn-danger btn-block" type="submit">Delete this service</button>
+      </form>
+    </div>
+  </div>
+<% } %>

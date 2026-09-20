@@ -1,0 +1,88 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>My invoices</h1>
+    <p class="meta-line muted mb-0">
+      Every invoice we have raised on your account. VAT is included in each total.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/account/payments">Payment history</a>
+  </div>
+</section>
+
+<%
+  const outstandingTotal = invoices.reduce(function (sum, inv) {
+    return sum + (inv.balance || 0);
+  }, 0);
+%>
+
+<% if (outstandingTotal > 0) { %>
+  <div class="card mt-4">
+    <div class="card-body">
+      <p class="mb-0">
+        <strong>You have <%= fmt.bdt(outstandingTotal) %> outstanding.</strong>
+        Open an invoice and record your bKash, Nagad or Rocket transaction ID — we verify each
+        transfer by hand, usually within one business day.
+      </p>
+    </div>
+  </div>
+<% } %>
+
+<div class="card mt-4">
+  <div class="card-pad-0">
+    <% if (!invoices.length) { %>
+      <div class="card-body">
+        <div class="empty-state">
+          <div class="empty-icon">▭</div>
+          <h3>No invoices yet</h3>
+          <p class="muted">Invoices appear here as soon as you place an order or a plan renews.</p>
+          <a class="btn btn-primary" href="/packages">Browse packages</a>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data" data-sortable>
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Issued</th>
+              <th>Due</th>
+              <th>Status</th>
+              <th class="num">Total</th>
+              <th class="num">Balance</th>
+              <th class="num no-sort"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% invoices.forEach(function (inv) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/account/invoices/<%= inv.id %>"><%= inv.invoiceNumber %></a>
+                  <% if (inv.description) { %>
+                    <br><small class="muted"><%= fmt.truncate(inv.description, 48) %></small>
+                  <% } %>
+                </td>
+                <td><%= fmt.date(inv.issueDate, 'medium') %></td>
+                <td>
+                  <%= fmt.date(inv.dueDate, 'medium') %>
+                  <% if (inv.daysUntilDue !== null && inv.daysUntilDue !== undefined && inv.balance > 0) { %>
+                    <br><small class="muted"><%= inv.dueLabel %></small>
+                  <% } %>
+                </td>
+                <td><%- helpers.statusBadge(inv.status, C.INVOICE_STATUS) %></td>
+                <td class="num"><%= fmt.bdt(inv.total) %></td>
+                <td class="num <%= inv.balance > 0 ? 'strong' : 'muted' %>"><%= fmt.bdt(inv.balance) %></td>
+                <td class="row-actions">
+                  <a class="btn <%= inv.balance > 0 ? 'btn-primary' : 'btn-outline' %> btn-sm"
+                     href="/account/invoices/<%= inv.id %>">
+                    <%= inv.balance > 0 ? 'Pay' : 'View' %>
+                  </a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

@@ -1,0 +1,245 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Payments</h1>
+    <p class="meta-line muted mb-0">
+      Money submitted by customers. bKash, Nagad and Rocket transfers are verified
+      by hand — check the transaction ID against the merchant statement before
+      approving.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/invoices">Invoices</a>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi <%= summary.pendingCount > 0 ? 'accent-warn' : 'accent-ok' %>">
+    <div class="kpi-label">Awaiting verification</div>
+    <div class="kpi-value"><%= fmt.number(summary.pendingCount) %></div>
+    <div class="kpi-foot"><%= fmt.bdt(summary.pendingAmount) %> unconfirmed</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Received</div>
+    <div class="kpi-value sm"><%= fmt.bdt(summary.receivedAmount, { compact: true }) %></div>
+    <div class="kpi-foot"><%= fmt.number(summary.receivedCount) %> successful payment(s)</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Refunded</div>
+    <div class="kpi-value sm"><%= fmt.bdt(summary.refundedAmount, { compact: true }) %></div>
+    <div class="kpi-foot"><%= fmt.number(summary.refundedCount) %> refund(s) issued</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Net received</div>
+    <div class="kpi-value sm"><%= fmt.bdt(summary.receivedAmount - summary.refundedAmount, { compact: true }) %></div>
+    <div class="kpi-foot">Received minus refunds</div>
+  </div>
+</div>
+
+<% if (summary.byMethod && summary.byMethod.length) { %>
+  <div class="card mt-4">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Collected by method</h3>
+        <span class="sub muted">Successful payments only</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="mini-stats">
+        <% summary.byMethod.forEach(function (m) { %>
+          <div class="mini-stat">
+            <span class="label"><%= paymentMethods[m.method] ? paymentMethods[m.method].en : m.method %></span>
+            <span class="value"><%= fmt.bdt(m.amount, { compact: true }) %></span>
+            <small class="muted"><%= fmt.number(m.count) %> payment(s)</small>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+<form method="get" action="/admin/payments" class="filters mt-4">
+  <div class="field grow">
+    <label for="q">Search</label>
+    <input type="search" id="q" name="q" value="<%= filters.q %>"
+           placeholder="Reference, TrxID, sender number or email">
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">All statuses</option>
+      <% Object.keys(paymentStatuses).forEach(function (key) { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>>
+          <%= paymentStatuses[key].en %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="method">Method</label>
+    <select id="method" name="method">
+      <option value="">All methods</option>
+      <% Object.keys(paymentMethods).forEach(function (key) { %>
+        <option value="<%= key %>" <%= filters.method === key ? 'selected' : '' %>>
+          <%= paymentMethods[key].en %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="field">
+    <label>&nbsp;</label>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </div>
+  <% if (filters.q || filters.status || filters.method) { %>
+    <div class="field">
+      <label>&nbsp;</label>
+      <a class="btn btn-outline" href="/admin/payments">Reset</a>
+    </div>
+  <% } %>
+</form>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Payment log</h3>
+      <span class="sub muted">
+        <%= fmt.number(pagination.total) %> matching ·
+        page <%= pagination.page %> of <%= pagination.pages || 1 %>
+      </span>
+    </div>
+  </div>
+
+  <div class="card-pad-0">
+    <% if (!payments.length) { %>
+      <div class="card-body"><%- helpers.emptyState('No payments match these filters.') %></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Reference</th><th>Customer</th><th>Amount</th>
+              <th>Applied to</th><th>Method / TrxID</th><th>Submitted</th>
+              <th>Status</th><th class="num">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% payments.forEach(function (p) { %>
+              <tr>
+                <td class="strong"><%= p.reference %></td>
+                <td>
+                  <% if (p.user) { %>
+                    <a href="/admin/users/<%= p.user.id %>"><%= p.user.name %></a>
+                    <br><small class="muted"><%= p.user.email %></small>
+                  <% } else { %>
+                    <span class="muted">—</span>
+                  <% } %>
+                </td>
+                <td class="strong"><%= fmt.bdt(p.amount) %></td>
+                <td>
+                  <% if (p.invoice) { %>
+                    <a href="/admin/invoices/<%= p.invoice.id %>"><%= p.invoice.invoiceNumber %></a>
+                    <br><small class="muted">of <%= fmt.bdt(p.invoice.total) %></small>
+                  <% } else if (p.order) { %>
+                    <a href="/admin/orders/<%= p.order.id %>"><%= p.order.orderNumber %></a>
+                  <% } else { %>
+                    <small class="muted">unapplied</small>
+                  <% } %>
+                </td>
+                <td>
+                  <%= paymentMethods[p.method] ? paymentMethods[p.method].en : p.method %>
+                  <% if (p.transactionId) { %>
+                    <br><small class="muted">TrxID <%= p.transactionId %></small>
+                  <% } %>
+                  <% if (p.senderNumber) { %>
+                    <br><small class="muted">from <%= p.senderNumber %></small>
+                  <% } %>
+                </td>
+                <td>
+                  <%= fmt.datetime(p.createdAt) %>
+                  <% if (p.verifiedAt) { %>
+                    <br><small class="muted">verified <%= fmt.date(p.verifiedAt, 'medium') %></small>
+                  <% } %>
+                </td>
+                <td>
+                  <%- helpers.statusBadge(p.status, paymentStatuses) %>
+                  <% if (p.failureReason) { %>
+                    <br><small class="muted"><%= p.failureReason %></small>
+                  <% } %>
+                </td>
+                <td class="num">
+                  <div class="row-actions">
+                    <% if (p.status === 'PENDING') { %>
+                      <form method="post" action="/admin/payments/<%= p.id %>/verify">
+                        <%- csrfField %>
+                        <button type="submit" class="btn btn-sm btn-success">Verify</button>
+                      </form>
+
+                      <form method="post" action="/admin/payments/<%= p.id %>/reject"
+                            onsubmit="return confirm('Reject payment <%= p.reference %>? The customer will be notified.');">
+                        <%- csrfField %>
+                        <input type="hidden" name="reason" value="Could not be matched to a received transaction.">
+                        <button type="submit" class="btn btn-sm btn-outline">Reject</button>
+                      </form>
+                    <% } else if (p.status === 'SUCCESS') { %>
+                      <form method="post" action="/admin/payments/<%= p.id %>/refund"
+                            onsubmit="return confirm('Mark <%= p.reference %> as refunded? This reduces the credited amount.');">
+                        <%- csrfField %>
+                        <input type="hidden" name="reason" value="Refunded to the customer.">
+                        <button type="submit" class="btn btn-sm btn-outline">Refund</button>
+                      </form>
+                    <% } else { %>
+                      <small class="muted">—</small>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<% if (pagination.pages > 1) { %>
+  <nav class="pagination" aria-label="Payment pages">
+    <% if (pagination.page > 1) { %>
+      <a href="/admin/payments?page=<%= pagination.page - 1 %>&status=<%= filters.status %>&method=<%= filters.method %>&q=<%= filters.q %>">Prev</a>
+    <% } else { %>
+      <span class="disabled">Prev</span>
+    <% } %>
+    <% for (var i = 1; i <= pagination.pages; i++) { %>
+      <% if (i === pagination.page) { %>
+        <span class="current"><%= i %></span>
+      <% } else if (i <= 3 || i > pagination.pages - 3 || Math.abs(i - pagination.page) <= 1) { %>
+        <a href="/admin/payments?page=<%= i %>&status=<%= filters.status %>&method=<%= filters.method %>&q=<%= filters.q %>"><%= i %></a>
+      <% } else if (Math.abs(i - pagination.page) === 2) { %>
+        <span class="info">…</span>
+      <% } %>
+    <% } %>
+    <% if (pagination.page < pagination.pages) { %>
+      <a href="/admin/payments?page=<%= pagination.page + 1 %>&status=<%= filters.status %>&method=<%= filters.method %>&q=<%= filters.q %>">Next</a>
+    <% } else { %>
+      <span class="disabled">Next</span>
+    <% } %>
+    <span class="info"><%= fmt.number(pagination.total) %> payments</span>
+  </nav>
+<% } %>
+
+<div class="card mt-4">
+  <div class="card-header"><h3 class="mt-0 mb-0">How verification works</h3></div>
+  <div class="card-body">
+    <p class="muted mb-3">
+      Verifying a payment does three things, in order: it marks the payment
+      <strong>SUCCESS</strong>, adds the amount to the invoice's paid total and recomputes
+      its status, then applies the same amount to the linked order's balance.
+      For a subscription it also advances the renewal period.
+    </p>
+    <div class="alert alert-warning">
+      <strong>Check before you approve.</strong>
+      The TrxID and sender number are typed in by the customer and are not validated
+      against the gateway. Matching them to a real bKash, Nagad or Rocket statement is
+      what makes this safe — approving an unverified transfer credits money that was
+      never received.
+    </div>
+  </div>
+</div>

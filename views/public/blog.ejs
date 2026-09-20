@@ -1,0 +1,42 @@
+<section class="section">
+  <div class="container">
+    <div class="section-head center">
+      <p class="section-kicker">Blog</p>
+      <h1 class="mt-0">Guides for selling online in Bangladesh</h1>
+      <p class="muted">Payment gateways, courier pricing, Facebook ads, and what actually converts here.</p>
+    </div>
+
+    <% if (!posts.length) { %>
+      <div class="empty-state">
+        <div class="empty-icon">▭</div>
+        <h3>No posts yet</h3>
+        <p class="muted">We are writing the first batch of guides.</p>
+      </div>
+    <% } else { %>
+      <div class="grid grid-3">
+        <% posts.forEach(function (post) { %>
+          <article class="post-card">
+            <div class="post-cover">
+              <% if (post.coverImage) { %>
+                <img src="<%= post.coverImage %>" alt="<%= post.title %>" loading="lazy">
+              <% } else { %>
+                <span class="muted"><%= post.category || 'Guide' %></span>
+              <% } %>
+            </div>
+            <div class="post-body">
+              <% if (post.category) { %><span class="badge badge-muted"><%= post.category %></span><% } %>
+              <h3 class="mt-2 mb-1"><a href="/blog/<%= post.slug %>"><%= post.title %></a></h3>
+              <p class="muted"><%= fmt.truncate(post.excerpt || post.content || '', 130) %></p>
+              <div class="post-meta muted">
+                <span><%= fmt.date(post.publishedAt || post.createdAt, 'medium') %></span>
+                <% if (post.readingTime) { %>
+                  <span>· <%= post.readingTime %> min read</span>
+                <% } %>
+              </div>
+            </div>
+          </article>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+</section>

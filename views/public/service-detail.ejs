@@ -1,0 +1,113 @@
+<section class="section">
+  <div class="container">
+    <nav class="muted mb-3">
+      <a href="/">Home</a> <span>/</span> <a href="/services">Services</a> <span>/</span>
+      <span><%= service.title %></span>
+    </nav>
+
+    <div class="grid grid-2 mt-0" style="align-items:start">
+      <div>
+        <span class="section-kicker"><%= service.category ? service.category.name : 'Service' %></span>
+        <h1 class="mt-1"><%= service.title %></h1>
+        <% if (service.titleBn) { %>
+          <p class="muted"><%= service.titleBn %></p>
+        <% } %>
+
+        <div class="prose">
+          <p><%= service.description || service.shortDescription %></p>
+        </div>
+
+        <% if (features.length) { %>
+          <h3>What is included</h3>
+          <ul class="prose">
+            <% features.forEach(function (f) { %>
+              <li><%= f %></li>
+            <% }); %>
+          </ul>
+        <% } %>
+
+        <% if (featuresBn && featuresBn.length) { %>
+          <h3>বাংলায় যা যা থাকছে</h3>
+          <ul class="prose">
+            <% featuresBn.forEach(function (f) { %>
+              <li><%= f %></li>
+            <% }); %>
+          </ul>
+        <% } %>
+      </div>
+
+      <aside>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="mt-0 mb-0">Start this service</h3>
+          </div>
+          <div class="card-body">
+            <ul class="summary-list">
+              <li>
+                <span class="label">Starting price</span>
+                <span class="value"><%= fmt.bdt(service.startingPrice || 0) %></span>
+              </li>
+              <li>
+                <span class="label">Delivery</span>
+                <span class="value"><%= service.deliveryDays || 14 %> days</span>
+              </li>
+              <% if (service.revisions) { %>
+                <li>
+                  <span class="label">Revisions</span>
+                  <span class="value"><%= service.revisions %></span>
+                </li>
+              <% } %>
+              <% if (service.billingCycle) { %>
+                <li>
+                  <span class="label">Billing</span>
+                  <span class="value">
+                    <%= C.BILLING_CYCLE[service.billingCycle] ? C.BILLING_CYCLE[service.billingCycle].en : service.billingCycle %>
+                  </span>
+                </li>
+              <% } %>
+            </ul>
+
+            <div class="form-actions mt-3">
+              <a class="btn btn-primary btn-block" href="/order/checkout?serviceId=<%= service.id %>">
+                Request a quote
+              </a>
+              <a class="btn btn-outline btn-block" href="/contact?service=<%= service.slug %>">
+                Ask a question first
+              </a>
+            </div>
+
+            <p class="muted mt-3 mb-0">
+              Questions? Call
+              <a href="tel:<%= settings.supportPhone || '' %>"><%= settings.supportPhone || 'support' %></a>
+              or message us on
+              <a href="https://wa.me/<%= settings.whatsappNumber || '' %>" target="_blank" rel="noopener">WhatsApp</a>.
+            </p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<% if (related && related.length) { %>
+  <section class="section section-soft">
+    <div class="container">
+      <div class="section-head">
+        <h2 class="mt-0">Often ordered with this</h2>
+      </div>
+      <div class="grid grid-3">
+        <% related.forEach(function (svc) { %>
+          <article class="svc-card">
+            <div class="svc-icon"><%= svc.icon || '◆' %></div>
+            <h3 class="mt-0"><a href="/services/<%= svc.slug %>"><%= svc.title %></a></h3>
+            <p class="muted"><%= fmt.truncate(svc.shortDescription || '', 110) %></p>
+            <div class="svc-price">
+              <span class="muted">From</span>
+              <strong><%= fmt.bdt(svc.startingPrice || 0) %></strong>
+            </div>
+          </article>
+        <% }); %>
+      </div>
+    </div>
+  </section>
+<% } %>

@@ -1,0 +1,523 @@
+<%
+  const iconFor = function (name) {
+    const map = {
+      cart: '⌂', layout: '▤', globe: '⊕', search: '⌕', truck: '⇥', shield: '⛨',
+      code: '⌨', megaphone: '◈', chart: '◪', server: '▦', palette: '◐', plug: '⚭',
+      book: '▭', phone: '☎', star: '★', bolt: '⚡', wrench: '⚒', box: '▣',
+    };
+    return map[name] || '◆';
+  };
+%>
+
+<!-- ==================================================================
+     HERO
+     ================================================================== -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+
+      <div>
+        <span class="hero-eyebrow">
+          <span class="dot" aria-hidden="true"></span>
+          Trusted by <%= fmt.number(stats.customers) %>+ Bangladeshi businesses
+        </span>
+
+        <h1>
+          Your e-commerce website,<br>
+          <span class="grad">built and managed for you</span>
+        </h1>
+
+        <p class="hero-lede">
+          Pick a package, pay with bKash, Nagad or Rocket, and we build a fast,
+          mobile-first online store for your business — with payment gateways,
+          courier integration and a dashboard you can actually use.
+        </p>
+
+        <div class="hero-cta">
+          <a href="/order/checkout" class="btn btn-primary btn-lg">Start my website</a>
+          <a href="/packages" class="btn btn-outline btn-lg">See packages &amp; pricing</a>
+        </div>
+
+        <div class="hero-proof">
+          <div>
+            <strong><%= fmt.number(stats.orders) %>+</strong>
+            <span>Websites delivered</span>
+          </div>
+          <div>
+            <strong>7 days</strong>
+            <span>Average go-live</span>
+          </div>
+          <div>
+            <strong>0.8s</strong>
+            <span>Average load time</span>
+          </div>
+          <div>
+            <strong>24/7</strong>
+            <span>Support in Bangla</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="browser-mock">
+          <div class="browser-bar">
+            <i></i><i></i><i></i>
+            <span class="browser-url">yourbusiness.com.bd</span>
+          </div>
+          <div class="browser-body">
+            <div class="mock-badge">Order placed</div>
+            <div class="mock-line w-90"></div>
+            <div class="mock-line w-70"></div>
+            <div class="mock-row">
+              <div class="mock-tile"></div>
+              <div class="mock-tile"></div>
+              <div class="mock-tile"></div>
+            </div>
+            <div class="mock-line w-45"></div>
+          </div>
+        </div>
+
+        <div class="float-card">
+          <span class="ok-dot" aria-hidden="true">৳</span>
+          <span>
+            <strong>Payment received</strong>
+            <small>bKash &middot; verified in 4 min</small>
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================================================================
+     TRUST STRIP
+     ================================================================== -->
+<div class="trust-strip">
+  <div class="container">
+    <div class="trust-inner">
+      <span><strong>bKash</strong> &middot; Nagad &middot; Rocket</span>
+      <span><strong>Pathao</strong> &middot; Steadfast &middot; RedX</span>
+      <span>SSLCommerz certified</span>
+      <span>Bangla + English support</span>
+      <span>All 64 districts</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================================================================
+     SERVICES
+     ================================================================== -->
+<section class="section" id="services">
+  <div class="container">
+
+    <div class="section-head">
+      <span class="section-kicker">What we do</span>
+      <h2>Everything your online shop needs</h2>
+      <p>
+        From the first design concept to courier integration and monthly maintenance —
+        we handle the technical side so you can focus on selling.
+      </p>
+    </div>
+
+    <div class="grid grid-3">
+      <% services.forEach(function (service) { %>
+        <article class="svc-card" data-reveal>
+          <div class="svc-icon" aria-hidden="true"><%= iconFor(service.icon) %></div>
+          <h3><%= service.title %></h3>
+          <p><%= service.shortDesc %></p>
+          <div class="svc-meta">
+            <span class="svc-price">
+              <% if (service.basePrice > 0) { %>
+                From <%= fmt.bdt(service.basePrice) %>
+              <% } else { %>
+                Custom quote
+              <% } %>
+              <small><%= service.deliveryDays %> days delivery</small>
+            </span>
+            <a href="/services/<%= service.slug %>" class="btn btn-outline btn-sm">Details</a>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+
+    <% if (services.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-icon">◌</div>
+        <p>Services will appear here once the admin publishes them.</p>
+      </div>
+    <% } %>
+
+    <div class="center mt-4">
+      <a href="/services" class="btn btn-outline">Browse all services</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================================================================
+     PACKAGES
+     ================================================================== -->
+<section class="section section-soft" id="packages">
+  <div class="container">
+
+    <div class="section-head center">
+      <span class="section-kicker">Packages &amp; pricing</span>
+      <h2>One-time build, or build + monthly care</h2>
+      <p>Transparent Taka pricing. No hidden charges. Pay online or by bank transfer.</p>
+    </div>
+
+    <div class="grid grid-3" style="align-items:stretch">
+      <% packages.forEach(function (pkg) {
+           const features = json.parse(pkg.features);
+           const excluded = json.parse(pkg.excluded);
+      %>
+        <article class="pkg-card <%= pkg.isPopular ? 'popular' : '' %>" data-reveal>
+          <% if (pkg.isPopular) { %><span class="pkg-ribbon">Most popular</span><% } %>
+
+          <span class="pkg-tier"><%= C.PACKAGE_TIER[pkg.tier].en %></span>
+          <h3><%= pkg.name %></h3>
+          <p class="pkg-tagline"><%= pkg.tagline || 'A complete website package for growing online businesses.' %></p>
+
+          <div class="pkg-price">
+            <span class="amount"><%= fmt.bdt(pkg.price).replace('৳', '') %></span>
+            <span class="cycle">BDT one-time</span>
+          </div>
+
+          <% if (pkg.monthlyPrice > 0) { %>
+            <p class="muted" style="font-size:13px;margin:2px 0 10px">
+              or <%= fmt.bdt(pkg.monthlyPrice) %>/month with ongoing care
+              <% if (pkg.yearlyPrice > 0) { %> &middot; <%= fmt.bdt(pkg.yearlyPrice) %>/year<% } %>
+            </p>
+          <% } %>
+
+          <% if (pkg.discountPercent > 0) { %>
+            <span class="pkg-save">Save <%= pkg.discountPercent %>%</span>
+          <% } else { %>
+            <div style="height:8px"></div>
+          <% } %>
+
+          <ul class="pkg-features">
+            <% features.slice(0, 9).forEach(function (f) { %>
+              <li><%= f %></li>
+            <% }); %>
+            <% excluded.slice(0, 4).forEach(function (f) { %>
+              <li class="excluded"><%= f %></li>
+            <% }); %>
+          </ul>
+
+          <div class="pkg-footer">
+            <a href="/order/checkout?package=<%= pkg.id %>" class="btn <%= pkg.isPopular ? 'btn-primary' : 'btn-outline' %> btn-block">
+              Order this package
+            </a>
+            <a href="/packages/<%= pkg.slug %>" class="pkg-note">See full feature list</a>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+
+    <div class="center mt-4">
+      <a href="/packages" class="btn btn-outline">Compare all packages</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================================================================
+     WHY US / FEATURES
+     ================================================================== -->
+<section class="section">
+  <div class="container">
+
+    <div class="section-head">
+      <span class="section-kicker">Why WooHelperPro</span>
+      <h2>Built for how Bangladesh actually sells online</h2>
+      <p>
+        Cash on delivery is still king, fake orders eat your profit, and your customers
+        browse on a mid-range Android phone. Our builds assume all of that.
+      </p>
+    </div>
+
+    <div class="grid grid-2">
+
+      <div class="feature-row" data-reveal>
+        <span class="ico" aria-hidden="true">৳</span>
+        <div>
+          <h4>All the local payment rails, wired up</h4>
+          <p>bKash, Nagad, Rocket, Upay and SSLCommerz card checkout — plus cash on delivery with
+             order confirmation. Money reaches your account, not a middleman's.</p>
+        </div>
+      </div>
+
+      <div class="feature-row" data-reveal>
+        <span class="ico" aria-hidden="true">⇥</span>
+        <div>
+          <h4>One-click courier booking</h4>
+          <p>Pathao, Steadfast, RedX and e-Courier integrated. Book a delivery from the order
+             screen, print the label, and tracking updates flow back automatically.</p>
+        </div>
+      </div>
+
+      <div class="feature-row" data-reveal>
+        <span class="ico" aria-hidden="true">⛨</span>
+        <div>
+          <h4>Fake order protection</h4>
+          <p>Phone number risk scoring against courier history, duplicate-order detection and
+             velocity checks. Block the orders that cost you money before you ship them.</p>
+        </div>
+      </div>
+
+      <div class="feature-row" data-reveal>
+        <span class="ico" aria-hidden="true">⚡</span>
+        <div>
+          <h4>Fast on a 3G connection</h4>
+          <p>Optimised images, critical CSS and minimal JavaScript. Pages load in under a second
+             on mobile data, which is where the overwhelming majority of your buyers are.</p>
+        </div>
+      </div>
+
+      <div class="feature-row" data-reveal>
+        <span class="ico" aria-hidden="true">◪</span>
+        <div>
+          <h4>Facebook Pixel, GA4 and TikTok set up properly</h4>
+          <p>Browser and server-side tracking, configured by us. Know which campaign actually
+             produced the sale instead of guessing from last-click attribution.</p>
+        </div>
+      </div>
+
+      <div class="feature-row" data-reveal>
+        <span class="ico" aria-hidden="true">⌨</span>
+        <div>
+          <h4>You own everything</h4>
+          <p>Your domain, your hosting account, your admin credentials, your data export.
+             We hand over full access at launch — no vendor lock-in, ever.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================================================================
+     STATS
+     ================================================================== -->
+<section class="section section-soft">
+  <div class="container">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="num"><%= fmt.number(stats.orders) %>+</div>
+        <div class="lbl">Websites delivered</div>
+      </div>
+      <div class="stat-card">
+        <div class="num"><%= fmt.number(stats.customers) %>+</div>
+        <div class="lbl">Active clients</div>
+      </div>
+      <div class="stat-card">
+        <div class="num"><%= fmt.bdt(stats.revenue, { compact: true }) %></div>
+        <div class="lbl">Client revenue generated</div>
+      </div>
+      <div class="stat-card">
+        <div class="num"><%= stats.portfolio %>+</div>
+        <div class="lbl">Live websites in portfolio</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================================================================
+     PORTFOLIO
+     ================================================================== -->
+<% if (portfolio.length) { %>
+<section class="section">
+  <div class="container">
+
+    <div class="section-head">
+      <span class="section-kicker">Recent work</span>
+      <h2>Websites we built and launched</h2>
+      <p>Real Bangladeshi businesses, real order volumes.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <% portfolio.forEach(function (item) { %>
+        <article class="pf-card" data-reveal>
+          <div class="pf-thumb">
+            <% if (item.imageUrl) { %>
+              <img src="<%= item.imageUrl %>" alt="<%= item.title %>" loading="lazy">
+            <% } else { %>
+              <%= item.clientName ? fmt.initials(item.clientName) : 'WH' %>
+            <% } %>
+          </div>
+          <div class="pf-body">
+            <h4><%= item.title %></h4>
+            <p><%= fmt.truncate(item.description || '', 100) %></p>
+            <% if (item.results) { %>
+              <span class="pf-result">↗ <%= item.results %></span>
+            <% } %>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+
+    <div class="center mt-4">
+      <a href="/portfolio" class="btn btn-outline">View full portfolio</a>
+    </div>
+
+  </div>
+</section>
+<% } %>
+
+<!-- ==================================================================
+     TESTIMONIALS
+     ================================================================== -->
+<% if (testimonials.length) { %>
+<section class="section section-soft">
+  <div class="container">
+
+    <div class="section-head center">
+      <span class="section-kicker">Client feedback</span>
+      <h2>What our clients say</h2>
+    </div>
+
+    <div class="grid grid-3">
+      <% testimonials.forEach(function (t) { %>
+        <article class="tst-card" data-reveal>
+          <div class="tst-stars" aria-label="<%= t.rating %> out of 5 stars">
+            <% for (let i = 0; i < t.rating; i++) { %>★<% } %>
+          </div>
+          <p class="tst-body">"<%= t.body %>"</p>
+          <div class="tst-who">
+            <span class="avatar" aria-hidden="true"><%= fmt.initials(t.clientName) %></span>
+            <span>
+              <strong><%= t.clientName %></strong>
+              <small><%= [t.company, t.district].filter(Boolean).join(' · ') %></small>
+            </span>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+
+  </div>
+</section>
+<% } %>
+
+<!-- ==================================================================
+     HOW IT WORKS
+     ================================================================== -->
+<section class="section">
+  <div class="container">
+
+    <div class="section-head center">
+      <span class="section-kicker">How it works</span>
+      <h2>From order to live website in four steps</h2>
+    </div>
+
+    <div class="grid grid-4">
+      <% [
+        ['01', 'Choose a package', 'Pick a package or request a custom quote. Takes two minutes.'],
+        ['02', 'Pay & confirm', 'Pay the advance by bKash, Nagad, Rocket or bank transfer. We verify it within an hour.'],
+        ['03', 'We build it', 'You get a dedicated project tracker. Share your products and we handle design, development and integrations.'],
+        ['04', 'Review & go live', 'Test on your own domain, request revisions, then launch. Training included.'],
+      ].forEach(function (step) { %>
+        <div class="svc-card" data-reveal>
+          <div class="svc-icon" style="background:var(--brand-600);color:#fff"><%= step[0] %></div>
+          <h3 style="font-size:1.05rem"><%= step[1] %></h3>
+          <p style="margin-bottom:0"><%= step[2] %></p>
+        </div>
+      <% }); %>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================================================================
+     BLOG
+     ================================================================== -->
+<% if (posts.length) { %>
+<section class="section section-soft">
+  <div class="container">
+
+    <div class="section-head">
+      <span class="section-kicker">From the blog</span>
+      <h2>Guides for selling online in Bangladesh</h2>
+    </div>
+
+    <div class="grid grid-3">
+      <% posts.forEach(function (post) { %>
+        <article class="post-card" data-reveal>
+          <div class="post-cover">
+            <% if (post.coverImage) { %><img src="<%= post.coverImage %>" alt="" loading="lazy"><% } %>
+          </div>
+          <div class="post-body">
+            <div class="post-meta">
+              <span><%= post.category || 'Guides' %></span>
+              <span><%= fmt.date(post.publishedAt) %></span>
+            </div>
+            <h4><a href="/blog/<%= post.slug %>" style="color:inherit"><%= post.title %></a></h4>
+            <p><%= fmt.truncate(post.excerpt || '', 110) %></p>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+
+    <div class="center mt-4">
+      <a href="/blog" class="btn btn-outline">Read all articles</a>
+    </div>
+
+  </div>
+</section>
+<% } %>
+
+<!-- ==================================================================
+     FAQ
+     ================================================================== -->
+<% if (faqs.length) { %>
+<section class="section" id="faq">
+  <div class="container">
+    <div class="section-head center">
+      <span class="section-kicker">Common questions</span>
+      <h2>Frequently asked questions</h2>
+    </div>
+
+    <div class="container-narrow" style="margin:0 auto">
+      <% faqs.forEach(function (faq, i) { %>
+        <div class="card mb-2" data-faq-item data-open="<%= i === 0 ? 'true' : 'false' %>" style="padding:0">
+          <button type="button" data-faq-question aria-expanded="<%= i === 0 %>"
+                  style="width:100%;text-align:left;background:none;border:0;padding:18px 22px;font-family:inherit;font-size:15.5px;font-weight:600;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;gap:16px;align-items:center">
+            <span><%= faq.question %></span>
+            <span style="color:var(--brand-600);font-size:20px;line-height:1;flex-shrink:0">&plus;</span>
+          </button>
+          <div style="padding:0 22px 18px;color:var(--text-soft);font-size:14.5px">
+            <%= faq.answer %>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<!-- ==================================================================
+     FINAL CTA
+     ================================================================== -->
+<section class="section">
+  <div class="container">
+    <div class="cta-band" data-reveal>
+      <h2>Ready to start selling online?</h2>
+      <p>
+        Tell us about your business and we'll recommend the right package —
+        free consultation, no pressure, in Bangla or English.
+      </p>
+      <div class="btn-group" style="justify-content:center">
+        <a href="/order/checkout" class="btn btn-accent btn-lg">Order a package</a>
+        <a href="/contact" class="btn btn-outline btn-lg">Talk to our team</a>
+      </div>
+      <p style="margin-top:20px;font-size:13.5px;opacity:.85">
+        Or call us directly
+        <% if (settings.supportPhone) { %>
+          on <a href="tel:<%= settings.supportPhone %>" style="color:#fff;text-decoration:underline"><%= settings.supportPhone %></a>
+        <% } %>
+      </p>
+    </div>
+  </div>
+</section>

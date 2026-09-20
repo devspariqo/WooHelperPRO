@@ -1,0 +1,181 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Orders</h1>
+    <p class="meta-line muted mb-0">
+      Every website project ordered by a customer, newest first.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/reports">Reports</a>
+  </div>
+</section>
+
+<div class="dash-grid cols-3 mt-4">
+  <% Object.keys(orderStatuses).forEach(function (key) { %>
+    <% if (statusCounts[key]) { %>
+      <div class="kpi">
+        <div class="kpi-label"><%- helpers.statusBadge(key, orderStatuses) %></div>
+        <div class="kpi-value"><%= fmt.number(statusCounts[key]) %></div>
+        <div class="kpi-foot">order(s) in this state</div>
+      </div>
+    <% } %>
+  <% }); %>
+</div>
+
+<form method="get" action="/admin/orders" class="filters mt-4">
+  <div class="field grow">
+    <label for="q">Search</label>
+    <input type="search" id="q" name="q" value="<%= filters.q %>"
+           placeholder="Order number, project, business, phone or email">
+  </div>
+
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">All statuses</option>
+      <% Object.keys(orderStatuses).forEach(function (key) { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>>
+          <%= orderStatuses[key].en %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="priority">Priority</label>
+    <select id="priority" name="priority">
+      <option value="">Any priority</option>
+      <% ['LOW', 'NORMAL', 'HIGH', 'URGENT'].forEach(function (pr) { %>
+        <option value="<%= pr %>" <%= filters.priority === pr ? 'selected' : '' %>>
+          <%= pr.charAt(0) + pr.slice(1).toLowerCase() %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>&nbsp;</label>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </div>
+  <% if (filters.q || filters.status || filters.priority) { %>
+    <div class="field">
+      <label>&nbsp;</label>
+      <a class="btn btn-outline" href="/admin/orders">Reset</a>
+    </div>
+  <% } %>
+</form>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Order queue</h3>
+      <span class="sub muted">
+        <%= fmt.number(pagination.total) %> matching ·
+        page <%= pagination.page %> of <%= pagination.pages || 1 %>
+      </span>
+    </div>
+  </div>
+
+  <div class="card-pad-0">
+    <% if (!orders.length) { %>
+      <div class="card-body">
+        <%- helpers.emptyState('No orders match these filters.') %>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Package</th>
+              <th>District</th>
+              <th>Status</th>
+              <th>Payment</th>
+              <th>Project</th>
+              <th class="num">Total</th>
+              <th class="num">Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(function (o) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/admin/orders/<%= o.id %>"><%= o.orderNumber %></a>
+                  <% if (o.priority && o.priority !== 'NORMAL') { %>
+                    <span class="badge badge-<%= o.priority === 'URGENT' ? 'danger' : 'warn' %>">
+                      <%= o.priority %>
+                    </span>
+                  <% } %>
+                  <br><small class="muted"><%= fmt.date(o.createdAt, 'medium') %></small>
+                </td>
+                <td>
+                  <% if (o.user) { %>
+                    <a href="/admin/users/<%= o.user.id %>"><%= o.user.name %></a>
+                    <br><small class="muted"><%= o.user.email %></small>
+                  <% } else { %>
+                    <span class="muted">Guest</span>
+                    <br><small class="muted"><%= o.contactEmail || '—' %></small>
+                  <% } %>
+                </td>
+                <td>
+                  <%= o.package ? o.package.name : 'Custom' %>
+                  <br><small class="muted"><%= o.projectName %></small>
+                </td>
+                <td><%= o.district || '—' %></td>
+                <td><%- helpers.statusBadge(o.status, orderStatuses) %></td>
+                <td>
+                  <%
+                    var payTone = { UNPAID: 'danger', PARTIAL: 'warn', PAID: 'success' }[o.paymentStatus] || 'muted';
+                    var payLabel = { UNPAID: 'Unpaid', PARTIAL: 'Partially paid', PAID: 'Paid' }[o.paymentStatus] || o.paymentStatus;
+                  %>
+                  <span class="badge badge-<%= payTone %>"><%= payLabel %></span>
+                </td>
+                <td>
+                  <% if (o.project) { %>
+                    <%= fmt.number(o.project.progress) %>%
+                    <br><small class="muted"><%= o.project.status.replace(/_/g, ' ').toLowerCase() %></small>
+                  <% } else { %>
+                    <small class="muted">not created</small>
+                  <% } %>
+                </td>
+                <td class="num strong"><%= fmt.bdt(o.total) %></td>
+                <td class="num <%= o.balance > 0 ? '' : 'muted' %>">
+                  <%= o.balance > 0 ? fmt.bdt(o.balance) : '—' %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<% if (pagination.pages > 1) { %>
+  <nav class="pagination" aria-label="Order pages">
+    <% if (pagination.page > 1) { %>
+      <a href="/admin/orders?page=<%= pagination.page - 1 %>&status=<%= filters.status %>&priority=<%= filters.priority %>&q=<%= filters.q %>">Prev</a>
+    <% } else { %>
+      <span class="disabled">Prev</span>
+    <% } %>
+
+    <% for (var i = 1; i <= pagination.pages; i++) { %>
+      <% if (i === pagination.page) { %>
+        <span class="current"><%= i %></span>
+      <% } else if (i <= 3 || i > pagination.pages - 3 || Math.abs(i - pagination.page) <= 1) { %>
+        <a href="/admin/orders?page=<%= i %>&status=<%= filters.status %>&priority=<%= filters.priority %>&q=<%= filters.q %>"><%= i %></a>
+      <% } else if (Math.abs(i - pagination.page) === 2) { %>
+        <span class="info">…</span>
+      <% } %>
+    <% } %>
+
+    <% if (pagination.page < pagination.pages) { %>
+      <a href="/admin/orders?page=<%= pagination.page + 1 %>&status=<%= filters.status %>&priority=<%= filters.priority %>&q=<%= filters.q %>">Next</a>
+    <% } else { %>
+      <span class="disabled">Next</span>
+    <% } %>
+
+    <span class="info"><%= fmt.number(pagination.total) %> orders</span>
+  </nav>
+<% } %>

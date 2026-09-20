@@ -1,0 +1,289 @@
+<%
+  /*
+   * Package create / edit form.
+   *
+   * `package` is null on create and a full Prisma row on edit. The route also
+   * hands us `featureLines` / `excludedLines` — the JSON array columns already
+   * flattened to one-item-per-line so they can drop straight into a textarea.
+   */
+  var p = (typeof package !== 'undefined' && package) ? package : {};
+  var isEdit = !!(p && p.id);
+  var action = isEdit ? '/admin/packages/' + p.id : '/admin/packages';
+  var currentTier = p.tier || 'BASIC';
+  var currentCycle = p.billingCycle || 'ONE_TIME';
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1><%= isEdit ? 'Edit ' + p.name : 'Add package' %></h1>
+    <p class="meta-line muted mb-0">
+      <%= isEdit
+          ? 'Changes go live immediately on the public packages page.'
+          : 'Define what the customer gets, and what it costs one-time and per cycle.' %>
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/packages">&larr; Back to packages</a>
+    <% if (isEdit) { %>
+      <a class="btn btn-outline" href="/packages/<%= p.slug %>" target="_blank" rel="noopener">Preview</a>
+    <% } %>
+  </div>
+</section>
+
+<form method="post" action="<%= action %>" class="mt-4">
+  <%- csrfField %>
+
+  <div class="dash-grid cols-2">
+
+    <!-- ================= Basics ================= -->
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Basics</h3></div>
+      <div class="card-body">
+        <div class="form-grid two">
+          <div class="field">
+            <label for="name">Package name <span class="req">*</span></label>
+            <input type="text" id="name" name="name" required maxlength="90"
+                   value="<%= p.name || '' %>" placeholder="Basic Store">
+          </div>
+
+          <div class="field">
+            <label for="nameBn">Name (Bangla)</label>
+            <input type="text" id="nameBn" name="nameBn" maxlength="90"
+                   value="<%= p.nameBn || '' %>" placeholder="বেসিক স্টোর">
+          </div>
+
+          <div class="field full">
+            <label for="serviceId">Parent service</label>
+            <select id="serviceId" name="serviceId">
+              <option value="">— none —</option>
+              <% services.forEach(function (s) { %>
+                <option value="<%= s.id %>" <%= p.serviceId === s.id ? 'selected' : '' %>>
+                  <%= s.title %><%= s.status !== 'ACTIVE' ? ' (' + s.status.toLowerCase() + ')' : '' %>
+                </option>
+              <% }); %>
+            </select>
+            <span class="hint">The service this package is sold under.</span>
+          </div>
+
+          <div class="field">
+            <label for="tier">Tier</label>
+            <select id="tier" name="tier">
+              <% Object.keys(tiers).forEach(function (key) { %>
+                <option value="<%= key %>" <%= currentTier === key ? 'selected' : '' %>>
+                  <%= tiers[key].en %>
+                </option>
+              <% }); %>
+            </select>
+            <span class="hint">Controls the badge colour on the pricing table.</span>
+          </div>
+
+          <div class="field">
+            <label for="sortOrder">Sort order</label>
+            <input type="number" id="sortOrder" name="sortOrder" step="1" min="0"
+                   value="<%= typeof p.sortOrder === 'number' ? p.sortOrder : 0 %>">
+            <span class="hint">Lower numbers appear first.</span>
+          </div>
+
+          <div class="field full">
+            <label for="tagline">Tagline</label>
+            <input type="text" id="tagline" name="tagline" maxlength="140"
+                   value="<%= p.tagline || '' %>" placeholder="Everything a new shop needs to start selling.">
+          </div>
+
+          <div class="field full">
+            <label for="taglineBn">Tagline (Bangla)</label>
+            <input type="text" id="taglineBn" name="taglineBn" maxlength="140"
+                   value="<%= p.taglineBn || '' %>">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Pricing ================= -->
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Pricing</h3></div>
+      <div class="card-body">
+        <div class="form-grid two">
+          <div class="field">
+            <label for="price">One-time build price (৳)</label>
+            <input type="number" id="price" name="price" step="1" min="0"
+                   value="<%= p.price || 0 %>">
+            <span class="hint">Charged once when the project starts.</span>
+          </div>
+
+          <div class="field">
+            <label for="setupFee">Setup fee (৳)</label>
+            <input type="number" id="setupFee" name="setupFee" step="1" min="0"
+                   value="<%= p.setupFee || 0 %>">
+            <span class="hint">Added to the first recurring invoice only.</span>
+          </div>
+
+          <div class="field">
+            <label for="monthlyPrice">Monthly price (৳)</label>
+            <input type="number" id="monthlyPrice" name="monthlyPrice" step="1" min="0"
+                   value="<%= p.monthlyPrice || 0 %>">
+          </div>
+
+          <div class="field">
+            <label for="yearlyPrice">Yearly price (৳)</label>
+            <input type="number" id="yearlyPrice" name="yearlyPrice" step="1" min="0"
+                   value="<%= p.yearlyPrice || 0 %>">
+          </div>
+
+          <div class="field">
+            <label for="discountPercent">Discount on yearly (%)</label>
+            <input type="number" id="discountPercent" name="discountPercent" step="1" min="0" max="100"
+                   value="<%= p.discountPercent || 0 %>">
+            <span class="hint">Shown as a saving badge on the pricing table.</span>
+          </div>
+
+          <div class="field">
+            <label for="billingCycle">Default billing cycle</label>
+            <select id="billingCycle" name="billingCycle">
+              <% Object.keys(cycles).forEach(function (key) { %>
+                <option value="<%= key %>" <%= currentCycle === key ? 'selected' : '' %>>
+                  <%= cycles[key].en %>
+                </option>
+              <% }); %>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label>Plan flags</label>
+            <label class="check-row" for="isRecurring">
+              <input type="checkbox" id="isRecurring" name="isRecurring"
+                     <%= p.isRecurring ? 'checked' : '' %>>
+              <span>Offer as a recurring subscription plan</span>
+            </label>
+            <label class="check-row mt-0" for="isPopular">
+              <input type="checkbox" id="isPopular" name="isPopular"
+                     <%= p.isPopular ? 'checked' : '' %>>
+              <span>Mark as most popular</span>
+            </label>
+            <label class="check-row mt-0" for="isActive">
+              <input type="checkbox" id="isActive" name="isActive"
+                     <%= (isEdit ? p.isActive : true) ? 'checked' : '' %>>
+              <span>Visible on the public website</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Inclusions ================= -->
+  <div class="dash-grid cols-3 mt-4">
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">What is included</h3></div>
+      <div class="card-body">
+        <div class="field full">
+          <label for="features">Features <span class="muted">(one per line)</span></label>
+          <textarea id="features" name="features" rows="8"
+                    placeholder="Up to 50 products&#10;bKash &amp; Nagad checkout&#10;Free SSL certificate"><%= featureLines %></textarea>
+        </div>
+        <div class="field full mt-3">
+          <label for="featuresBn">Features (Bangla)</label>
+          <textarea id="featuresBn" name="featuresBn" rows="6"><%= featureBnLines %></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">What is not included</h3></div>
+      <div class="card-body">
+        <div class="field full">
+          <label for="excluded">Excluded <span class="muted">(one per line)</span></label>
+          <textarea id="excluded" name="excluded" rows="8"
+                    placeholder="Native mobile app&#10;Custom courier integration"><%= excludedLines %></textarea>
+          <span class="hint">Shown greyed out on the pricing table.</span>
+        </div>
+        <div class="field full mt-3">
+          <label for="excludedBn">Excluded (Bangla)</label>
+          <textarea id="excludedBn" name="excludedBn" rows="6"><%= excludedBnLines %></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Delivery limits</h3></div>
+      <div class="card-body">
+        <div class="form-grid two">
+          <div class="field">
+            <label for="pagesIncluded">Pages included</label>
+            <input type="number" id="pagesIncluded" name="pagesIncluded" step="1" min="0"
+                   value="<%= typeof p.pagesIncluded === 'number' ? p.pagesIncluded : 5 %>">
+          </div>
+          <div class="field">
+            <label for="productsLimit">Product limit</label>
+            <input type="number" id="productsLimit" name="productsLimit" step="1" min="0"
+                   value="<%= p.productsLimit || 0 %>">
+            <span class="hint">0 = unlimited.</span>
+          </div>
+          <div class="field">
+            <label for="revisions">Revisions</label>
+            <input type="number" id="revisions" name="revisions" step="1" min="0"
+                   value="<%= typeof p.revisions === 'number' ? p.revisions : 2 %>">
+          </div>
+          <div class="field">
+            <label for="deliveryDays">Delivery (days)</label>
+            <input type="number" id="deliveryDays" name="deliveryDays" step="1" min="1"
+                   value="<%= typeof p.deliveryDays === 'number' ? p.deliveryDays : 7 %>">
+          </div>
+          <div class="field">
+            <label for="supportMonths">Support (months)</label>
+            <input type="number" id="supportMonths" name="supportMonths" step="1" min="0"
+                   value="<%= typeof p.supportMonths === 'number' ? p.supportMonths : 3 %>">
+          </div>
+          <div class="field">
+            <label for="hostingMonths">Hosting (months)</label>
+            <input type="number" id="hostingMonths" name="hostingMonths" step="1" min="0"
+                   value="<%= p.hostingMonths || 0 %>">
+          </div>
+          <div class="field full">
+            <label for="staffLimit">Staff accounts</label>
+            <input type="number" id="staffLimit" name="staffLimit" step="1" min="1"
+                   value="<%= typeof p.staffLimit === 'number' ? p.staffLimit : 1 %>">
+            <span class="hint">Admin logins included with the delivered shop.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-body form-actions">
+      <button type="submit" class="btn btn-primary">
+        <%= isEdit ? 'Save changes' : 'Create package' %>
+      </button>
+      <a class="btn btn-outline" href="/admin/packages">Cancel</a>
+      <% if (isEdit) { %>
+        <span class="muted" style="margin-left:auto;font-size:13px">
+          Created <%= fmt.date(p.createdAt, 'medium') %> ·
+          updated <%= fmt.date(p.updatedAt, 'medium') %>
+        </span>
+      <% } %>
+    </div>
+  </div>
+</form>
+
+<%# The delete form lives OUTSIDE the main <form>. Nesting forms is invalid HTML
+    and the browser would submit the inner one for every button in the outer. %>
+<% if (isEdit) { %>
+  <div class="card mt-4" style="border-color:var(--err-500)">
+    <div class="card-header">
+      <h3 class="mt-0 mb-0" style="color:var(--err-700)">Danger zone</h3>
+    </div>
+    <div class="card-body">
+      <p class="muted">
+        Deleting a package that has never been ordered removes it outright.
+        A package with existing orders or subscriptions is archived instead, so
+        past invoices and revenue reports stay intact.
+      </p>
+      <form method="post" action="/admin/packages/<%= p.id %>/delete"
+            onsubmit="return confirm('Delete the package “<%= p.name %>”? This cannot be undone.');">
+        <%- csrfField %>
+        <button type="submit" class="btn btn-danger">Delete this package</button>
+      </form>
+    </div>
+  </div>
+<% } %>

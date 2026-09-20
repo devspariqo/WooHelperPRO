@@ -1,0 +1,81 @@
+<section class="section">
+  <div class="container container-narrow">
+    <h1>Terms of service</h1>
+    <p class="muted">Last updated: 20 September 2026</p>
+
+    <div class="prose">
+      <h2>1. Who we are</h2>
+      <p>
+        <%= settings.siteName || 'WooHelperPro' %> designs, builds and operates e-commerce
+        websites for businesses in Bangladesh. These terms govern your use of this website and
+        any website we build for you.
+      </p>
+
+      <h2>2. Accounts</h2>
+      <p>
+        You must give accurate contact details when you open an account. You are responsible for
+        keeping your password secret. Notify us immediately at
+        <a href="mailto:<%= settings.supportEmail || 'support@woohelperpro.com' %>"><%= settings.supportEmail || 'support@woohelperpro.com' %></a>
+        if you believe someone else has access to your account.
+      </p>
+
+      <h2>3. Orders and scope</h2>
+      <p>
+        An order becomes binding when we confirm it and the first payment is verified. The scope
+        of work is what is described on the package page you ordered, plus anything we confirm in
+        writing afterwards. Changes to scope may change the price and the delivery date.
+      </p>
+
+      <h2>4. Your content</h2>
+      <p>
+        You keep ownership of the logos, product photos, product descriptions and other material
+        you give us. You confirm you have the right to use it. We keep ownership of our own
+        frameworks, tooling and reusable components.
+      </p>
+
+      <h2>5. Delivery</h2>
+      <p>
+        Delivery estimates count from the later of payment verification and receipt of your
+        content. Delays caused by missing content, third-party domain registrars or payment
+        verification are not our responsibility.
+      </p>
+
+      <h2>6. Subscriptions</h2>
+      <p>
+        Subscription plans cover hosting, security updates, backups and support tickets for the
+        billing period you chose. If payment is not received by the due date, service may be
+        suspended after the grace period. You can cancel at any time; cancellation stops the next
+        renewal rather than refunding the current period.
+      </p>
+
+      <h2>7. Payments</h2>
+      <p>
+        We accept bKash, Nagad, Rocket and bank transfer. Manual transfers are verified by a
+        member of our team, usually within one business day. Prices are quoted in Bangladeshi
+        Taka and include applicable VAT unless stated otherwise.
+      </p>
+
+      <h2>8. Acceptable use</h2>
+      <p>
+        You may not use our services to sell illegal goods, counterfeit products, or anything
+        prohibited by Bangladeshi law or by your payment provider's rules. We may suspend a site
+        that breaches this section.
+      </p>
+
+      <h2>9. Limitation of liability</h2>
+      <p>
+        Our total liability for any claim is limited to the fees you paid us in the three months
+        before the claim. We are not liable for lost profit, lost sales or indirect losses.
+      </p>
+
+      <h2>10. Contact</h2>
+      <p>
+        Questions about these terms:
+        <a href="mailto:<%= settings.supportEmail || 'support@woohelperpro.com' %>"><%= settings.supportEmail || 'support@woohelperpro.com' %></a>
+        <% if (settings.supportPhone) { %>
+          or <a href="tel:<%= settings.supportPhone %>"><%= settings.supportPhone %></a>
+        <% } %>.
+      </p>
+    </div>
+  </div>
+</section>

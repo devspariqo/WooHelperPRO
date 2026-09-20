@@ -1,0 +1,116 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Packages &amp; plans</h1>
+    <p class="meta-line muted mb-0">
+      Every package sold on the website. A package carries a one-time build price
+      plus optional monthly and yearly recurring prices.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/packages" target="_blank" rel="noopener">View on site</a>
+    <a class="btn btn-primary" href="/admin/packages/new">Add package</a>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Packages</div>
+    <div class="kpi-value"><%= fmt.number(packages.length) %></div>
+    <div class="kpi-foot">
+      <%= packages.filter(function (p) { return p.isActive; }).length %> visible ·
+      <%= packages.filter(function (p) { return !p.isActive; }).length %> hidden
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Recurring plans</div>
+    <div class="kpi-value"><%= fmt.number(packages.filter(function (p) { return p.isRecurring; }).length) %></div>
+    <div class="kpi-foot">Renew monthly, quarterly, half-yearly or yearly</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Orders through packages</div>
+    <div class="kpi-value"><%= fmt.number(packages.reduce(function (s, p) { return s + (p.orderCount || 0); }, 0)) %></div>
+    <div class="kpi-foot">
+      <%= fmt.number(packages.reduce(function (s, p) { return s + (p.subCount || 0); }, 0)) %> subscription(s)
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Most popular badge</div>
+    <div class="kpi-value sm">
+      <%= packages.filter(function (p) { return p.isPopular; }).length %>
+    </div>
+    <div class="kpi-foot">Package(s) marked as most popular</div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-pad-0">
+    <% if (!packages.length) { %>
+      <div class="card-body">
+        <%- helpers.emptyState('No packages yet. Create one to start selling.',
+              '<a class="btn btn-primary" href="/admin/packages/new">Add package</a>') %>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Package</th>
+              <th>Service</th>
+              <th>Tier</th>
+              <th class="num">Build</th>
+              <th class="num">Monthly</th>
+              <th class="num">Yearly</th>
+              <th class="num">Sales</th>
+              <th>Status</th>
+              <th class="num">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% packages.forEach(function (p) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/admin/packages/<%= p.id %>/edit"><%= p.name %></a>
+                  <% if (p.isPopular) { %>
+                    <span class="badge badge-info">Popular</span>
+                  <% } %>
+                  <br><small class="muted"><%= p.slug %></small>
+                </td>
+                <td><%= p.service ? p.service.title : '—' %></td>
+                <td>
+                  <% var tier = tiers[p.tier] || { en: p.tier, tone: 'muted' }; %>
+                  <span class="badge badge-<%= tier.tone || 'muted' %>"><%= tier.en %></span>
+                </td>
+                <td class="num"><%= p.price ? fmt.bdt(p.price) : '—' %></td>
+                <td class="num"><%= p.monthlyPrice ? fmt.bdt(p.monthlyPrice) : '—' %></td>
+                <td class="num"><%= p.yearlyPrice ? fmt.bdt(p.yearlyPrice) : '—' %></td>
+                <td class="num">
+                  <%= fmt.number(p.orderCount || 0) %>
+                  <% if (p.subCount) { %>
+                    <br><small class="muted">+<%= fmt.number(p.subCount) %> sub</small>
+                  <% } %>
+                </td>
+                <td>
+                  <span class="badge badge-<%= p.isActive ? 'success' : 'muted' %>">
+                    <%= p.isActive ? 'Active' : 'Hidden' %>
+                  </span>
+                </td>
+                <td class="num">
+                  <div class="row-actions">
+                    <a class="btn btn-sm btn-outline" href="/admin/packages/<%= p.id %>/edit">Edit</a>
+
+                    <form method="post" action="/admin/packages/<%= p.id %>/toggle">
+                      <%- csrfField %>
+                      <button type="submit" class="btn btn-sm btn-outline">
+                        <%= p.isActive ? 'Hide' : 'Show' %>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

@@ -1,0 +1,164 @@
+<section class="section">
+  <div class="container">
+    <div class="section-head center">
+      <p class="section-kicker">Contact</p>
+      <h1 class="mt-0">Tell us what you are trying to sell</h1>
+      <p class="muted">We reply within one business day, usually much sooner on WhatsApp.</p>
+    </div>
+
+    <div class="grid grid-2" style="align-items:start">
+      <div class="card">
+        <div class="card-header"><h3 class="mt-0 mb-0">Send us a message</h3></div>
+        <div class="card-body">
+          <%
+            // GET /contact does not pass `values`; POST errors flash and redirect.
+            const v = typeof values !== 'undefined' && values ? values : {};
+            const me = currentUser || {};
+          %>
+          <form method="post" action="/contact" novalidate>
+            <%- csrfField %>
+
+            <div class="form-grid two">
+              <div class="field">
+                <label for="name">Your name <span class="req">*</span></label>
+                <input id="name" name="name" type="text" required
+                       value="<%= v.name || me.name || '' %>">
+              </div>
+              <div class="field">
+                <label for="phone">Mobile number <span class="req">*</span></label>
+                <input id="phone" name="phone" type="tel" required
+                       value="<%= v.phone || me.phone || '' %>"
+                       placeholder="01XXXXXXXXX">
+              </div>
+            </div>
+
+            <div class="form-grid two">
+              <div class="field">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email"
+                       value="<%= v.email || me.email || '' %>">
+              </div>
+              <div class="field">
+                <label for="district">District</label>
+                <select id="district" name="district">
+                  <option value="">Select district</option>
+                  <% districts.forEach(function (d) { %>
+                    <option value="<%= d[0] %>" <%= v.district === d[0] ? 'selected' : '' %>><%= d[0] %> — <%= d[1] %></option>
+                  <% }); %>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-grid two">
+              <div class="field">
+                <label for="company">Business name</label>
+                <input id="company" name="company" type="text" value="<%= v.company || '' %>">
+              </div>
+              <div class="field">
+                <label for="budget">Budget range</label>
+                <select id="budget" name="budget">
+                  <option value="">Not sure yet</option>
+                  <option value="Under 25,000">Under ৳25,000</option>
+                  <option value="25,000 - 75,000">৳25,000 – ৳75,000</option>
+                  <option value="75,000 - 2,00,000">৳75,000 – ৳2,00,000</option>
+                  <option value="Above 2,00,000">Above ৳2,00,000</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="message">What do you need? <span class="req">*</span></label>
+              <textarea id="message" name="message" rows="5" required
+                        placeholder="I sell sarees in Narayanganj and want to take orders online with bKash..."><%= v.message || '' %></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-primary btn-lg" type="submit">Send message</button>
+            </div>
+
+            <p class="muted mt-3 mb-0">
+              This creates a lead in our system. We never share your number with anyone else.
+            </p>
+          </form>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card">
+          <div class="card-header"><h3 class="mt-0 mb-0">Direct lines</h3></div>
+          <div class="card-body">
+            <ul class="summary-list">
+              <% if (settings.supportPhone) { %>
+                <li>
+                  <span class="label">Phone</span>
+                  <span class="value"><a href="tel:<%= settings.supportPhone %>"><%= settings.supportPhone %></a></span>
+                </li>
+              <% } %>
+              <% if (settings.supportEmail) { %>
+                <li>
+                  <span class="label">Email</span>
+                  <span class="value"><a href="mailto:<%= settings.supportEmail %>"><%= settings.supportEmail %></a></span>
+                </li>
+              <% } %>
+              <% if (settings.officeAddress) { %>
+                <li>
+                  <span class="label">Office</span>
+                  <span class="value"><%= settings.officeAddress %></span>
+                </li>
+              <% } %>
+              <li>
+                <span class="label">Hours</span>
+                <span class="value">Sat–Thu, 10:00 – 19:00 (BST)</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-header"><h3 class="mt-0 mb-0">Request a callback</h3></div>
+          <div class="card-body">
+            <p class="muted">Prefer we call you? Leave your number and a good time.</p>
+            <form method="post" action="/request-callback">
+              <%- csrfField %>
+              <div class="field">
+                <label for="cbPhone">Mobile number</label>
+                <input id="cbPhone" name="phone" type="tel" required placeholder="01XXXXXXXXX">
+              </div>
+              <div class="field">
+                <label for="cbName">Name</label>
+                <input id="cbName" name="name" type="text" placeholder="Optional">
+              </div>
+              <div class="field">
+                <label for="cbTime">Best time to call</label>
+                <select id="cbTime" name="preferredTime">
+                  <option value="Morning">Morning (10:00 – 13:00)</option>
+                  <option value="Afternoon">Afternoon (13:00 – 16:00)</option>
+                  <option value="Evening">Evening (16:00 – 19:00)</option>
+                </select>
+              </div>
+              <button class="btn btn-outline btn-block" type="submit">Request callback</button>
+            </form>
+          </div>
+        </div>
+
+        <% if (faqs && faqs.length) { %>
+          <div class="card mt-3">
+            <div class="card-header"><h3 class="mt-0 mb-0">Quick answers</h3></div>
+            <div class="card-body">
+              <% faqs.slice(0, 5).forEach(function (faq, i) { %>
+                <div class="faq-item" data-faq-item <%= i === 0 ? 'data-open="true"' : '' %>>
+                  <button class="faq-q" type="button" data-faq-question>
+                    <span><%= faq.question %></span>
+                    <span class="faq-sign">+</span>
+                  </button>
+                  <div class="faq-a"><p class="mb-0 muted"><%= faq.answer %></p></div>
+                </div>
+              <% }); %>
+              <p class="mt-3 mb-0"><a href="/#faq">See all questions</a></p>
+            </div>
+          </div>
+        <% } %>
+      </aside>
+    </div>
+  </div>
+</section>

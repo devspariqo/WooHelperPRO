@@ -1,0 +1,169 @@
+<%
+  /*
+   * Blog post editor. `post` is null on create. `tagLines` is the JSON tags
+   * column flattened to one tag per line.
+   */
+  var b = (typeof post !== 'undefined' && post) ? post : {};
+  var isEdit = !!(b && b.id);
+  var action = isEdit ? '/admin/blog/' + b.id : '/admin/blog';
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1><%= isEdit ? 'Edit post' : 'New post' %></h1>
+    <p class="meta-line muted mb-0">
+      <%= isEdit ? b.title : 'Write a guide that ranks and converts.' %>
+    </p>
+  </div>
+  <div class="actions">
+    <% if (isEdit && b.status === 'PUBLISHED') { %>
+      <a class="btn btn-outline" href="/blog/<%= b.slug %>" target="_blank" rel="noopener">View on site</a>
+    <% } %>
+    <a class="btn btn-outline" href="/admin/blog">&larr; All posts</a>
+  </div>
+</section>
+
+<form method="post" action="<%= action %>" class="mt-4">
+  <%- csrfField %>
+
+  <div class="dash-grid cols-2">
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Content</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="title">Title <span class="req">*</span></label>
+            <input type="text" id="title" name="title" required maxlength="200"
+                   value="<%= b.title || '' %>"
+                   placeholder="How to reduce COD fake orders in Bangladesh">
+          </div>
+
+          <div class="field">
+            <label for="titleBn">Title (Bangla)</label>
+            <input type="text" id="titleBn" name="titleBn" maxlength="200"
+                   value="<%= b.titleBn || '' %>">
+          </div>
+
+          <div class="field">
+            <label for="slug">Slug</label>
+            <input type="text" id="slug" name="slug" maxlength="200"
+                   value="<%= b.slug || '' %>"
+                   placeholder="reduce-cod-fake-orders-bangladesh">
+            <span class="hint">Leave blank to generate from the title.</span>
+          </div>
+
+          <div class="field">
+            <label for="excerpt">Excerpt</label>
+            <textarea id="excerpt" name="excerpt" rows="3" maxlength="400"
+                      placeholder="One or two sentences shown on the blog index and in search results."><%= b.excerpt || '' %></textarea>
+          </div>
+
+          <div class="field">
+            <label for="content">Body <span class="req">*</span></label>
+            <textarea id="content" name="content" rows="18" required
+                      placeholder="Write the post. Plain text and blank lines between paragraphs."><%= b.content || '' %></textarea>
+            <span class="hint">At least a paragraph. Rendered as prose on the public page.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-header"><h3 class="mt-0 mb-0">Publishing</h3></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="field">
+              <label for="status">Status</label>
+              <select id="status" name="status">
+                <option value="DRAFT" <%= (b.status || 'DRAFT') === 'DRAFT' ? 'selected' : '' %>>Draft</option>
+                <option value="PUBLISHED" <%= b.status === 'PUBLISHED' ? 'selected' : '' %>>Published</option>
+              </select>
+              <span class="hint">
+                Saving as published stamps the publication time on first release.
+              </span>
+            </div>
+
+            <div class="field">
+              <label for="category">Category</label>
+              <input type="text" id="category" name="category" maxlength="80"
+                     value="<%= b.category || 'Guides' %>" placeholder="Guides">
+            </div>
+
+            <div class="field">
+              <label for="tags">Tags <span class="muted">(one per line)</span></label>
+              <textarea id="tags" name="tags" rows="4"
+                        placeholder="ecommerce&#10;cod&#10;bangladesh"><%= tagLines %></textarea>
+            </div>
+
+            <div class="field">
+              <label for="coverImage">Cover image URL</label>
+              <input type="url" id="coverImage" name="coverImage" maxlength="250"
+                     value="<%= b.coverImage || '' %>">
+            </div>
+
+            <div class="field">
+              <label>Options</label>
+              <label class="check-row" for="isFeatured">
+                <input type="checkbox" id="isFeatured" name="isFeatured"
+                       <%= b.isFeatured ? 'checked' : '' %>>
+                <span>Feature this post</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-4">
+        <div class="card-header"><h3 class="mt-0 mb-0">Search engine listing</h3></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="field">
+              <label for="metaTitle">Meta title</label>
+              <input type="text" id="metaTitle" name="metaTitle" maxlength="160"
+                     value="<%= b.metaTitle || '' %>">
+              <span class="hint">Falls back to the post title. Keep under 60 characters.</span>
+            </div>
+            <div class="field">
+              <label for="metaDescription">Meta description</label>
+              <textarea id="metaDescription" name="metaDescription" rows="3"
+                        maxlength="320"><%= b.metaDescription || '' %></textarea>
+              <span class="hint">Falls back to the excerpt. Aim for 150–160 characters.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <% if (isEdit) { %>
+        <div class="card mt-4">
+          <div class="card-header"><h3 class="mt-0 mb-0">Post statistics</h3></div>
+          <div class="card-body">
+            <div class="mini-stats">
+              <div class="mini-stat">
+                <span class="label">Views</span>
+                <span class="value"><%= fmt.number(b.views || 0) %></span>
+              </div>
+              <div class="mini-stat">
+                <span class="label">Created</span>
+                <span class="value" style="font-size:14px"><%= fmt.date(b.createdAt, 'medium') %></span>
+              </div>
+              <div class="mini-stat">
+                <span class="label">Updated</span>
+                <span class="value" style="font-size:14px"><%= fmt.date(b.updatedAt, 'medium') %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-body form-actions">
+      <button type="submit" class="btn btn-primary">
+        <%= isEdit ? 'Save post' : 'Create post' %>
+      </button>
+      <a class="btn btn-outline" href="/admin/blog">Cancel</a>
+    </div>
+  </div>
+</form>

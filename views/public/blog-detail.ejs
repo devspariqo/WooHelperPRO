@@ -1,0 +1,47 @@
+<article class="section">
+  <div class="container container-narrow">
+    <nav class="muted mb-3">
+      <a href="/">Home</a> <span>/</span> <a href="/blog">Blog</a> <span>/</span>
+      <span><%= post.title %></span>
+    </nav>
+
+    <% if (post.category) { %><span class="badge badge-info"><%= post.category %></span><% } %>
+    <h1 class="mt-2"><%= post.title %></h1>
+    <% if (post.titleBn) { %><p class="muted"><%= post.titleBn %></p><% } %>
+
+    <div class="post-meta muted mb-4">
+      <span><%= fmt.date(post.publishedAt || post.createdAt, 'long') %></span>
+      <% if (post.author) { %><span>· by <%= post.author.name %></span><% } %>
+    </div>
+
+    <div class="prose">
+      <%- post.content %>
+    </div>
+
+    <% if (tags && tags.length) { %>
+      <div class="form-actions mt-4">
+        <% tags.forEach(function (tag) { %>
+          <span class="pill"><%= tag %></span>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+</article>
+
+<% if (related && related.length) { %>
+  <section class="section section-soft">
+    <div class="container">
+      <div class="section-head"><h2 class="mt-0">Read next</h2></div>
+      <div class="grid grid-3">
+        <% related.forEach(function (p) { %>
+          <article class="post-card">
+            <div class="post-body">
+              <h3 class="mt-0"><a href="/blog/<%= p.slug %>"><%= p.title %></a></h3>
+              <p class="muted"><%= fmt.truncate(p.excerpt || '', 110) %></p>
+            </div>
+          </article>
+        <% }); %>
+      </div>
+    </div>
+  </section>
+<% } %>

@@ -1,0 +1,69 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Payment history</h1>
+    <p class="meta-line muted mb-0">
+      Every payment you have submitted, with the verification status from our team.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/account/invoices">Outstanding invoices</a>
+  </div>
+</section>
+
+<% if (!payments.length) { %>
+  <div class="card mt-4">
+    <div class="card-body">
+      <div class="empty-state">
+        <div class="empty-icon">৳</div>
+        <h3>No payments yet</h3>
+        <p class="muted">
+          Once you pay an invoice with bKash, Nagad, Rocket or a bank transfer,
+          it appears here with its verification status.
+        </p>
+        <a class="btn btn-primary" href="/account/invoices">Go to invoices</a>
+      </div>
+    </div>
+  </div>
+<% } else { %>
+  <div class="card mt-4">
+    <div class="card-pad-0">
+      <div class="table-wrap">
+        <table class="table data" data-sortable>
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Method</th>
+              <th>Transaction ID</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th class="num">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% payments.forEach(function (pay) { %>
+              <tr>
+                <td class="strong"><%= pay.reference || '—' %></td>
+                <td>
+                  <%= C.PAYMENT_METHOD[pay.method] ? C.PAYMENT_METHOD[pay.method].en : pay.method %>
+                  <% if (pay.senderNumber) { %>
+                    <br><small class="muted">from <%= pay.senderNumber %></small>
+                  <% } %>
+                </td>
+                <td><%= pay.transactionId || '—' %></td>
+                <td><%= fmt.date(pay.createdAt, 'medium') %></td>
+                <td><%- helpers.statusBadge(pay.status, C.PAYMENT_STATUS) %></td>
+                <td class="num strong"><%= fmt.bdt(pay.amount) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <p class="muted mt-3">
+    A <strong>pending</strong> payment is one we have received your transaction ID for but have not
+    yet matched against our wallet statement. If a payment stays pending for more than two business
+    days, open a support ticket.
+  </p>
+<% } %>

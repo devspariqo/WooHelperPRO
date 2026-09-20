@@ -1,0 +1,222 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Dashboard</h1>
+    <p class="meta-line muted mb-0">
+      Business at a glance. Figures cover the current calendar month unless stated otherwise.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/reports">Reports</a>
+    <a class="btn btn-primary" href="/admin/orders">Manage orders</a>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Revenue this month</div>
+    <div class="kpi-value sm"><%= fmt.bdt(kpis.revenueThisMonth, { compact: true }) %></div>
+    <div class="kpi-foot">
+      <span class="delta <%= kpis.revenueChange >= 0 ? 'up' : 'down' %>">
+        <%= kpis.revenueChange >= 0 ? '▲' : '▼' %> <%= Math.abs(kpis.revenueChange) %>%
+      </span>
+      vs last month
+    </div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi-label">Orders this month</div>
+    <div class="kpi-value"><%= fmt.number(kpis.ordersThisMonth) %></div>
+    <div class="kpi-foot">
+      <span class="delta <%= kpis.ordersChange >= 0 ? 'up' : 'down' %>">
+        <%= kpis.ordersChange >= 0 ? '▲' : '▼' %> <%= Math.abs(kpis.ordersChange) %>%
+      </span>
+      vs <%= kpis.ordersPrevMonth %> last month
+    </div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi-label">Monthly recurring revenue</div>
+    <div class="kpi-value sm"><%= fmt.bdt(kpis.mrr, { compact: true }) %></div>
+    <div class="kpi-foot"><%= kpis.activeSubs %> active subscription(s)</div>
+  </div>
+
+  <div class="kpi <%= kpis.pendingPaymentCount > 0 ? 'accent-warn' : '' %>">
+    <div class="kpi-label">Payments awaiting verification</div>
+    <div class="kpi-value"><%= fmt.number(kpis.pendingPaymentCount) %></div>
+    <div class="kpi-foot"><%= fmt.bdt(kpis.pendingPaymentAmount) %> to confirm</div>
+  </div>
+</div>
+
+<div class="kpi-grid mt-3">
+  <div class="kpi">
+    <div class="kpi-label">Customers</div>
+    <div class="kpi-value"><%= fmt.number(kpis.customers) %></div>
+    <div class="kpi-foot">+<%= kpis.newCustomersThisMonth %> this month</div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi-label">Projects in flight</div>
+    <div class="kpi-value"><%= fmt.number(kpis.projectsInFlight) %></div>
+    <div class="kpi-foot">Currently in design or development</div>
+  </div>
+
+  <div class="kpi <%= kpis.outstandingAmount > 0 ? 'accent-warn' : 'accent-ok' %>">
+    <div class="kpi-label">Outstanding receivables</div>
+    <div class="kpi-value sm"><%= fmt.bdt(kpis.outstandingAmount, { compact: true }) %></div>
+    <div class="kpi-foot">Across <%= fmt.number(kpis.outstandingCount) %> open invoice(s)</div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi-label">Open tickets &amp; new leads</div>
+    <div class="kpi-value"><%= fmt.number(kpis.openTickets) %> <small class="muted">/ <%= fmt.number(kpis.newLeads) %></small></div>
+    <div class="kpi-foot"><%= kpis.openTickets %> tickets · <%= kpis.newLeads %> leads awaiting a call</div>
+  </div>
+</div>
+
+<div class="dash-grid cols-2 mt-4">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Recent orders</h3>
+        <a class="sub" href="/admin/orders">View all</a>
+      </div>
+    </div>
+    <div class="card-pad-0">
+      <% if (!recentOrders.length) { %>
+        <div class="card-body"><p class="muted mb-0">No orders yet.</p></div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table data">
+            <thead>
+              <tr><th>Order</th><th>Customer</th><th>Status</th><th class="num">Total</th></tr>
+            </thead>
+            <tbody>
+              <% recentOrders.forEach(function (o) { %>
+                <tr>
+                  <td>
+                    <a class="strong" href="/admin/orders/<%= o.id %>"><%= o.orderNumber %></a>
+                    <br><small class="muted"><%= fmt.date(o.createdAt, 'medium') %></small>
+                  </td>
+                  <td>
+                    <%= o.user ? o.user.name : 'Guest' %>
+                    <br><small class="muted"><%= o.package ? o.package.name : 'Custom' %></small>
+                  </td>
+                  <td><%- helpers.statusBadge(o.status, orderStatuses) %></td>
+                  <td class="num"><%= fmt.bdt(o.total) %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Payments to verify</h3>
+        <a class="sub" href="/admin/payments">View all</a>
+      </div>
+    </div>
+    <div class="card-pad-0">
+      <% if (!recentPayments.length) { %>
+        <div class="card-body">
+          <p class="muted mb-0 accent-ok">Nothing waiting — every submitted payment has been checked.</p>
+        </div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table data">
+            <thead>
+              <tr><th>Reference</th><th>Customer</th><th>Method</th><th class="num">Amount</th></tr>
+            </thead>
+            <tbody>
+              <% recentPayments.forEach(function (p) { %>
+                <tr>
+                  <td>
+                    <a class="strong" href="/admin/payments"><%= p.reference || '—' %></a>
+                    <br><small class="muted"><%= p.transactionId || 'no TrxID' %></small>
+                  </td>
+                  <td><%= p.user ? p.user.name : '—' %></td>
+                  <td><%= C.PAYMENT_METHOD[p.method] ? C.PAYMENT_METHOD[p.method].en : p.method %></td>
+                  <td class="num strong"><%= fmt.bdt(p.amount) %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="dash-grid cols-3 mt-4">
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Orders by status</h3></div>
+    <div class="card-body">
+      <% if (!Object.keys(statusCounts).length) { %>
+        <p class="muted mb-0">No orders recorded.</p>
+      <% } else { %>
+        <div class="mini-stats">
+          <% Object.keys(orderStatuses).forEach(function (key) { %>
+            <% if (statusCounts[key]) { %>
+              <div class="mini-stat">
+                <span class="label"><%- helpers.statusBadge(key, orderStatuses) %></span>
+                <span class="value"><%= fmt.number(statusCounts[key]) %></span>
+              </div>
+            <% } %>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Top packages</h3></div>
+    <div class="card-body">
+      <% if (!topPackages.length) { %>
+        <p class="muted mb-0">No package sales yet.</p>
+      <% } else { %>
+        <div class="mini-stats">
+          <% topPackages.forEach(function (t) { %>
+            <div class="mini-stat">
+              <span class="label"><%= t.name %></span>
+              <span class="value"><%= fmt.number(t.count) %> <small class="muted">orders</small></span>
+              <small class="muted"><%= fmt.bdt(t.revenue, { compact: true }) %></small>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Renewals due</h3>
+        <a class="sub" href="/admin/subscriptions">Manage</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <% if (!renewals.length) { %>
+        <p class="muted mb-0">No renewals in the next 30 days.</p>
+      <% } else { %>
+        <div class="feed">
+          <% renewals.slice(0, 6).forEach(function (sub) { %>
+            <div class="feed-ico">↻</div>
+            <div class="feed-body">
+              <a class="strong" href="/admin/subscriptions/<%= sub.id %>"><%= sub.planName %></a>
+              <div class="muted">
+                <small>
+                  <%= sub.user ? sub.user.name : 'Customer' %> ·
+                  <%= fmt.date(sub.currentPeriodEnd, 'medium') %> ·
+                  <%= fmt.bdt(sub.amount) %>
+                </small>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>

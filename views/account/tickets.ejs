@@ -1,0 +1,86 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Support tickets</h1>
+    <p class="meta-line muted mb-0">
+      Ask us anything about your build, hosting, billing or a courier integration.
+    </p>
+  </div>
+</section>
+
+<div class="dash-grid cols-2 mt-4" style="align-items:start">
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Open a new ticket</h3></div>
+    <div class="card-body">
+      <form method="post" action="/account/tickets" novalidate>
+        <%- csrfField %>
+
+        <div class="field">
+          <label for="subject">Subject <span class="req">*</span></label>
+          <input id="subject" name="subject" type="text" required
+                 placeholder="e.g. Need to change my delivery charge">
+        </div>
+
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category" name="category">
+            <% categories.forEach(function (cat) { %>
+              <option value="<%= cat %>">
+                <%= cat.replace(/_/g, ' ').toLowerCase().replace(/^\w/, function (c) { return c.toUpperCase(); }) %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="priority">Priority</label>
+          <select id="priority" name="priority">
+            <option value="NORMAL">Normal — reply within a day</option>
+            <option value="HIGH">High — my site is affected</option>
+            <option value="URGENT">Urgent — site is down</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="body">Describe the issue <span class="req">*</span></label>
+          <textarea id="body" name="body" rows="5" required
+                    placeholder="What is happening, what you expected instead, and any order or invoice number involved."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit">Create ticket</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Your tickets</h3></div>
+    <div class="card-pad-0">
+      <% if (!tickets.length) { %>
+        <div class="card-body">
+          <p class="muted mb-0">
+            No tickets yet. Anything you open shows up here with our replies and its status.
+          </p>
+        </div>
+      <% } else { %>
+        <table class="table data">
+          <thead>
+            <tr><th>Ticket</th><th>Status</th><th>Updated</th></tr>
+          </thead>
+          <tbody>
+            <% tickets.forEach(function (t) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/account/tickets/<%= t.id %>"><%= t.subject %></a>
+                  <br><small class="muted"><%= t.ticketNumber %></small>
+                </td>
+                <td><%- helpers.statusBadge(t.status, C.TICKET_STATUS) %></td>
+                <td><small class="muted"><%= fmt.relative(t.updatedAt) %></small></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+</div>

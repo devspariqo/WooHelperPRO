@@ -1,0 +1,418 @@
+<%
+  /*
+   * 360° customer view. The route eager-loads orders (with package + project),
+   * subscriptions, invoices, payments, tickets, notes and activity logs.
+   */
+  var orders = user.orders || [];
+  var subs = user.subscriptions || [];
+  var invoices = user.invoices || [];
+  var payments = user.payments || [];
+  var tickets = user.tickets || [];
+  var notes = user.notes || [];
+  var logs = user.activityLogs || [];
+  var isSelf = currentUser && user.id === currentUser.id;
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1>
+      <%= user.name %>
+      <%- helpers.statusBadge(user.status, C.USER_STATUS) %>
+      <%- helpers.statusBadge(user.kycStatus, C.KYC_STATUS) %>
+      <%- helpers.statusBadge(user.role, {}) %>
+    </h1>
+    <p class="meta-line muted mb-0">
+      <%= user.email %>
+      <% if (user.phone) { %> · <%= user.phone %><% } %>
+      <% if (user.company) { %> · <%= user.company %><% } %>
+      <% if (user.district) { %> · <%= user.district %><% } %>
+      · joined <%= fmt.date(user.createdAt, 'long') %>
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/users">&larr; All users</a>
+    <a class="btn btn-primary" href="/admin/users/<%= user.id %>/edit">Edit</a>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Lifetime value</div>
+    <div class="kpi-value sm"><%= fmt.bdt(lifetimeValue, { compact: true }) %></div>
+    <div class="kpi-foot"><%= orders.length %> order(s), excluding cancelled</div>
+  </div>
+  <div class="kpi <%= outstanding > 0 ? 'accent-warn' : 'accent-ok' %>">
+    <div class="kpi-label">Outstanding</div>
+    <div class="kpi-value sm"><%= fmt.bdt(outstanding) %></div>
+    <div class="kpi-foot">Across open invoices</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Active subscriptions</div>
+    <div class="kpi-value">
+      <%= fmt.number(subs.filter(function (s) { return s.status === 'ACTIVE'; }).length) %>
+    </div>
+    <div class="kpi-foot"><%= subs.length %> total plan(s)</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Support tickets</div>
+    <div class="kpi-value"><%= fmt.number(tickets.length) %></div>
+    <div class="kpi-foot">
+      <%= fmt.number(tickets.filter(function (t) { return ['OPEN', 'IN_PROGRESS', 'WAITING_CUSTOMER'].includes(t.status); }).length) %>
+      still open
+    </div>
+  </div>
+</div>
+
+<div class="dash-grid cols-2 mt-4">
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Contact &amp; business details</h3></div>
+    <div class="card-body">
+      <div class="info-grid">
+        <div class="info-item"><dt>Email</dt><dd><%= user.email %></dd></div>
+        <div class="info-item"><dt>Mobile</dt><dd><%= user.phone || '—' %></dd></div>
+        <div class="info-item"><dt>Company</dt><dd><%= user.company || '—' %></dd></div>
+        <div class="info-item"><dt>Designation</dt><dd><%= user.designation || '—' %></dd></div>
+        <div class="info-item"><dt>District</dt><dd><%= user.district || '—' %></dd></div>
+        <div class="info-item"><dt>Email verified</dt><dd><%= user.emailVerified ? 'Yes' : 'No' %></dd></div>
+        <div class="info-item" style="grid-column:1/-1">
+          <dt>Address</dt><dd><%= user.address || '—' %></dd>
+        </div>
+      </div>
+
+      <% if (user.adminNotes) { %>
+        <div class="mt-3">
+          <h4 class="mb-0">Internal notes</h4>
+          <p class="muted mb-0"><%= user.adminNotes %></p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div>
+    <!-- ============ Staff controls ============ -->
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Account controls</h3></div>
+      <div class="card-body">
+        <% if (isSelf) { %>
+          <div class="alert alert-info mb-3">
+            This is your own account. Status, role and deletion controls are disabled
+            so you cannot lock yourself out of the panel.
+          </div>
+        <% } else { %>
+          <form method="post" action="/admin/users/<%= user.id %>/status" class="form-grid two">
+            <%- csrfField %>
+            <div class="field">
+              <label for="status">Account status</label>
+              <select id="status" name="status">
+                <option value="ACTIVE" <%= user.status === 'ACTIVE' ? 'selected' : '' %>>Active</option>
+                <option value="INACTIVE" <%= user.status === 'INACTIVE' ? 'selected' : '' %>>Inactive</option>
+                <option value="SUSPENDED" <%= user.status === 'SUSPENDED' ? 'selected' : '' %>>Suspended</option>
+              </select>
+            </div>
+            <div class="field" style="justify-content:flex-end">
+              <button type="submit" class="btn btn-primary">Apply</button>
+            </div>
+          </form>
+        <% } %>
+
+        <hr>
+
+        <form method="post" action="/admin/users/<%= user.id %>/kyc" class="form-grid two">
+          <%- csrfField %>
+          <div class="field">
+            <label for="kycStatus">Business verification (KYC)</label>
+            <select id="kycStatus" name="kycStatus">
+              <% Object.keys(C.KYC_STATUS).forEach(function (key) { %>
+                <option value="<%= key %>" <%= user.kycStatus === key ? 'selected' : '' %>>
+                  <%= C.KYC_STATUS[key].en %>
+                </option>
+              <% }); %>
+            </select>
+            <span class="hint">Trade licence and TIN checks for verified merchants.</span>
+          </div>
+          <div class="field" style="justify-content:flex-end">
+            <button type="submit" class="btn btn-outline">Update KYC</button>
+          </div>
+        </form>
+
+        <hr>
+
+        <div class="row-actions" style="justify-content:flex-start">
+          <form method="post" action="/admin/users/<%= user.id %>/reset-password"
+                onsubmit="return confirm('Issue a new temporary password for <%= user.name %>? Their current password will stop working.');">
+            <%- csrfField %>
+            <button type="submit" class="btn btn-outline">Reset password</button>
+          </form>
+          <% if (canAssignRoles) { %>
+            <a class="btn btn-outline" href="/admin/subscriptions/new?userId=<%= user.id %>">Start a subscription</a>
+          <% } %>
+        </div>
+        <p class="hint muted mt-3 mb-0">
+          There is no outbound email configured in this deployment, so a reset
+          password is shown once in a flash message. Copy it and hand it over securely.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============ Notes ============ -->
+    <div class="card mt-4">
+      <div class="card-header">
+        <div class="card-title-row">
+          <h3 class="mt-0 mb-0">Internal notes</h3>
+          <span class="sub muted"><%= notes.length %> note(s)</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <form method="post" action="/admin/users/<%= user.id %>/notes" class="form-grid">
+          <%- csrfField %>
+          <div class="field">
+            <label for="body">Add a note</label>
+            <textarea id="body" name="body" rows="3" maxlength="1000"
+                      placeholder="Called about the hosting renewal — will confirm tomorrow."></textarea>
+          </div>
+          <div class="field">
+            <button type="submit" class="btn btn-primary">Save note</button>
+          </div>
+        </form>
+
+        <% if (notes.length) { %>
+          <div class="feed mt-3">
+            <% notes.forEach(function (n) { %>
+              <div class="feed-ico">✎</div>
+              <div class="feed-body">
+                <strong><%= n.body %></strong>
+                <div class="muted"><small><%= fmt.datetime(n.createdAt) %></small></div>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Orders ============ -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Orders</h3>
+      <span class="sub muted"><%= orders.length %> total</span>
+    </div>
+  </div>
+  <div class="card-pad-0">
+    <% if (!orders.length) { %>
+      <div class="card-body"><p class="muted mb-0">This customer has not ordered anything yet.</p></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Order</th><th>Package</th><th>Status</th><th>Project</th>
+              <th>Placed</th><th class="num">Total</th><th class="num">Paid</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(function (o) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/admin/orders/<%= o.id %>"><%= o.orderNumber %></a>
+                  <br><small class="muted"><%= o.projectName %></small>
+                </td>
+                <td><%= o.package ? o.package.name : 'Custom' %></td>
+                <td><%- helpers.statusBadge(o.status, C.ORDER_STATUS) %></td>
+                <td>
+                  <% if (o.project) { %>
+                    <%= fmt.number(o.project.progress) %>%
+                    <br><small class="muted"><%= o.project.status.replace(/_/g, ' ').toLowerCase() %></small>
+                  <% } else { %>
+                    <small class="muted">—</small>
+                  <% } %>
+                </td>
+                <td><%= fmt.date(o.createdAt, 'medium') %></td>
+                <td class="num strong"><%= fmt.bdt(o.total) %></td>
+                <td class="num"><%= fmt.bdt(o.paidAmount) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- ============ Subscriptions ============ -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Subscriptions</h3>
+      <span class="sub muted"><%= subs.length %> plan(s)</span>
+    </div>
+  </div>
+  <div class="card-pad-0">
+    <% if (!subs.length) { %>
+      <div class="card-body"><p class="muted mb-0">No recurring plans.</p></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Subscription</th><th>Plan</th><th>Cycle</th>
+              <th>Renews</th><th>Status</th><th class="num">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% subs.forEach(function (s) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/admin/subscriptions/<%= s.id %>"><%= s.subscriptionNumber %></a>
+                </td>
+                <td><%= s.planName %></td>
+                <td><%= s.billingCycle.replace('_', ' ').toLowerCase() %></td>
+                <td><%= fmt.date(s.currentPeriodEnd, 'medium') %></td>
+                <td><%- helpers.statusBadge(s.status, C.SUBSCRIPTION_STATUS) %></td>
+                <td class="num strong"><%= fmt.bdt(s.amount) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="dash-grid cols-2 mt-4">
+  <!-- ============ Invoices ============ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Invoices</h3>
+        <span class="sub muted"><%= invoices.length %></span>
+      </div>
+    </div>
+    <div class="card-pad-0">
+      <% if (!invoices.length) { %>
+        <div class="card-body"><p class="muted mb-0">No invoices raised.</p></div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table data">
+            <thead>
+              <tr><th>Invoice</th><th>Status</th><th>Due</th><th class="num">Total</th><th class="num">Balance</th></tr>
+            </thead>
+            <tbody>
+              <% invoices.forEach(function (inv) { %>
+                <% var bal = Math.max(0, Number(inv.total) - Number(inv.amountPaid || 0)); %>
+                <tr>
+                  <td>
+                    <a class="strong" href="/admin/invoices/<%= inv.id %>"><%= inv.invoiceNumber %></a>
+                    <br><small class="muted"><%= inv.title %></small>
+                  </td>
+                  <td><%- helpers.statusBadge(inv.status, C.INVOICE_STATUS) %></td>
+                  <td><%= fmt.date(inv.dueDate, 'medium') %></td>
+                  <td class="num"><%= fmt.bdt(inv.total) %></td>
+                  <td class="num <%= bal > 0 ? '' : 'muted' %>"><%= bal > 0 ? fmt.bdt(bal) : 'settled' %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ============ Tickets ============ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Support tickets</h3>
+        <span class="sub muted">last <%= tickets.length %></span>
+      </div>
+    </div>
+    <div class="card-pad-0">
+      <% if (!tickets.length) { %>
+        <div class="card-body"><p class="muted mb-0">No tickets raised.</p></div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table data">
+            <thead>
+              <tr><th>Ticket</th><th>Subject</th><th>Category</th><th>Status</th><th>Opened</th></tr>
+            </thead>
+            <tbody>
+              <% tickets.forEach(function (t) { %>
+                <tr>
+                  <td><a class="strong" href="/admin/tickets/<%= t.id %>"><%= t.ticketNumber %></a></td>
+                  <td><%= t.subject %></td>
+                  <td><small><%= t.category.replace('_', ' ').toLowerCase() %></small></td>
+                  <td><%- helpers.statusBadge(t.status, C.TICKET_STATUS) %></td>
+                  <td><%= fmt.date(t.createdAt, 'medium') %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Payments ============ -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Recent payments</h3>
+      <a class="sub" href="/admin/payments?q=<%= user.email %>">All payments</a>
+    </div>
+  </div>
+  <div class="card-pad-0">
+    <% if (!payments.length) { %>
+      <div class="card-body"><p class="muted mb-0">No payments recorded.</p></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr><th>Reference</th><th>Method</th><th>TrxID</th><th>Status</th><th>Date</th><th class="num">Amount</th></tr>
+          </thead>
+          <tbody>
+            <% payments.forEach(function (p) { %>
+              <tr>
+                <td class="strong"><%= p.reference %></td>
+                <td><%= C.PAYMENT_METHOD[p.method] ? C.PAYMENT_METHOD[p.method].en : p.method %></td>
+                <td><%= p.transactionId || '—' %></td>
+                <td><%- helpers.statusBadge(p.status, C.PAYMENT_STATUS) %></td>
+                <td><%= fmt.date(p.createdAt, 'medium') %></td>
+                <td class="num strong"><%= fmt.bdt(p.amount) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- ============ Activity ============ -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Activity</h3>
+      <span class="sub muted">last <%= logs.length %> event(s)</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <% if (!logs.length) { %>
+      <p class="muted mb-0">No recorded activity.</p>
+    <% } else { %>
+      <ul class="feed">
+        <% logs.forEach(function (l) { %>
+          <li>
+            <div class="feed-ico"><%= (l.action || '?').charAt(0).toUpperCase() %></div>
+            <div class="feed-body">
+              <strong><%= l.action %></strong>
+              <div class="muted"><small><%= l.detail || '' %></small></div>
+            </div>
+            <time><%= fmt.datetime(l.createdAt) %></time>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+  </div>
+</div>

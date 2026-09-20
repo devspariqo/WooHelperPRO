@@ -1,0 +1,163 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>FAQs</h1>
+    <p class="meta-line muted mb-0">
+      Questions shown on the public FAQ section and in the site's structured data.
+      Inactive entries are hidden.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/#faq" target="_blank" rel="noopener">View on site</a>
+  </div>
+</section>
+
+<div class="card mt-4">
+  <div class="card-pad-0">
+    <% if (!faqs.length) { %>
+      <div class="card-body"><%- helpers.emptyState('No FAQs yet — add the first one below.') %></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th class="num">Order</th><th>Question</th><th>Category</th>
+              <th>Status</th><th class="num">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% faqs.forEach(function (f) { %>
+              <tr>
+                <td class="num"><%= fmt.number(f.sortOrder) %></td>
+                <td>
+                  <span class="strong"><%= f.question %></span>
+                  <% if (f.questionBn) { %>
+                    <br><small class="muted"><%= f.questionBn %></small>
+                  <% } %>
+                  <br><small class="muted"><%= fmt.truncate(f.answer, 130) %></small>
+                </td>
+                <td><small><%= f.category %></small></td>
+                <td>
+                  <span class="badge badge-<%= f.isActive ? 'success' : 'muted' %>">
+                    <%= f.isActive ? 'Active' : 'Hidden' %>
+                  </span>
+                </td>
+                <td class="num">
+                  <div class="row-actions">
+                    <button type="button" class="btn btn-sm btn-outline"
+                            data-toggle-faq="<%= f.id %>">Edit</button>
+                    <form method="post" action="/admin/faqs/<%= f.id %>/delete"
+                          onsubmit="return confirm('Delete this FAQ?');">
+                      <%- csrfField %>
+                      <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header"><h3 class="mt-0 mb-0">Add an FAQ</h3></div>
+  <div class="card-body">
+    <form method="post" action="/admin/faqs" class="form-grid two">
+      <%- csrfField %>
+      <div class="field full">
+        <label for="question">Question <span class="req">*</span></label>
+        <input type="text" id="question" name="question" required maxlength="250"
+               placeholder="How long does it take to build an online store?">
+      </div>
+      <div class="field full">
+        <label for="questionBn">Question (Bangla)</label>
+        <input type="text" id="questionBn" name="questionBn" maxlength="250">
+      </div>
+      <div class="field full">
+        <label for="answer">Answer <span class="req">*</span></label>
+        <textarea id="answer" name="answer" rows="3" required maxlength="2000"></textarea>
+      </div>
+      <div class="field full">
+        <label for="answerBn">Answer (Bangla)</label>
+        <textarea id="answerBn" name="answerBn" rows="3" maxlength="2000"></textarea>
+      </div>
+      <div class="field">
+        <label for="category">Category</label>
+        <select id="category" name="category">
+          <% ['GENERAL', 'BILLING', 'TECHNICAL', 'DESIGN_CHANGE', 'HOSTING', 'DOMAIN', 'DELIVERY', 'REFUND'].forEach(function (cat) { %>
+            <option value="<%= cat %>"><%= cat.replace('_', ' ').toLowerCase() %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="field">
+        <label for="sortOrder">Sort order</label>
+        <input type="number" id="sortOrder" name="sortOrder" step="1" min="0" value="0">
+      </div>
+      <div class="field">
+        <label>Visibility</label>
+        <label class="check-row" for="isActive">
+          <input type="checkbox" id="isActive" name="isActive" checked>
+          <span>Show on the website</span>
+        </label>
+      </div>
+      <div class="field" style="justify-content:flex-end">
+        <button type="submit" class="btn btn-primary">Add FAQ</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<% faqs.forEach(function (f) { %>
+  <div class="card mt-4" id="faq-edit-<%= f.id %>" hidden>
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Edit FAQ</h3>
+        <button type="button" class="btn btn-sm btn-outline" data-toggle-faq="<%= f.id %>">Close</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="post" action="/admin/faqs/<%= f.id %>" class="form-grid two">
+        <%- csrfField %>
+        <div class="field full">
+          <label for="q-<%= f.id %>">Question <span class="req">*</span></label>
+          <input type="text" id="q-<%= f.id %>" name="question" required maxlength="250"
+                 value="<%= f.question %>">
+        </div>
+        <div class="field full">
+          <label for="qbn-<%= f.id %>">Question (Bangla)</label>
+          <input type="text" id="qbn-<%= f.id %>" name="questionBn" maxlength="250"
+                 value="<%= f.questionBn || '' %>">
+        </div>
+        <div class="field full">
+          <label for="a-<%= f.id %>">Answer <span class="req">*</span></label>
+          <textarea id="a-<%= f.id %>" name="answer" rows="3" required
+                    maxlength="2000"><%= f.answer %></textarea>
+        </div>
+        <div class="field full">
+          <label for="abn-<%= f.id %>">Answer (Bangla)</label>
+          <textarea id="abn-<%= f.id %>" name="answerBn" rows="3"
+                    maxlength="2000"><%= f.answerBn || '' %></textarea>
+        </div>
+        <div class="field">
+          <label for="s-<%= f.id %>">Sort order</label>
+          <input type="number" id="s-<%= f.id %>" name="sortOrder" step="1" min="0"
+                 value="<%= f.sortOrder %>">
+        </div>
+        <div class="field">
+          <label>Visibility</label>
+          <label class="check-row" for="act-<%= f.id %>">
+            <input type="checkbox" id="act-<%= f.id %>" name="isActive"
+                   <%= f.isActive ? 'checked' : '' %>>
+            <span>Show on the website</span>
+          </label>
+        </div>
+        <div class="field full form-actions">
+          <button type="submit" class="btn btn-primary">Save changes</button>
+          <button type="button" class="btn btn-outline" data-toggle-faq="<%= f.id %>">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+<% }); %>

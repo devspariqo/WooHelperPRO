@@ -1,0 +1,167 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Invoices</h1>
+    <p class="meta-line muted mb-0">
+      Every invoice raised, newest first. Outstanding figures cover sent, partially
+      paid and overdue invoices only.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/payments">Payments</a>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi <%= outstanding > 0 ? 'accent-warn' : 'accent-ok' %>">
+    <div class="kpi-label">Total outstanding</div>
+    <div class="kpi-value sm"><%= fmt.bdt(outstanding, { compact: true }) %></div>
+    <div class="kpi-foot">Across sent, partial and overdue invoices</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Unpaid</div>
+    <div class="kpi-value"><%= fmt.number((statusCounts.SENT || 0) + (statusCounts.PARTIALLY_PAID || 0)) %></div>
+    <div class="kpi-foot">
+      <%= fmt.number(statusCounts.SENT || 0) %> sent ·
+      <%= fmt.number(statusCounts.PARTIALLY_PAID || 0) %> partial
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Overdue</div>
+    <div class="kpi-value"><%= fmt.number(statusCounts.OVERDUE || 0) %></div>
+    <div class="kpi-foot">Past the due date and still unpaid</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Settled</div>
+    <div class="kpi-value"><%= fmt.number(statusCounts.PAID || 0) %></div>
+    <div class="kpi-foot">
+      <%= fmt.number(statusCounts.DRAFT || 0) %> draft ·
+      <%= fmt.number(statusCounts.VOID || 0) %> void
+    </div>
+  </div>
+</div>
+
+<form method="get" action="/admin/invoices" class="filters mt-4">
+  <div class="field grow">
+    <label for="q">Search</label>
+    <input type="search" id="q" name="q" value="<%= filters.q %>"
+           placeholder="Invoice number, title, customer name or email">
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">All statuses</option>
+      <% Object.keys(invoiceStatuses).forEach(function (key) { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>>
+          <%= invoiceStatuses[key].en %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="field">
+    <label>&nbsp;</label>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </div>
+  <% if (filters.q || filters.status) { %>
+    <div class="field">
+      <label>&nbsp;</label>
+      <a class="btn btn-outline" href="/admin/invoices">Reset</a>
+    </div>
+  <% } %>
+</form>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">All invoices</h3>
+      <span class="sub muted">
+        <%= fmt.number(pagination.total) %> matching ·
+        page <%= pagination.page %> of <%= pagination.pages || 1 %>
+      </span>
+    </div>
+  </div>
+
+  <div class="card-pad-0">
+    <% if (!invoices.length) { %>
+      <div class="card-body"><%- helpers.emptyState('No invoices match these filters.') %></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Invoice</th><th>Customer</th><th>Source</th>
+              <th>Issued</th><th>Due</th><th>Status</th>
+              <th class="num">Total</th><th class="num">Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% invoices.forEach(function (inv) { %>
+              <tr>
+                <td>
+                  <a class="strong" href="/admin/invoices/<%= inv.id %>"><%= inv.invoiceNumber %></a>
+                  <br><small class="muted"><%= inv.title %></small>
+                </td>
+                <td>
+                  <% if (inv.user) { %>
+                    <a href="/admin/users/<%= inv.user.id %>"><%= inv.user.name %></a>
+                    <br><small class="muted"><%= inv.user.email %></small>
+                  <% } else { %>
+                    <span class="muted">—</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (inv.order) { %>
+                    <small>Order <a href="/admin/orders/<%= inv.orderId %>"><%= inv.order.orderNumber %></a></small>
+                  <% } else if (inv.subscription) { %>
+                    <small>Sub <a href="/admin/subscriptions/<%= inv.subscriptionId %>"><%= inv.subscription.subscriptionNumber %></a></small>
+                  <% } else { %>
+                    <small class="muted">Standalone</small>
+                  <% } %>
+                </td>
+                <td><%= fmt.date(inv.issueDate, 'medium') %></td>
+                <td>
+                  <%= fmt.date(inv.dueDate, 'medium') %>
+                  <% if (inv.daysUntilDue !== null && inv.daysUntilDue !== undefined && inv.daysUntilDue < 0
+                         && ['SENT', 'PARTIALLY_PAID', 'OVERDUE'].includes(inv.status)) { %>
+                    <br><small style="color:var(--err-700)">
+                      <%= Math.abs(inv.daysUntilDue) %>d overdue
+                    </small>
+                  <% } %>
+                </td>
+                <td><%- helpers.statusBadge(inv.status, invoiceStatuses) %></td>
+                <td class="num strong"><%= fmt.bdt(inv.total) %></td>
+                <td class="num <%= inv.balance > 0 ? '' : 'muted' %>">
+                  <%= inv.balance > 0 ? fmt.bdt(inv.balance) : 'settled' %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<% if (pagination.pages > 1) { %>
+  <nav class="pagination" aria-label="Invoice pages">
+    <% if (pagination.page > 1) { %>
+      <a href="/admin/invoices?page=<%= pagination.page - 1 %>&status=<%= filters.status %>&q=<%= filters.q %>">Prev</a>
+    <% } else { %>
+      <span class="disabled">Prev</span>
+    <% } %>
+    <% for (var i = 1; i <= pagination.pages; i++) { %>
+      <% if (i === pagination.page) { %>
+        <span class="current"><%= i %></span>
+      <% } else if (i <= 3 || i > pagination.pages - 3 || Math.abs(i - pagination.page) <= 1) { %>
+        <a href="/admin/invoices?page=<%= i %>&status=<%= filters.status %>&q=<%= filters.q %>"><%= i %></a>
+      <% } else if (Math.abs(i - pagination.page) === 2) { %>
+        <span class="info">…</span>
+      <% } %>
+    <% } %>
+    <% if (pagination.page < pagination.pages) { %>
+      <a href="/admin/invoices?page=<%= pagination.page + 1 %>&status=<%= filters.status %>&q=<%= filters.q %>">Next</a>
+    <% } else { %>
+      <span class="disabled">Next</span>
+    <% } %>
+    <span class="info"><%= fmt.number(pagination.total) %> invoices</span>
+  </nav>
+<% } %>

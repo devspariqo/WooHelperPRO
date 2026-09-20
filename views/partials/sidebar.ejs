@@ -1,0 +1,174 @@
+<aside class="app-sidebar" id="appSidebar">
+
+  <div class="sidebar-brand">
+    <a href="/" class="brand">
+      <span class="brand-mark" aria-hidden="true">W</span>
+      <span class="brand-text">
+        <strong><%= settings.siteName %></strong>
+        <small><%= panel === 'admin' ? 'Admin panel' : 'My account' %></small>
+      </span>
+    </a>
+  </div>
+
+  <% if (panel === 'admin') { %>
+
+    <nav class="sidebar-nav" aria-label="Admin navigation">
+      <p class="sidebar-label">Overview</p>
+      <% if (can ? can('dashboard') : true) { %>
+      <a href="/admin" class="<%= active === 'dashboard' ? 'active' : '' %>">
+        <span class="ico">▦</span> Dashboard
+      </a>
+      <% } %>
+      <% if (can ? can('reports') : false) { %>
+      <a href="/admin/reports" class="<%= active === 'reports' ? 'active' : '' %>">
+        <span class="ico">◪</span> Reports
+      </a>
+      <% } %>
+
+      <p class="sidebar-label">Sales</p>
+      <% if (can ? can('orders') : false) { %>
+      <a href="/admin/orders" class="<%= active === 'orders' ? 'active' : '' %>">
+        <span class="ico">▤</span> Orders
+      </a>
+      <% } %>
+      <% if (can ? can('leads') : false) { %>
+      <a href="/admin/leads" class="<%= active === 'leads' ? 'active' : '' %>">
+        <span class="ico">◈</span> Leads
+      </a>
+      <% } %>
+      <% if (can ? can('coupons') : false) { %>
+      <a href="/admin/coupons" class="<%= active === 'coupons' ? 'active' : '' %>">
+        <span class="ico">◇</span> Coupons
+      </a>
+      <% } %>
+
+      <p class="sidebar-label">Customers &amp; billing</p>
+      <% if (can ? can('users') : false) { %>
+      <a href="/admin/users" class="<%= active === 'users' ? 'active' : '' %>">
+        <span class="ico">◉</span> Users
+      </a>
+      <% } %>
+      <% if (can ? can('subscriptions') : false) { %>
+      <a href="/admin/subscriptions" class="<%= active === 'subscriptions' ? 'active' : '' %>">
+        <span class="ico">↻</span> Subscriptions
+      </a>
+      <% } %>
+      <% if (can ? can('invoices') : false) { %>
+      <a href="/admin/invoices" class="<%= active === 'invoices' ? 'active' : '' %>">
+        <span class="ico">▣</span> Invoices
+      </a>
+      <% } %>
+      <% if (can ? can('payments') : false) { %>
+      <a href="/admin/payments" class="<%= active === 'payments' ? 'active' : '' %>">
+        <span class="ico">৳</span> Payments
+      </a>
+      <% } %>
+
+      <p class="sidebar-label">Catalogue</p>
+      <% if (can ? can('services') : false) { %>
+      <a href="/admin/services" class="<%= active === 'services' ? 'active' : '' %>">
+        <span class="ico">◆</span> Services
+      </a>
+      <% } %>
+      <% if (can ? can('packages') : false) { %>
+      <a href="/admin/packages" class="<%= active === 'packages' ? 'active' : '' %>">
+        <span class="ico">▥</span> Packages
+      </a>
+      <% } %>
+      <% if (can ? can('projects') : false) { %>
+      <a href="/admin/projects" class="<%= active === 'projects' ? 'active' : '' %>">
+        <span class="ico">▧</span> Projects
+      </a>
+      <% } %>
+
+      <p class="sidebar-label">Support</p>
+      <% if (can ? can('tickets') : false) { %>
+      <a href="/admin/tickets" class="<%= active === 'tickets' ? 'active' : '' %>">
+        <span class="ico">☰</span> Tickets
+      </a>
+      <% } %>
+
+      <p class="sidebar-label">Content</p>
+      <% if (can ? can('portfolio') : false) { %>
+      <a href="/admin/portfolio" class="<%= active === 'portfolio' ? 'active' : '' %>">
+        <span class="ico">▨</span> Portfolio
+      </a>
+      <% } %>
+      <% if (can ? can('content') : false) { %>
+      <a href="/admin/blog" class="<%= active === 'blog' ? 'active' : '' %>">
+        <span class="ico">✎</span> Blog
+      </a>
+      <a href="/admin/faqs" class="<%= active === 'faqs' ? 'active' : '' %>">
+        <span class="ico">?</span> FAQs
+      </a>
+      <% } %>
+      <% if (can ? can('testimonials') : false) { %>
+      <a href="/admin/testimonials" class="<%= active === 'testimonials' ? 'active' : '' %>">
+        <span class="ico">★</span> Testimonials
+      </a>
+      <% } %>
+
+      <p class="sidebar-label">System</p>
+      <% if (can ? can('settings') : false) { %>
+      <a href="/admin/settings" class="<%= active === 'settings' ? 'active' : '' %>">
+        <span class="ico">⚙</span> Settings
+      </a>
+      <% } %>
+      <% if (can ? can('activity') : false) { %>
+      <a href="/admin/activity" class="<%= active === 'activity' ? 'active' : '' %>">
+        <span class="ico">≡</span> Activity log
+      </a>
+      <% } %>
+    </nav>
+
+  <% } else { %>
+
+    <nav class="sidebar-nav" aria-label="Account navigation">
+      <p class="sidebar-label">My account</p>
+      <a href="/account" class="<%= active === 'dashboard' ? 'active' : '' %>">
+        <span class="ico">▦</span> Dashboard
+      </a>
+      <a href="/account/orders" class="<%= active === 'orders' ? 'active' : '' %>">
+        <span class="ico">▤</span> My orders
+      </a>
+      <a href="/account/subscriptions" class="<%= active === 'subscriptions' ? 'active' : '' %>">
+        <span class="ico">↻</span> Subscriptions
+      </a>
+      <a href="/account/invoices" class="<%= active === 'invoices' ? 'active' : '' %>">
+        <span class="ico">▣</span> Invoices
+      </a>
+      <a href="/account/payments" class="<%= active === 'payments' ? 'active' : '' %>">
+        <span class="ico">৳</span> Payments
+      </a>
+
+      <p class="sidebar-label">Support</p>
+      <a href="/account/tickets" class="<%= active === 'tickets' ? 'active' : '' %>">
+        <span class="ico">☰</span> Support tickets
+      </a>
+      <a href="/packages">
+        <span class="ico">＋</span> Buy a package
+      </a>
+
+      <p class="sidebar-label">Settings</p>
+      <a href="/account/profile" class="<%= active === 'profile' ? 'active' : '' %>">
+        <span class="ico">◉</span> My profile
+      </a>
+    </nav>
+
+  <% } %>
+
+  <div class="sidebar-footer">
+    <% if (panel === 'admin') { %>
+      <div class="sidebar-user">
+        <span class="avatar"><%= fmt.initials(currentUser ? currentUser.name : '?') %></span>
+        <span class="meta">
+          <strong><%= currentUser ? currentUser.name : 'Guest' %></strong>
+          <small><%= C.ROLES[currentUser ? currentUser.role : 'CUSTOMER'] %></small>
+        </span>
+      </div>
+    <% } else { %>
+      <a href="/" class="sidebar-home">&larr; Back to website</a>
+    <% } %>
+  </div>
+
+</aside>

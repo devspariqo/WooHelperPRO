@@ -1,0 +1,244 @@
+<section class="detail-head">
+  <div class="ident">
+    <h1>Portfolio</h1>
+    <p class="meta-line muted mb-0">
+      Case studies shown on the public portfolio page. Unpublished items stay
+      hidden from visitors.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/portfolio" target="_blank" rel="noopener">View on site</a>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Total</div>
+    <div class="kpi-value"><%= fmt.number(items.length) %></div>
+    <div class="kpi-foot">Case studies</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Published</div>
+    <div class="kpi-value"><%= fmt.number(items.filter(function (p) { return p.isPublished; }).length) %></div>
+    <div class="kpi-foot">Live on the website</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Featured</div>
+    <div class="kpi-value"><%= fmt.number(items.filter(function (p) { return p.isFeatured; }).length) %></div>
+    <div class="kpi-foot">Highlighted first</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Drafts</div>
+    <div class="kpi-value"><%= fmt.number(items.filter(function (p) { return !p.isPublished; }).length) %></div>
+    <div class="kpi-foot">Not yet visible</div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-pad-0">
+    <% if (!items.length) { %>
+      <div class="card-body"><%- helpers.emptyState('No case studies yet — add the first one below.') %></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Project</th><th>Client</th><th>Category</th>
+              <th>Stack</th><th class="num">Order</th>
+              <th>Published</th><th class="num">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% items.forEach(function (p) { %>
+              <tr>
+                <td>
+                  <span class="strong"><%= p.title %></span>
+                  <% if (p.isFeatured) { %> <span class="badge badge-info">Featured</span><% } %>
+                  <br><small class="muted"><%= p.slug %></small>
+                  <% if (p.liveUrl) { %>
+                    <br><small><a href="<%= p.liveUrl %>" target="_blank" rel="noopener">live site ↗</a></small>
+                  <% } %>
+                </td>
+                <td><%= p.clientName || '—' %></td>
+                <td><%= p.category || '—' %></td>
+                <td><small class="muted"><%= p.techStack || '—' %></small></td>
+                <td class="num"><%= fmt.number(p.sortOrder) %></td>
+                <td>
+                  <span class="badge badge-<%= p.isPublished ? 'success' : 'muted' %>">
+                    <%= p.isPublished ? 'Published' : 'Hidden' %>
+                  </span>
+                </td>
+                <td class="num">
+                  <div class="row-actions">
+                    <button type="button" class="btn btn-sm btn-outline"
+                            data-toggle-portfolio="<%= p.id %>">Edit</button>
+                    <form method="post" action="/admin/portfolio/<%= p.id %>/delete"
+                          onsubmit="return confirm('Delete the case study “<%= p.title %>”?');">
+                      <%- csrfField %>
+                      <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header"><h3 class="mt-0 mb-0">Add a case study</h3></div>
+  <div class="card-body">
+    <form method="post" action="/admin/portfolio" class="form-grid two">
+      <%- csrfField %>
+      <div class="field">
+        <label for="title">Project title <span class="req">*</span></label>
+        <input type="text" id="title" name="title" required maxlength="160"
+               placeholder="FashionHub — Multi-vendor Store">
+      </div>
+      <div class="field">
+        <label for="titleBn">Title (Bangla)</label>
+        <input type="text" id="titleBn" name="titleBn" maxlength="160">
+      </div>
+      <div class="field">
+        <label for="slug">Slug</label>
+        <input type="text" id="slug" name="slug" maxlength="160" placeholder="fashionhub-store">
+        <span class="hint">Leave blank to generate from the title.</span>
+      </div>
+      <div class="field">
+        <label for="clientName">Client name</label>
+        <input type="text" id="clientName" name="clientName" maxlength="120">
+      </div>
+      <div class="field">
+        <label for="category">Category</label>
+        <input type="text" id="category" name="category" maxlength="80"
+               placeholder="Ecommerce, Landing page…">
+      </div>
+      <div class="field">
+        <label for="techStack">Tech stack</label>
+        <input type="text" id="techStack" name="techStack" maxlength="200"
+               placeholder="Next.js, bKash, Pathao Courier">
+      </div>
+      <div class="field">
+        <label for="liveUrl">Live URL</label>
+        <input type="url" id="liveUrl" name="liveUrl" maxlength="250">
+      </div>
+      <div class="field">
+        <label for="imageUrl">Cover image URL</label>
+        <input type="url" id="imageUrl" name="imageUrl" maxlength="250">
+      </div>
+      <div class="field full">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="3" maxlength="2000"></textarea>
+      </div>
+      <div class="field full">
+        <label for="results">Results</label>
+        <textarea id="results" name="results" rows="2" maxlength="1000"
+                  placeholder="Orders up 42% in three months; page load under 2s."></textarea>
+      </div>
+      <div class="field">
+        <label for="sortOrder">Sort order</label>
+        <input type="number" id="sortOrder" name="sortOrder" step="1" min="0" value="0">
+      </div>
+      <div class="field">
+        <label>Publishing</label>
+        <label class="check-row" for="isPublished">
+          <input type="checkbox" id="isPublished" name="isPublished" checked>
+          <span>Publish immediately</span>
+        </label>
+        <label class="check-row mt-0" for="isFeatured">
+          <input type="checkbox" id="isFeatured" name="isFeatured">
+          <span>Feature this project</span>
+        </label>
+      </div>
+      <div class="field full">
+        <button type="submit" class="btn btn-primary">Add case study</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<% items.forEach(function (p) { %>
+  <div class="card mt-4" id="portfolio-edit-<%= p.id %>" hidden>
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Edit &ldquo;<%= p.title %>&rdquo;</h3>
+        <button type="button" class="btn btn-sm btn-outline" data-toggle-portfolio="<%= p.id %>">Close</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="post" action="/admin/portfolio/<%= p.id %>" class="form-grid two">
+        <%- csrfField %>
+        <div class="field">
+          <label for="e-title-<%= p.id %>">Title <span class="req">*</span></label>
+          <input type="text" id="e-title-<%= p.id %>" name="title" required maxlength="160"
+                 value="<%= p.title %>">
+        </div>
+        <div class="field">
+          <label for="e-titlebn-<%= p.id %>">Title (Bangla)</label>
+          <input type="text" id="e-titlebn-<%= p.id %>" name="titleBn" maxlength="160"
+                 value="<%= p.titleBn || '' %>">
+        </div>
+        <div class="field">
+          <label for="e-client-<%= p.id %>">Client name</label>
+          <input type="text" id="e-client-<%= p.id %>" name="clientName" maxlength="120"
+                 value="<%= p.clientName || '' %>">
+        </div>
+        <div class="field">
+          <label for="e-cat-<%= p.id %>">Category</label>
+          <input type="text" id="e-cat-<%= p.id %>" name="category" maxlength="80"
+                 value="<%= p.category || '' %>">
+        </div>
+        <div class="field">
+          <label for="e-live-<%= p.id %>">Live URL</label>
+          <input type="url" id="e-live-<%= p.id %>" name="liveUrl" maxlength="250"
+                 value="<%= p.liveUrl || '' %>">
+        </div>
+        <div class="field">
+          <label for="e-img-<%= p.id %>">Cover image URL</label>
+          <input type="url" id="e-img-<%= p.id %>" name="imageUrl" maxlength="250"
+                 value="<%= p.imageUrl || '' %>">
+        </div>
+        <div class="field">
+          <label for="e-tech-<%= p.id %>">Tech stack</label>
+          <input type="text" id="e-tech-<%= p.id %>" name="techStack" maxlength="200"
+                 value="<%= p.techStack || '' %>">
+        </div>
+        <div class="field">
+          <label for="e-sort-<%= p.id %>">Sort order</label>
+          <input type="number" id="e-sort-<%= p.id %>" name="sortOrder" step="1" min="0"
+                 value="<%= p.sortOrder %>">
+        </div>
+        <div class="field full">
+          <label for="e-desc-<%= p.id %>">Description</label>
+          <textarea id="e-desc-<%= p.id %>" name="description" rows="3"
+                    maxlength="2000"><%= p.description || '' %></textarea>
+        </div>
+        <div class="field full">
+          <label for="e-res-<%= p.id %>">Results</label>
+          <textarea id="e-res-<%= p.id %>" name="results" rows="2"
+                    maxlength="1000"><%= p.results || '' %></textarea>
+        </div>
+        <div class="field full">
+          <label>Publishing</label>
+          <label class="check-row" for="e-pub-<%= p.id %>">
+            <input type="checkbox" id="e-pub-<%= p.id %>" name="isPublished"
+                   <%= p.isPublished ? 'checked' : '' %>>
+            <span>Published on the website</span>
+          </label>
+          <label class="check-row mt-0" for="e-feat-<%= p.id %>">
+            <input type="checkbox" id="e-feat-<%= p.id %>" name="isFeatured"
+                   <%= p.isFeatured ? 'checked' : '' %>>
+            <span>Featured</span>
+          </label>
+        </div>
+        <div class="field full form-actions">
+          <button type="submit" class="btn btn-primary">Save changes</button>
+          <button type="button" class="btn btn-outline" data-toggle-portfolio="<%= p.id %>">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+<% }); %>

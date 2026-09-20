@@ -1,0 +1,483 @@
+<%
+  /*
+   * Order detail — the working screen for a live project.
+   *
+   * The route hands us the decorated order (`balance`, `progress`, `daysToDue`),
+   * `nextStatuses` from the order state machine, the `staff` list for
+   * assignment, and `selectedPages` parsed out of the JSON column.
+   */
+  var payTone = { UNPAID: 'danger', PARTIAL: 'warn', PAID: 'success' }[order.paymentStatus] || 'muted';
+  var payLabel = { UNPAID: 'Unpaid', PARTIAL: 'Partially paid', PAID: 'Paid' }[order.paymentStatus] || order.paymentStatus;
+  var project = order.project;
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1>
+      <%= order.orderNumber %>
+      <%- helpers.statusBadge(order.status, orderStatuses) %>
+      <span class="badge badge-<%= payTone %>"><%= payLabel %></span>
+      <% if (order.priority && order.priority !== 'NORMAL') { %>
+        <span class="badge badge-<%= order.priority === 'URGENT' ? 'danger' : 'warn' %>">
+          <%= order.priority %> priority
+        </span>
+      <% } %>
+    </h1>
+    <p class="meta-line muted mb-0">
+      <%= order.projectName %>
+      <% if (order.package) { %> · <%= order.package.name %><% } %>
+      <% if (order.service) { %> · <%= order.service.title %><% } %>
+      · placed <%= fmt.datetime(order.createdAt) %>
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/orders">&larr; All orders</a>
+    <% if (order.user) { %>
+      <a class="btn btn-outline" href="/admin/users/<%= order.user.id %>">Customer</a>
+    <% } %>
+  </div>
+</section>
+
+<div class="kpi-grid mt-4">
+  <div class="kpi">
+    <div class="kpi-label">Order total</div>
+    <div class="kpi-value sm"><%= fmt.bdt(order.total) %></div>
+    <div class="kpi-foot">
+      <%= fmt.bdt(order.subtotal) %> subtotal
+      <% if (order.discount > 0) { %>− <%= fmt.bdt(order.discount) %> discount<% } %>
+      <% if (order.tax > 0) { %>+ <%= fmt.bdt(order.tax) %> VAT<% } %>
+    </div>
+  </div>
+
+  <div class="kpi <%= order.balance > 0 ? 'accent-warn' : 'accent-ok' %>">
+    <div class="kpi-label">Outstanding balance</div>
+    <div class="kpi-value sm"><%= fmt.bdt(order.balance) %></div>
+    <div class="kpi-foot"><%= fmt.bdt(order.paidAmount) %> received so far</div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi-label">Project progress</div>
+    <div class="kpi-value"><%= project ? fmt.number(project.progress) + '%' : '—' %></div>
+    <div class="kpi-foot">
+      <% if (project) { %>
+        <%- helpers.statusBadge(project.status, C.PROJECT_STATUS) %>
+      <% } else { %>
+        No project record yet
+      <% } %>
+    </div>
+  </div>
+
+  <div class="kpi <%= order.daysToDue !== null && order.daysToDue !== undefined && order.daysToDue < 0 ? 'accent-err' : '' %>">
+    <div class="kpi-label">Due date</div>
+    <div class="kpi-value sm"><%= order.dueLabel %></div>
+    <div class="kpi-foot">
+      <% if (order.daysToDue === null || order.daysToDue === undefined) { %>
+        No deadline set
+      <% } else if (order.daysToDue < 0) { %>
+        <%= Math.abs(order.daysToDue) %> day(s) overdue
+      <% } else { %>
+        <span class="delta up"><%= order.daysToDue %> day(s) remaining</span>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="dash-grid cols-2 mt-4">
+
+  <!-- ============ Project brief ============ -->
+  <div class="card">
+    <div class="card-header"><h3 class="mt-0 mb-0">Project brief</h3></div>
+    <div class="card-body">
+      <div class="info-grid">
+        <div class="info-item"><dt>Project type</dt><dd><%= order.projectType || '—' %></dd></div>
+        <div class="info-item"><dt>Business name</dt><dd><%= order.businessName || '—' %></dd></div>
+        <div class="info-item"><dt>Business type</dt><dd><%= order.businessType || '—' %></dd></div>
+        <div class="info-item"><dt>Domain</dt><dd><%= order.domainName || '—' %></dd></div>
+        <div class="info-item"><dt>Hosting</dt><dd><%= order.hostingChoice || '—' %></dd></div>
+        <div class="info-item"><dt>Preferred colours</dt><dd><%= order.preferredColors || '—' %></dd></div>
+        <div class="info-item"><dt>Contact person</dt><dd><%= order.contactPerson || '—' %></dd></div>
+        <div class="info-item"><dt>Contact phone</dt><dd><%= order.contactPhone || '—' %></dd></div>
+        <div class="info-item"><dt>Contact email</dt><dd><%= order.contactEmail || '—' %></dd></div>
+        <div class="info-item"><dt>District</dt><dd><%= order.district || '—' %></dd></div>
+        <div class="info-item"><dt>Coupon</dt><dd><%= order.couponCode || '—' %></dd></div>
+        <div class="info-item"><dt>Billing address</dt><dd><%= order.billingAddress || '—' %></dd></div>
+      </div>
+
+      <% var sitePages = selectedPages && selectedPages.length ? selectedPages : (order.selectedPagesList || []); %>
+      <% if (sitePages.length) { %>
+        <div class="mt-3">
+          <h4 class="mb-0">Pages requested</h4>
+          <div class="pkg-features">
+            <% sitePages.forEach(function (pg) { %>
+              <span class="pill"><%= pg %></span>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (order.websiteGoal) { %>
+        <div class="mt-3">
+          <h4 class="mb-0">Goal</h4>
+          <p class="muted mb-0"><%= order.websiteGoal %></p>
+        </div>
+      <% } %>
+
+      <% if (order.brandNotes) { %>
+        <div class="mt-3">
+          <h4 class="mb-0">Brand notes</h4>
+          <p class="muted mb-0"><%= order.brandNotes %></p>
+        </div>
+      <% } %>
+
+      <% if (order.referenceUrls) { %>
+        <div class="mt-3">
+          <h4 class="mb-0">Reference sites</h4>
+          <p class="mb-0"><%= order.referenceUrls %></p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ============ Actions ============ -->
+  <div>
+
+    <!-- Status -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title-row">
+          <h3 class="mt-0 mb-0">Move status</h3>
+          <span class="sub muted">Only legal transitions are offered</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <% if (!nextStatuses.length) { %>
+          <p class="muted mb-0">
+            <strong><%= orderStatuses[order.status] ? orderStatuses[order.status].en : order.status %></strong>
+            is a terminal state — no further transitions are allowed.
+          </p>
+        <% } else { %>
+          <form method="post" action="/admin/orders/<%= order.id %>/status" class="form-grid">
+            <%- csrfField %>
+            <div class="field">
+              <label for="status">Next status</label>
+              <select id="status" name="status" required>
+                <% nextStatuses.forEach(function (st) { %>
+                  <option value="<%= st %>">
+                    <%= orderStatuses[st] ? orderStatuses[st].en : st %>
+                  </option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="field">
+              <label for="note">Note <span class="muted">(optional)</span></label>
+              <input type="text" id="note" name="note" maxlength="200"
+                     placeholder="Why the order moved — written to the audit log">
+            </div>
+            <div class="field">
+              <button type="submit" class="btn btn-primary">Update status</button>
+            </div>
+          </form>
+          <p class="hint muted mt-3 mb-0">
+            The customer is emailed automatically on: payment verified, in progress,
+            client review, completed, delivered, cancelled and on hold.
+          </p>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Assignment -->
+    <div class="card mt-4">
+      <div class="card-header"><h3 class="mt-0 mb-0">Assignment</h3></div>
+      <div class="card-body">
+        <form method="post" action="/admin/orders/<%= order.id %>/assign" class="form-grid two">
+          <%- csrfField %>
+          <div class="field full">
+            <label for="assignedTo">Account manager</label>
+            <select id="assignedTo" name="assignedTo">
+              <option value="">— unassigned —</option>
+              <% staff.forEach(function (s) { %>
+                <option value="<%= s.id %>" <%= order.assignedTo === s.id ? 'selected' : '' %>>
+                  <%= s.name %> (<%= C.ROLES[s.role] || s.role %>)
+                </option>
+              <% }); %>
+            </select>
+            <span class="hint">Also becomes the project manager on the delivery tracker.</span>
+          </div>
+          <div class="field full">
+            <button type="submit" class="btn btn-primary">Save assignment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Notes & priority -->
+    <div class="card mt-4">
+      <div class="card-header"><h3 class="mt-0 mb-0">Notes &amp; priority</h3></div>
+      <div class="card-body">
+        <form method="post" action="/admin/orders/<%= order.id %>/notes" class="form-grid">
+          <%- csrfField %>
+          <div class="field">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+              <% ['LOW', 'NORMAL', 'HIGH', 'URGENT'].forEach(function (pr) { %>
+                <option value="<%= pr %>" <%= order.priority === pr ? 'selected' : '' %>>
+                  <%= pr.charAt(0) + pr.slice(1).toLowerCase() %>
+                </option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="field">
+            <label for="internalNotes">Internal notes <span class="muted">(staff only)</span></label>
+            <textarea id="internalNotes" name="internalNotes" rows="4"
+                      placeholder="Never shown to the customer."><%= order.internalNotes || '' %></textarea>
+          </div>
+          <div class="field">
+            <label for="clientNotes">Client-visible notes</label>
+            <textarea id="clientNotes" name="clientNotes" rows="4"
+                      placeholder="Shown on the customer's order page."><%= order.clientNotes || '' %></textarea>
+          </div>
+          <div class="field">
+            <button type="submit" class="btn btn-primary">Save notes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Delivery ============ -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Delivery &amp; handover</h3>
+      <span class="sub muted">
+        <% if (order.deliveredAt) { %>
+          Delivered <%= fmt.date(order.deliveredAt, 'long') %>
+        <% } else { %>
+          Not yet delivered
+        <% } %>
+      </span>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="post" action="/admin/orders/<%= order.id %>/delivery" class="form-grid two">
+      <%- csrfField %>
+      <div class="field">
+        <label for="projectUrl">Live website URL</label>
+        <input type="url" id="projectUrl" name="projectUrl" maxlength="250"
+               value="<%= order.projectUrl || '' %>" placeholder="https://client-shop.com.bd">
+      </div>
+      <div class="field">
+        <label for="adminUrl">Admin panel URL</label>
+        <input type="url" id="adminUrl" name="adminUrl" maxlength="250"
+               value="<%= order.adminUrl || '' %>" placeholder="https://client-shop.com.bd/admin">
+      </div>
+      <div class="field full">
+        <label for="accessNote">Access handover note</label>
+        <textarea id="accessNote" name="accessNote" rows="3" maxlength="600"
+                  placeholder="Where the credentials were sent, who owns the registrar account, etc."><%= order.accessNote || '' %></textarea>
+        <span class="hint">
+          Never paste passwords here — this is stored in plain text in the database.
+        </span>
+      </div>
+      <div class="field full">
+        <button type="submit" class="btn btn-primary">Save delivery details</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Milestones ============ -->
+<div class="dash-grid cols-2 mt-4">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Milestones</h3>
+        <% if (project) { %>
+          <span class="sub muted"><%= project.milestones.length %> step(s)</span>
+        <% } %>
+      </div>
+    </div>
+    <div class="card-body">
+      <% if (!project || !project.milestones.length) { %>
+        <p class="muted mb-0">No milestones recorded for this order yet.</p>
+      <% } else { %>
+        <ul class="timeline">
+          <% project.milestones.forEach(function (m) { %>
+            <li>
+              <form method="post"
+                    action="/admin/orders/<%= order.id %>/milestones/<%= m.id %>/toggle"
+                    class="row-form">
+                <%- csrfField %>
+                <button type="submit"
+                        class="btn btn-sm <%= m.isDone ? 'btn-success' : 'btn-outline' %>">
+                  <%= m.isDone ? '✓ Done' : 'Mark done' %>
+                </button>
+              </form>
+              <strong<%= m.isDone ? ' class="muted"' : '' %>><%= m.title %></strong>
+              <% if (m.description) { %>
+                <br><small class="muted"><%= m.description %></small>
+              <% } %>
+              <br><small class="muted">
+                <% if (m.dueDate) { %>Due <%= fmt.date(m.dueDate, 'medium') %><% } %>
+                <% if (m.completedAt) { %>
+                  <%= m.dueDate ? ' · ' : '' %>Completed <%= fmt.date(m.completedAt, 'medium') %>
+                <% } %>
+              </small>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ============ Invoices & payments ============ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Invoices</h3>
+        <a class="sub" href="/admin/invoices?q=<%= order.orderNumber %>">All for this order</a>
+      </div>
+    </div>
+    <div class="card-pad-0">
+      <% if (!order.invoices.length) { %>
+        <div class="card-body">
+          <p class="muted mb-0">No invoice raised yet. The customer cannot pay until one exists.</p>
+        </div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table data">
+            <thead>
+              <tr><th>Invoice</th><th>Status</th><th class="num">Total</th><th class="num">Paid</th></tr>
+            </thead>
+            <tbody>
+              <% order.invoices.forEach(function (inv) { %>
+                <% var invBal = Math.max(0, Number(inv.total) - Number(inv.amountPaid || 0)); %>
+                <tr>
+                  <td>
+                    <a class="strong" href="/admin/invoices/<%= inv.id %>"><%= inv.invoiceNumber %></a>
+                    <br><small class="muted">Due <%= fmt.date(inv.dueDate, 'medium') %></small>
+                  </td>
+                  <td><%- helpers.statusBadge(inv.status, C.INVOICE_STATUS) %></td>
+                  <td class="num"><%= fmt.bdt(inv.total) %></td>
+                  <td class="num <%= invBal > 0 ? '' : 'muted' %>">
+                    <%= fmt.bdt(inv.amountPaid) %>
+                    <% if (invBal > 0) { %>
+                      <br><small class="muted">৳ outstanding</small>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Payments ============ -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Payments</h3>
+      <span class="sub muted"><%= order.payments.length %> record(s)</span>
+    </div>
+  </div>
+  <div class="card-pad-0">
+    <% if (!order.payments.length) { %>
+      <div class="card-body"><p class="muted mb-0">No payment has been submitted for this order.</p></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table data">
+          <thead>
+            <tr>
+              <th>Reference</th><th>Method</th><th>TrxID</th>
+              <th>Sender</th><th>Status</th><th>Date</th><th class="num">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% order.payments.forEach(function (pay) { %>
+              <tr>
+                <td class="strong"><%= pay.reference %></td>
+                <td><%= C.PAYMENT_METHOD[pay.method] ? C.PAYMENT_METHOD[pay.method].en : pay.method %></td>
+                <td><%= pay.transactionId || '—' %></td>
+                <td><%= pay.senderNumber || '—' %></td>
+                <td><%- helpers.statusBadge(pay.status, C.PAYMENT_STATUS) %></td>
+                <td><%= fmt.date(pay.createdAt, 'medium') %></td>
+                <td class="num strong"><%= fmt.bdt(pay.amount) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- ============ Additional charges ============ -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Raise an additional invoice</h3>
+      <span class="sub muted">Change requests, extra pages, add-on modules</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="post" action="/admin/orders/<%= order.id %>/invoice" class="form-grid two">
+      <%- csrfField %>
+      <div class="field full">
+        <label for="inv-title">Invoice title</label>
+        <input type="text" id="inv-title" name="title" maxlength="160"
+               value="Additional charge — <%= order.projectName %>">
+      </div>
+      <div class="field full">
+        <label for="inv-description">Description</label>
+        <textarea id="inv-description" name="description" rows="2" maxlength="500"
+                  placeholder="What the extra charge covers."></textarea>
+      </div>
+      <div class="field">
+        <label for="inv-subtotal">Subtotal (৳)</label>
+        <input type="number" id="inv-subtotal" name="subtotal" step="1" min="0" value="0">
+      </div>
+      <div class="field">
+        <label for="inv-discount">Discount (৳)</label>
+        <input type="number" id="inv-discount" name="discount" step="1" min="0" value="0">
+      </div>
+      <div class="field">
+        <label for="inv-tax">VAT (৳)</label>
+        <input type="number" id="inv-tax" name="tax" step="1" min="0" value="0">
+      </div>
+      <div class="field">
+        <label for="inv-total">Total (৳)</label>
+        <input type="number" id="inv-total" name="total" step="1" min="0" value="0">
+        <span class="hint">Leave 0 to auto-calculate as subtotal − discount + VAT.</span>
+      </div>
+      <div class="field">
+        <label for="inv-due">Due date</label>
+        <input type="date" id="inv-due" name="dueDate">
+        <span class="hint">Defaults to 7 days from today.</span>
+      </div>
+      <div class="field" style="justify-content:flex-end">
+        <button type="submit" class="btn btn-primary">Raise invoice</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<% if (canDelete) { %>
+  <div class="card mt-4" style="border-color:var(--err-500)">
+    <div class="card-header"><h3 class="mt-0 mb-0" style="color:var(--err-700)">Danger zone</h3></div>
+    <div class="card-body">
+      <p class="muted">
+        An order with invoices, payments or a project is cancelled and archived rather
+        than deleted, so the financial history stays consistent.
+      </p>
+      <form method="post" action="/admin/orders/<%= order.id %>/delete"
+            onsubmit="return confirm('Delete order <%= order.orderNumber %>? This cannot be undone.');">
+        <%- csrfField %>
+        <button type="submit" class="btn btn-danger">Delete this order</button>
+      </form>
+    </div>
+  </div>
+<% } %>

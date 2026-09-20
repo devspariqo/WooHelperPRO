@@ -1,0 +1,95 @@
+<section class="section">
+  <div class="container">
+    <div class="section-head center">
+      <p class="section-kicker">About us</p>
+      <h1 class="mt-0"><%= settings.siteName || 'WooHelperPro' %></h1>
+      <p class="muted">
+        <%= settings.tagline || 'We build and run online stores for Bangladeshi businesses — design, hosting, payment and courier setup, all handled.' %>
+      </p>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="num"><%= fmt.number(stats.customers || 0) %>+</div>
+        <div class="lbl">Businesses served</div>
+      </div>
+      <div class="stat-card">
+        <div class="num"><%= fmt.number(stats.orders || 0) %></div>
+        <div class="lbl">Projects delivered</div>
+      </div>
+      <div class="stat-card">
+        <div class="num"><%= fmt.number(stats.portfolio || 0) %></div>
+        <div class="lbl">Sites live today</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">64</div>
+        <div class="lbl">Districts covered</div>
+      </div>
+    </div>
+
+    <div class="grid grid-2 mt-4" style="align-items:start">
+      <div class="prose">
+        <h2>Why we exist</h2>
+        <p>
+          Most Bangladeshi shop owners do not need a "digital transformation". They need a store
+          that loads on a 3G phone in Bogura, takes bKash without a merchant account headache, and
+          prints a courier label for Pathao. That is the whole job.
+        </p>
+        <p>
+          So we sell it as a package rather than an hourly contract. You pick a tier, we build it,
+          we hand it over with a call in Bangla, and then we keep it running for a monthly fee that
+          covers hosting, security patches and content edits.
+        </p>
+
+        <h2>How we work</h2>
+        <ol>
+          <li><strong>Scope.</strong> You tell us what you sell and where your customers are.</li>
+          <li><strong>Build.</strong> Design, storefront, payment and delivery setup — staged so you can see progress.</li>
+          <li><strong>Launch.</strong> Domain, SSL, WhatsApp and Facebook catalog connected.</li>
+          <li><strong>Run.</strong> Monthly or yearly plan for hosting, updates and support tickets.</li>
+        </ol>
+      </div>
+
+      <aside>
+        <div class="card">
+          <div class="card-header"><h3 class="mt-0 mb-0">Reach us</h3></div>
+          <div class="card-body">
+            <ul class="summary-list">
+              <% if (settings.supportPhone) { %>
+                <li>
+                  <span class="label">Phone</span>
+                  <span class="value"><a href="tel:<%= settings.supportPhone %>"><%= settings.supportPhone %></a></span>
+                </li>
+              <% } %>
+              <% if (settings.supportEmail) { %>
+                <li>
+                  <span class="label">Email</span>
+                  <span class="value"><a href="mailto:<%= settings.supportEmail %>"><%= settings.supportEmail %></a></span>
+                </li>
+              <% } %>
+              <% if (settings.whatsappNumber) { %>
+                <li>
+                  <span class="label">WhatsApp</span>
+                  <span class="value">
+                    <a href="https://wa.me/<%= settings.whatsappNumber %>" target="_blank" rel="noopener">Message us</a>
+                  </span>
+                </li>
+              <% } %>
+              <% if (settings.officeAddress) { %>
+                <li>
+                  <span class="label">Office</span>
+                  <span class="value"><%= settings.officeAddress %></span>
+                </li>
+              <% } %>
+            </ul>
+
+            <div class="form-actions mt-3">
+              <a class="btn btn-primary btn-block" href="/contact">Send us a message</a>
+              <a class="btn btn-outline btn-block" href="/packages">See packages</a>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>

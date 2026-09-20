@@ -1,0 +1,175 @@
+<%
+  /*
+   * Ticket conversation. The original message is treated as the first turn, then
+   * every reply in order. Staff replies carry `isStaff`, so the thread can be
+   * visually sided without guessing from the author's role.
+   */
+  var thread = ticket.replies || [];
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1>
+      <%= ticket.ticketNumber %>
+      <%- helpers.statusBadge(ticket.status, ticketStatuses) %>
+      <% if (ticket.priority && ticket.priority !== 'NORMAL') { %>
+        <span class="badge badge-<%= ticket.priority === 'URGENT' ? 'danger' : 'warn' %>">
+          <%= ticket.priority %> priority
+        </span>
+      <% } %>
+    </h1>
+    <p class="meta-line muted mb-0">
+      <%= ticket.subject %>
+      · <%= ticket.category.replace('_', ' ').toLowerCase() %>
+      · opened <%= fmt.datetime(ticket.createdAt) %>
+      <% if (ticket.user) { %>
+        · <a href="/admin/users/<%= ticket.userId %>"><%= ticket.user.name %></a>
+      <% } %>
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="/admin/tickets">&larr; All tickets</a>
+    <% if (ticket.user) { %>
+      <a class="btn btn-outline" href="/admin/users/<%= ticket.userId %>">Customer</a>
+    <% } %>
+  </div>
+</section>
+
+<div class="dash-grid cols-2 mt-4">
+
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title-row">
+          <h3 class="mt-0 mb-0">Conversation</h3>
+          <span class="sub muted"><%= thread.length + 1 %> message(s)</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="timeline">
+
+          <!-- Original message -->
+          <li>
+            <strong><%= ticket.user ? ticket.user.name : 'Customer' %></strong>
+            <small class="muted"> · opened the ticket</small>
+            <p class="mb-0 mt-0"><%= ticket.message %></p>
+            <small class="muted"><%= fmt.datetime(ticket.createdAt) %></small>
+          </li>
+
+          <% thread.forEach(function (r) { %>
+            <li>
+              <strong>
+                <%= r.isStaff ? 'Support team' : (r.user ? r.user.name : 'Customer') %>
+              </strong>
+              <% if (r.isStaff) { %>
+                <span class="badge badge-info">staff</span>
+              <% } %>
+              <p class="mb-0 mt-0"><%= r.body %></p>
+              <small class="muted"><%= fmt.datetime(r.createdAt) %></small>
+            </li>
+          <% }); %>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-header"><h3 class="mt-0 mb-0">Reply</h3></div>
+      <div class="card-body">
+        <form method="post" action="/admin/tickets/<%= ticket.id %>/reply" class="form-grid two">
+          <%- csrfField %>
+          <div class="field full">
+            <label for="body">Message to the customer</label>
+            <textarea id="body" name="body" rows="6" maxlength="4000" required
+                      placeholder="Explain what you found and what happens next."></textarea>
+          </div>
+          <div class="field">
+            <label for="status">Set status to</label>
+            <select id="status" name="status">
+              <% Object.keys(ticketStatuses).forEach(function (key) { %>
+                <option value="<%= key %>" <%= key === 'WAITING_CUSTOMER' ? 'selected' : '' %>>
+                  <%= ticketStatuses[key].en %>
+                </option>
+              <% }); %>
+            </select>
+            <span class="hint">Defaults to “waiting customer” if left as is.</span>
+          </div>
+          <div class="field" style="justify-content:flex-end">
+            <button type="submit" class="btn btn-primary">Send reply</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Ticket details</h3></div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item"><dt>Ticket</dt><dd><%= ticket.ticketNumber %></dd></div>
+          <div class="info-item"><dt>Status</dt><dd><%= ticketStatuses[ticket.status] ? ticketStatuses[ticket.status].en : ticket.status %></dd></div>
+          <div class="info-item"><dt>Category</dt><dd><%= ticket.category.replace('_', ' ').toLowerCase() %></dd></div>
+          <div class="info-item"><dt>Priority</dt><dd><%= ticket.priority || 'NORMAL' %></dd></div>
+          <div class="info-item"><dt>Opened</dt><dd><%= fmt.datetime(ticket.createdAt) %></dd></div>
+          <div class="info-item"><dt>Last updated</dt><dd><%= fmt.relative(ticket.updatedAt) %></dd></div>
+          <% if (ticket.closedAt) { %>
+            <div class="info-item"><dt>Closed</dt><dd><%= fmt.datetime(ticket.closedAt) %></dd></div>
+          <% } %>
+          <div class="info-item"><dt>Assigned</dt><dd><%= ticket.assignedTo ? 'Yes' : 'Unassigned' %></dd></div>
+          <% if (ticket.orderId) { %>
+            <div class="info-item">
+              <dt>Related order</dt>
+              <dd><a href="/admin/orders/<%= ticket.orderId %>">Open order</a></dd>
+            </div>
+          <% } %>
+        </div>
+
+        <hr>
+
+        <form method="post" action="/admin/tickets/<%= ticket.id %>/status" class="form-grid two">
+          <%- csrfField %>
+          <div class="field full">
+            <label for="status-only">Change status only</label>
+            <select id="status-only" name="status" required>
+              <% Object.keys(ticketStatuses).forEach(function (key) { %>
+                <option value="<%= key %>" <%= ticket.status === key ? 'selected' : '' %>>
+                  <%= ticketStatuses[key].en %>
+                </option>
+              <% }); %>
+            </select>
+            <span class="hint">
+              Closes the clock on the ticket when set to resolved or closed — no reply is sent.
+            </span>
+          </div>
+          <div class="field full">
+            <button type="submit" class="btn btn-outline">Update status</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <% if (ticket.user) { %>
+      <div class="card mt-4">
+        <div class="card-header"><h3 class="mt-0 mb-0">Customer</h3></div>
+        <div class="card-body">
+          <div class="sidebar-user">
+            <span class="avatar"><%= fmt.initials(ticket.user.name) %></span>
+            <span class="meta">
+              <strong><%= ticket.user.name %></strong>
+              <small><%= ticket.user.email %></small>
+            </span>
+          </div>
+          <div class="mt-3">
+            <div class="info-grid">
+              <div class="info-item"><dt>Mobile</dt><dd><%= ticket.user.phone || '—' %></dd></div>
+              <div class="info-item"><dt>Company</dt><dd><%= ticket.user.company || '—' %></dd></div>
+              <div class="info-item"><dt>District</dt><dd><%= ticket.user.district || '—' %></dd></div>
+              <div class="info-item"><dt>Member since</dt><dd><%= fmt.date(ticket.user.createdAt, 'medium') %></dd></div>
+            </div>
+          </div>
+          <a class="btn btn-outline mt-3" href="/admin/users/<%= ticket.userId %>">Open full profile</a>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>
