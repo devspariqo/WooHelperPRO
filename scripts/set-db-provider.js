@@ -23,7 +23,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const SCHEMA = path.join(ROOT, 'prisma', 'schema.prisma');
 
-const SUPPORTED = ['sqlite', 'postgresql'];
+const SUPPORTED = ['sqlite', 'mysql', 'postgresql'];
 
 const target = (process.argv[2] || '').toLowerCase();
 
@@ -81,6 +81,14 @@ console.log('Next steps:');
 if (target === 'postgresql') {
   console.log('  1. Set DATABASE_URL to your Postgres connection string, e.g.');
   console.log('     DATABASE_URL="postgresql://user:pass@host:6543/postgres"');
+  console.log('  2. npx prisma generate');
+  console.log('  3. npx prisma db push      # creates the tables');
+  console.log('  4. npm run db:seed         # seed, then DELETE demo data before launch');
+} else if (target === 'mysql') {
+  console.log('  1. Set DATABASE_URL to your MySQL connection string, e.g.');
+  console.log('     DATABASE_URL="mysql://user:pass@host:3306/dbname"');
+  console.log('     URL-encode special characters in the password');
+  console.log('     (e.g. # -> %23, @ -> %40, / -> %2F, : -> %3A).');
   console.log('  2. npx prisma generate');
   console.log('  3. npx prisma db push      # creates the tables');
   console.log('  4. npm run db:seed         # seed, then DELETE demo data before launch');

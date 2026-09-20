@@ -15,3 +15,6 @@ tmp/
 
 # Agent workspace (local notes, not project source)
 .workbuddy-ai/
+
+# Local deployment credentials -- never commit
+*.local.md
