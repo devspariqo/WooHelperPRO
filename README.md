@@ -23,7 +23,13 @@ Built as a single Node.js application with three separated surfaces:
   (`public`, `auth`, `dashboard`)
 - **Sessions** via `express-session` (cookie name `whp.sid`) + `connect-flash`
 - **bcryptjs** password hashing (12 rounds), **Helmet** CSP, **express-rate-limit**
-- **multer** uploads, **nodemailer** mail, **sharp** image processing
+- **nodemailer** for outbound mail (optional; the app runs without SMTP configured)
+
+> **No upload middleware ships with this project.** `multer` and `sharp` were removed;
+> `UPLOAD_DIR` / `MAX_UPLOAD_MB` remain in `.env.example` but nothing consumes them.
+> Site settings therefore take **image URLs** (a path under `/images/` or an absolute
+> https:// URL) rather than file uploads. Adding uploads means adding a middleware, not
+> just a form field.
 
 Payments are wallet-transfer based: bKash / Nagad / Rocket with SSLCommerz as the
 card/bank gateway. Because bKash, Nagad and Rocket have **no recurring mandate API**,
@@ -92,20 +98,69 @@ as the `can('permissionName')` helper.
   when financial history exists.
 - **CRM** — lead pipeline with conversion, coupons, support tickets.
 - **Content** — testimonials, portfolio, blog, FAQs.
-- **Settings** — brand, contact, payment destinations, SEO, maintenance mode.
+- **Settings** — see below.
+
+### Site settings (`/admin/settings`)
+
+One singleton row (`SiteSetting`, id `"singleton"`) drives the public identity. Every field is
+editable at runtime and takes effect on the next page load — no rebuild, no redeploy.
+
+| Section | Fields |
+| --- | --- |
+| Brand & contact | site name, tagline (EN/BN), support email/phone, WhatsApp, office address |
+| Logo & favicon | logo URL, alt text, logo height (16–96px), favicon URL |
+| Colours & fonts | primary / secondary / accent colour, heading + body font, plus Bangla heading/body fonts |
+| Payment destinations | bKash / Nagad / Rocket numbers, bank details, VAT % |
+| Search engine defaults | meta title, description, keywords, robots directive, social share image, X handle, Google Analytics ID, Search Console verification |
+| General | timezone, default language, date format, footer text |
+| Social profiles | Facebook, YouTube, LinkedIn |
+| Availability | maintenance mode |
+
+**How branding is applied.** The three layouts (`public`, `auth`, `dashboard`) build a Google
+Fonts `<link>` from the configured families and inject the colours as CSS custom properties
+(`--brand-600`, `--text`, `--accent-500`, `--font`, `--font-heading`) inside a `<style>` block.
+Those override the compiled defaults in `public/css/site.css`, which is why a colour change
+appears immediately. Leave the logo blank and the layouts fall back to the generated text
+wordmark, so a fresh install never renders an empty brand.
+
+**Two things worth knowing before you extend the form:**
+
+- Colours are interpolated into a `<style>` block and font names into a URL query string, so both
+  are **validated on save**: colours must be 3/6-digit hex, font names are stripped to
+  `[A-Za-z0-9 -]`, and the Analytics ID to `[A-Za-z0-9-]`. An invalid colour falls back to the
+  stored value rather than being written. If you add a field that reaches that `<style>` block,
+  validate it the same way — otherwise you have a CSS-injection vector.
+- The fallback settings object in `src/app.js` (used when the settings row cannot be read) must
+  list **every** field the layouts interpolate. A missing key renders the literal string
+  `undefined` into the CSS and breaks the whole page.
 
 ---
 
 ## Verification
 
-Three tools ship with the project and all are wired into npm scripts.
+Six tools ship with the project and all are wired into npm scripts. The first four need a
+running server (`npm run dev` in another terminal); the lint tools do not.
 
 ```bash
 npm run lint:views            # static analysis of every EJS view
 npm run lint:views:selftest   # proves the analyzer can actually detect a fault
 npm run lint:view <file>      # audit a single view and print what it requires
-npm run smoke                 # end-to-end HTTP sweep (needs a running server)
+npm run smoke                 # end-to-end HTTP sweep across all three surfaces
+npm run verify:admin          # every admin GET route, with real record IDs
+npm run verify:admin:post     # admin form submissions, each self-reversing
+npm run verify:settings       # settings form -> database -> rendered HTML
 ```
+
+`npm run verify:admin` walks all 35 admin GET routes using IDs pulled from the database, so no
+route is ever tested against a fake record, and reports the status each route intended.
+
+`npm run verify:admin:post` submits admin forms in a way that leaves the database exactly as it
+found it — each action is performed twice (a toggle returns to its original state) or with the
+value already in place. It also asserts that an admin POST without a CSRF token is rejected.
+
+`npm run verify:settings` writes a distinctive colour, logo and font, confirms each one appears
+in the rendered public HTML, checks that a CSS-injection attempt in a colour field is refused,
+and then restores the original settings.
 
 ### `npm run lint:views`
 
@@ -304,6 +359,9 @@ integrations are live. Nothing silently pretends to be configured.
 | `npm run db:provider <name>` | Switch the datasource between `sqlite` / `postgresql` / `mysql` |
 | `npm run setup` | `db:push` + `db:seed` |
 | `npm run smoke` | End-to-end HTTP sweep against a running server |
+| `npm run verify:admin` | Sweep every admin GET route with real record IDs |
+| `npm run verify:admin:post` | Submit admin forms; each action self-reverses |
+| `npm run verify:settings` | Settings form round-trip into the rendered HTML |
 | `npm run lint:views` | Audit view/locals contracts |
 | `npm run lint:views:selftest` | Prove the view auditor can detect faults |
 | `npm run lint:view <file>` | Audit a single view and print its required locals |
@@ -334,5 +392,8 @@ has been validated against both providers.
 > **Deploying to Hostinger? Read [docs/DEPLOY-HOSTINGER.md](docs/DEPLOY-HOSTINGER.md) first.**
 > SQLite will not survive there: the host runs your app from a versioned build directory that
 > is replaced on every deploy, so a database file written at runtime is lost on the next push.
-> Postgres is required. That guide covers the migration, the Hostinger deploy settings, the
-> environment variables, and the failure modes people hit.
+> You need a server database — the account this project was built for uses **MySQL**
+> (`npm run db:provider mysql`). Postgres works too; the schema needs no restructuring for
+> either, because the enum-typed columns are already plain `String`s. That guide covers the
+> migration, the Hostinger deploy settings, the environment variables, and the failure modes
+> people hit.

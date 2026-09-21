@@ -1,3 +1,12 @@
+<%
+  // Rendered by `app.use()` 404 fallbacks, by account/admin routes, and by the
+  // CSRF middleware -- all of which can run before loadUser, so nothing here may
+  // assume a signed-in user.
+  //
+  // The layout is pinned to 'layouts/error' by the res.render wrapper in
+  // src/middleware/csrf.js; it cannot be set from inside the template because
+  // express-ejs-layouts resolves the layout before the view body runs.
+%>
 <section class="section">
   <div class="container container-narrow center">
     <div class="empty-state">

@@ -577,4 +577,43 @@ model SiteSetting {
   youtubeUrl      String   @default("")
   linkedinUrl     String   @default("")
   updatedAt       DateTime @updatedAt
+
+  // ---- Branding: logo & favicon -------------------------------------------
+  // A URL rather than an upload: the project ships no upload middleware, so an
+  // admin pastes a path (e.g. /images/logo.svg) or an absolute CDN URL. The
+  // layouts fall back to the text wordmark when this is blank.
+  logoUrl         String   @default("")
+  logoAlt         String   @default("")
+  logoHeightPx    Int      @default(32)
+  faviconUrl      String   @default("")
+
+  // ---- Branding: colours --------------------------------------------------
+  // Hex strings, injected as CSS custom properties by the layouts. The defaults
+  // mirror the palette already compiled into public/css/site.css (--brand-600,
+  // --text, --accent-500) so a fresh install looks identical to the theme.
+  primaryColor    String   @default("#7c3aed")
+  secondaryColor  String   @default("#17141f")
+  accentColor     String   @default("#f59e0b")
+
+  // ---- Typography ---------------------------------------------------------
+  // Google Fonts family names. The layout builds the <link> from these, so
+  // changing the value here changes the font on every page without a rebuild.
+  fontHeading     String   @default("Inter")
+  fontBody        String   @default("Inter")
+  fontHeadingBn   String   @default("Hind Siliguri")
+  fontBodyBn      String   @default("Hind Siliguri")
+
+  // ---- SEO ----------------------------------------------------------------
+  metaKeywords          String @default("")
+  metaRobots            String @default("index, follow")
+  ogImageUrl            String @default("")
+  googleAnalyticsId     String @default("")
+  googleSiteVerification String @default("")
+  twitterHandle         String @default("")
+
+  // ---- General ------------------------------------------------------------
+  timezone        String   @default("Asia/Dhaka")
+  defaultLanguage String   @default("en")
+  dateFormat      String   @default("DD MMM YYYY")
+  footerText      String   @default("")
 }

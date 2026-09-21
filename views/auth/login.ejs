@@ -9,6 +9,21 @@
     <form method="post" action="/login" class="auth-body" novalidate>
       <%- csrfField %>
 
+      <%#
+        The POST handler re-renders this view with a flat `error` string on every
+        rejection -- empty fields, unknown email, suspended account, wrong password.
+        Without this block the page came back 401 with a blank gap where the reason
+        should have been, so a failed sign-in looked like the form was broken.
+        Render the message explicitly; the shared flash partial is not included
+        here because this card has its own layout.
+      %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error" role="alert">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 5h2v6H9V5zm0 8h2v2H9v-2z"/></svg>
+          <span><%= error %></span>
+        </div>
+      <% } %>
+
       <% if (typeof returnTo !== 'undefined' && returnTo) { %>
         <input type="hidden" name="returnTo" value="<%= returnTo %>">
       <% } %>

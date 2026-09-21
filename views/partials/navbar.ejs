@@ -2,11 +2,18 @@
   <div class="container header-inner">
 
     <a href="/" class="brand" aria-label="<%= settings.siteName %> home">
-      <span class="brand-mark" aria-hidden="true">W</span>
-      <span class="brand-text">
-        <strong><%= settings.siteName %></strong>
-        <small>Bangladesh web studio</small>
-      </span>
+      <% if (settings.logoUrl) { %>
+        <img class="brand-logo" src="<%= settings.logoUrl %>"
+             alt="<%= settings.logoAlt || settings.siteName %>"
+             style="height:<%= settings.logoHeightPx %>px;width:auto">
+      <% } else { %>
+        <%# No logo configured -- fall back to the generated wordmark. %>
+        <span class="brand-mark" aria-hidden="true">W</span>
+        <span class="brand-text">
+          <strong><%= settings.siteName %></strong>
+          <small>Bangladesh web studio</small>
+        </span>
+      <% } %>
     </a>
 
     <nav class="site-nav" id="siteNav" aria-label="Main">

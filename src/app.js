@@ -142,9 +142,26 @@ function createApp() {
       if (!settings) settings = await prisma.siteSetting.create({ data: { id: 'singleton' } });
       res.locals.settings = settings;
     } catch {
+      // Fallback used when the settings row cannot be read. It must carry every
+      // field the layouts interpolate, because the layouts write colours and font
+      // names straight into a <style> block -- a missing key would render the
+      // literal string "undefined" into the CSS and break the whole page.
       res.locals.settings = {
-        siteName: config.appName, supportEmail: '', supportPhone: '', whatsappNumber: '',
-        vatPercent: 5, currency: 'BDT', facebookUrl: '', youtubeUrl: '', linkedinUrl: '', officeAddress: '',
+        id: 'singleton',
+        siteName: config.appName,
+        tagline: '', taglineBn: '',
+        supportEmail: '', supportPhone: '', whatsappNumber: '', officeAddress: '',
+        bkashNumber: '', nagadNumber: '', rocketNumber: '', bankDetails: '',
+        vatPercent: 5, currency: 'BDT', maintenanceMode: false,
+        metaTitle: '', metaDescription: '', metaKeywords: '', metaRobots: 'index, follow',
+        ogImageUrl: '', googleAnalyticsId: '', googleSiteVerification: '', twitterHandle: '',
+        facebookUrl: '', youtubeUrl: '', linkedinUrl: '',
+        logoUrl: '', logoAlt: '', logoHeightPx: 32, faviconUrl: '',
+        primaryColor: '#7c3aed', secondaryColor: '#17141f', accentColor: '#f59e0b',
+        fontHeading: 'Inter', fontBody: 'Inter',
+        fontHeadingBn: 'Hind Siliguri', fontBodyBn: 'Hind Siliguri',
+        timezone: 'Asia/Dhaka', defaultLanguage: 'en',
+        dateFormat: 'DD MMM YYYY', footerText: '',
       };
     }
 

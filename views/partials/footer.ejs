@@ -5,11 +5,17 @@
 
       <div class="footer-col footer-about">
         <a href="/" class="brand">
-          <span class="brand-mark" aria-hidden="true">W</span>
-          <span class="brand-text">
-            <strong><%= settings.siteName %></strong>
-            <small>Bangladesh web studio</small>
-          </span>
+          <% if (settings.logoUrl) { %>
+            <img class="brand-logo" src="<%= settings.logoUrl %>"
+                 alt="<%= settings.logoAlt || settings.siteName %>"
+                 style="height:<%= settings.logoHeightPx %>px;width:auto">
+          <% } else { %>
+            <span class="brand-mark" aria-hidden="true">W</span>
+            <span class="brand-text">
+              <strong><%= settings.siteName %></strong>
+              <small>Bangladesh web studio</small>
+            </span>
+          <% } %>
         </a>
         <p>
           <%= settings.tagline || 'We design, build and manage e-commerce websites for Bangladeshi businesses — complete with payment gateways, courier integration and ongoing maintenance.' %>
@@ -74,6 +80,9 @@
 
     <div class="footer-bottom">
       <span>&copy; <%= new Date().getFullYear() %> <%= settings.siteName %>. All rights reserved.</span>
+      <% if (settings.footerText) { %>
+        <span class="muted"><%= settings.footerText %></span>
+      <% } %>
 
       <div class="footer-social">
         <% if (settings.facebookUrl) { %><a href="<%= settings.facebookUrl %>" target="_blank" rel="noopener">Facebook</a><% } %>

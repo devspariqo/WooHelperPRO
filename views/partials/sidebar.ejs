@@ -2,11 +2,17 @@
 
   <div class="sidebar-brand">
     <a href="/" class="brand">
-      <span class="brand-mark" aria-hidden="true">W</span>
-      <span class="brand-text">
-        <strong><%= settings.siteName %></strong>
-        <small><%= panel === 'admin' ? 'Admin panel' : 'My account' %></small>
-      </span>
+      <% if (settings.logoUrl) { %>
+        <img class="brand-logo" src="<%= settings.logoUrl %>"
+             alt="<%= settings.logoAlt || settings.siteName %>"
+             style="height:<%= Math.min(settings.logoHeightPx, 34) %>px;width:auto">
+      <% } else { %>
+        <span class="brand-mark" aria-hidden="true">W</span>
+        <span class="brand-text">
+          <strong><%= settings.siteName %></strong>
+          <small><%= panel === 'admin' ? 'Admin panel' : 'My account' %></small>
+        </span>
+      <% } %>
     </a>
   </div>
 

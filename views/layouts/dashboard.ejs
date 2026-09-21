@@ -5,12 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title><%= typeof metaTitle !== 'undefined' && metaTitle ? metaTitle : title %></title>
-  <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="<%= settings.faviconUrl || '/images/favicon.svg' %>">
+  <%
+    // Same font request as the public layout, so the admin/customer panels follow
+    // the typography configured in /admin/settings.
+    const fontFamilies = [...new Set(
+      [settings.fontBody, settings.fontHeading, settings.fontBodyBn, settings.fontHeadingBn]
+        .map(function (f) { return String(f || '').trim(); })
+        .filter(Boolean)
+    )];
+    const fontQuery = fontFamilies
+      .map(function (f) { return 'family=' + encodeURIComponent(f).replace(/%20/g, '+') + ':wght@400;500;600;700;800'; })
+      .join('&');
+  %>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <% if (fontQuery) { %>
+  <link href="https://fonts.googleapis.com/css2?<%= fontQuery %>&display=swap" rel="stylesheet">
+  <% } %>
   <link rel="stylesheet" href="/css/site.css">
   <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    /* Admin-controlled brand tokens -- see layouts/public.ejs for the rationale. */
+    :root {
+      --brand-600: <%= settings.primaryColor %>;
+      --brand-500: <%= settings.primaryColor %>;
+      --brand-700: <%= settings.primaryColor %>;
+      --text: <%= settings.secondaryColor %>;
+      --accent-500: <%= settings.accentColor %>;
+      --accent-600: <%= settings.accentColor %>;
+      --font: '<%= settings.fontBody %>', '<%= settings.fontBodyBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-stack: '<%= settings.fontBody %>', '<%= settings.fontBodyBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-heading: '<%= settings.fontHeading %>', '<%= settings.fontHeadingBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
+  </style>
 </head>
 <body class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>" data-panel="<%= panel || 'admin' %>">
 

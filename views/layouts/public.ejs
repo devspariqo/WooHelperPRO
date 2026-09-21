@@ -5,19 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= typeof metaTitle !== 'undefined' && metaTitle ? metaTitle : (title ? title + ' — ' + settings.siteName : settings.siteName) %></title>
   <meta name="description" content="<%= typeof metaDescription !== 'undefined' && metaDescription ? metaDescription : (settings.metaDescription || '') %>">
+  <% if (settings.metaKeywords) { %>
+  <meta name="keywords" content="<%= settings.metaKeywords %>">
+  <% } %>
+  <meta name="robots" content="<%= settings.metaRobots || 'index, follow' %>">
+  <% if (settings.googleSiteVerification) { %>
+  <meta name="google-site-verification" content="<%= settings.googleSiteVerification %>">
+  <% } %>
   <% if (typeof canonical !== 'undefined' && canonical) { %><link rel="canonical" href="<%= canonical %>"><% } %>
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="<%= settings.siteName %>">
   <meta property="og:title" content="<%= typeof metaTitle !== 'undefined' && metaTitle ? metaTitle : title %>">
   <meta property="og:description" content="<%= typeof metaDescription !== 'undefined' && metaDescription ? metaDescription : '' %>">
-  <% if (typeof ogImage !== 'undefined' && ogImage) { %><meta property="og:image" content="<%= ogImage %>"><% } %>
-  <meta name="twitter:card" content="summary_large_image">
+  <%
+    // Page-level ogImage wins; fall back to the admin-configured share image.
+    const shareImage = (typeof ogImage !== 'undefined' && ogImage) ? ogImage : settings.ogImageUrl;
+  %>
+  <% if (shareImage) { %><meta property="og:image" content="<%= shareImage %>"><% } %>
+  <meta name="twitter:card" content="<%= shareImage ? 'summary_large_image' : 'summary' %>">
+  <% if (settings.twitterHandle) { %>
+  <meta name="twitter:site" content="@<%= settings.twitterHandle %>">
+  <% } %>
 
-  <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="<%= settings.faviconUrl || '/images/favicon.svg' %>">
+  <%
+    // Build the Google Fonts request from the admin's font choices. Families are
+    // de-duplicated so choosing the same family for heading and body does not
+    // request it twice. Weight list is fixed: the stylesheet uses 400-800.
+    const fontFamilies = [...new Set(
+      [settings.fontBody, settings.fontHeading, settings.fontBodyBn, settings.fontHeadingBn]
+        .map(function (f) { return String(f || '').trim(); })
+        .filter(Boolean)
+    )];
+    const fontQuery = fontFamilies
+      .map(function (f) { return 'family=' + encodeURIComponent(f).replace(/%20/g, '+') + ':wght@400;500;600;700;800'; })
+      .join('&');
+  %>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <% if (fontQuery) { %>
+  <link href="https://fonts.googleapis.com/css2?<%= fontQuery %>&display=swap" rel="stylesheet">
+  <% } %>
   <link rel="stylesheet" href="/css/site.css">
 
   <% if (typeof structuredData !== 'undefined' && structuredData) { %>
@@ -25,8 +54,28 @@
   <% } %>
 
   <style>
-    /* Local fallback if Google Fonts is blocked from the client network. */
-    :root { --font-stack: 'Inter', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    /*
+      Admin-controlled brand tokens. These override the compiled defaults in
+      site.css, so changing a colour or font in /admin/settings takes effect on
+      the next page load with no rebuild.
+
+      Every value is validated server-side before it reaches the database (hex
+      for colours, alphanumerics for font names), but they are emitted with <%- %>
+      inside a <style> block, so treat them as trusted only because of that
+      validation -- do not add an unvalidated field to this block.
+    */
+    :root {
+      --brand-600: <%= settings.primaryColor %>;
+      --brand-500: <%= settings.primaryColor %>;
+      --brand-700: <%= settings.primaryColor %>;
+      --text: <%= settings.secondaryColor %>;
+      --accent-500: <%= settings.accentColor %>;
+      --accent-600: <%= settings.accentColor %>;
+      --font: '<%= settings.fontBody %>', '<%= settings.fontBodyBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-stack: '<%= settings.fontBody %>', '<%= settings.fontBodyBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-heading: '<%= settings.fontHeading %>', '<%= settings.fontHeadingBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
   </style>
 </head>
 <body class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>" data-lang="<%= lang %>">
@@ -55,5 +104,23 @@
 <% } %>
 
 <script src="/js/site.js" defer></script>
+
+<% if (settings.googleAnalyticsId) { %>
+<%#
+  Google Analytics 4, loaded only when an ID is configured. The ID is stripped to
+  [A-Za-z0-9-] on save, so it cannot break out of the string literals below.
+  Deliberately not loaded in development to keep local page views out of the
+  property's reports.
+%>
+<% if (env === 'production') { %>
+<script async src="https://www.googletagmanager.com/gtag/js?id=<%= settings.googleAnalyticsId %>"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '<%= settings.googleAnalyticsId %>');
+</script>
+<% } %>
+<% } %>
 </body>
 </html>

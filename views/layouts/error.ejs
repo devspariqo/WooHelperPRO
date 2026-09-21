@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= typeof theme !== 'undefined' ? theme : 'light' %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= typeof title !== 'undefined' && title ? title : 'Something went wrong' %> — <%= typeof settings !== 'undefined' && settings.siteName ? settings.siteName : 'WooHelperPro' %></title>
+  <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<%#
+  Error-page layout. Deliberately DEPENDENCY-FREE.
+
+  It is rendered by middleware that runs BEFORE loadUser, so it must not touch
+  `isAuthenticated`, `currentUser`, `isStaff`, `can` or `panel` -- those locals do
+  not exist yet, and a bare reference throws `X is not defined`, which turns the
+  error page itself into a 500. Everything below is either injected by the
+  always-on locals middleware or guarded with `typeof`.
+
+  The public layout includes the navbar, which needs `isAuthenticated` and
+  `isStaff`; the dashboard layout includes the sidebar, which needs `currentUser`
+  and `panel`. Neither is safe here. If you need to change the chrome on error
+  pages, add a guarded check -- never a bare reference.
+%>
+<body class="error-page <%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand brand-text" href="/">
+      <span class="brand-mark">W</span>
+      <span><%= typeof settings !== 'undefined' && settings.siteName ? settings.siteName : 'WooHelperPro' %></span>
+    </a>
+    <nav class="header-actions">
+      <a class="btn btn-ghost btn-sm" href="/">Home</a>
+      <a class="btn btn-ghost btn-sm" href="/contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <%- body %>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="muted mb-0">
+      &copy; <%= new Date().getFullYear() %>
+      <%= typeof settings !== 'undefined' && settings.siteName ? settings.siteName : 'WooHelperPro' %>
+      <% if (typeof settings !== 'undefined' && settings.supportEmail) { %>
+        &middot; <a href="mailto:<%= settings.supportEmail %>"><%= settings.supportEmail %></a>
+      <% } %>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

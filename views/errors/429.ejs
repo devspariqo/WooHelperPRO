@@ -1,3 +1,9 @@
+<%
+  // Rendered by the rate limiters, which run before loadUser -- so nothing here
+  // may assume a signed-in user. The layout is pinned to 'layouts/error' by the
+  // res.render wrapper in src/middleware/csrf.js, not from inside this template:
+  // express-ejs-layouts resolves the layout name before the view body runs.
+%>
 <section class="section">
   <div class="container container-narrow center">
     <div class="empty-state">
@@ -7,6 +13,9 @@
         You have made too many requests in a short window, so we paused this one to keep the
         site stable. Wait a minute and try again.
       </p>
+      <% if (typeof message !== 'undefined' && message) { %>
+        <p class="muted"><small><%= message %></small></p>
+      <% } %>
       <div class="form-actions center">
         <a class="btn btn-primary" href="/">Back to home</a>
       </div>

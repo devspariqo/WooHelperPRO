@@ -35,7 +35,7 @@ const GLOBALS = new Set([
   'app', 'env', 'C', 'fmt', 'json', 'helpers', 't', 'settings', 'theme', 'lang',
   'currentPath', 'query', 'title', 'metaTitle', 'metaDescription', 'bodyClass',
   'csrfField', 'csrfToken',
-  'currentUser', 'can', 'isStaff', 'isAdmin', 'isSuperAdmin',
+  'currentUser', 'can', 'isStaff', 'isAdmin', 'isSuperAdmin', 'isAuthenticated',
   'success', 'error', 'info', 'warning', 'flash',
   'include', 'locals', 'rethrow', 'escapeFn',
   // JS builtins that compiled EJS output references directly

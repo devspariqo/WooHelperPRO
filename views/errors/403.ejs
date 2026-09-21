@@ -1,15 +1,38 @@
+<%
+  // Rendered from THREE places, two of which run before loadUser:
+  //   - src/middleware/auth.js  (requireRole / requireStaff / requirePermission)
+  //   - src/middleware/csrf.js  (missing or invalid token)
+  //   - src/middleware/rateLimit.js
+  // Only the first has a hydrated user, so nothing here may assume one -- every
+  // reference that could be absent is behind a typeof guard.
+  //
+  // The layout is pinned to 'layouts/error' by the res.render wrapper in
+  // src/middleware/csrf.js. It cannot be pinned here: express-ejs-layouts resolves
+  // the layout name before the view body runs, so an assignment at this point is
+  // silently ignored. That is exactly why every 403 used to fall through to
+  // layouts/public, whose navbar needs `isAuthenticated`, and became a 500.
+%>
 <section class="section">
   <div class="container container-narrow center">
     <div class="empty-state">
       <div class="empty-icon">403</div>
       <h1 class="mt-0">You do not have access to this area</h1>
       <p class="muted">
-        Your account is signed in, but this page requires a permission your role does not have.
-        If you believe this is a mistake, ask an administrator to review your role.
+        <% if (typeof isAuthenticated !== 'undefined' && isAuthenticated) { %>
+          Your account is signed in, but this page requires a permission your role does not
+          have. If you believe this is a mistake, ask an administrator to review your role.
+        <% } else { %>
+          This page needs a signed-in session that we could not verify. It usually means your
+          session expired or the form was open for a long time.
+        <% } %>
       </p>
+      <% if (typeof message !== 'undefined' && message) { %>
+        <p class="muted"><small><%= message %></small></p>
+      <% } %>
       <div class="form-actions center">
-        <a class="btn btn-primary" href="/account">Go to my dashboard</a>
-        <a class="btn btn-outline" href="/contact">Contact support</a>
+        <a class="btn btn-primary" href="/">Back to home</a>
+        <a class="btn btn-outline" href="/login">Sign in again</a>
+        <a class="btn btn-ghost" href="/contact">Contact support</a>
       </div>
     </div>
   </div>

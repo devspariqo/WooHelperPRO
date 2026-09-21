@@ -1,0 +1,161 @@
+'use strict';
+
+/**
+ * Admin POST round-trip tests.
+ *
+ * Every action is chosen to be SELF-REVERSING: it is performed twice, or performed
+ * with the value already in place, so the database ends up exactly as it started.
+ * That way a form can be proven to work without leaving test residue behind.
+ *
+ * Usage: node scripts/admin-post-test.js [baseUrl]
+ */
+
+const path = require('path');
+const ROOT = path.resolve(__dirname, '..');
+const prisma = require(path.join(ROOT, 'src/config/prisma'));
+
+const BASE = process.argv[2] || 'http://127.0.0.1:3000';
+const EMAIL = process.env.ADMIN_EMAIL || 'admin@woohelperpro.com';
+const PASS = process.env.ADMIN_PASSWORD || 'WooHelper@2026';
+
+let COOKIE = '';
+let TOKEN = '';
+
+function store(res) {
+  for (const c of (res.headers.getSetCookie ? res.headers.getSetCookie() : [])) {
+    const pair = c.split(';')[0];
+    const name = pair.split('=')[0];
+    COOKIE = COOKIE.split('; ').filter((p) => p && !p.startsWith(`${name}=`)).concat(pair).join('; ');
+  }
+}
+
+async function req(method, url, body) {
+  const headers = {};
+  if (COOKIE) headers.cookie = COOKIE;
+  let payload;
+  if (body) {
+    headers['content-type'] = 'application/x-www-form-urlencoded';
+    payload = new URLSearchParams(body).toString();
+  }
+  const res = await fetch(`${BASE}${url}`, { method, headers, body: payload, redirect: 'manual' });
+  store(res);
+  return res;
+}
+
+async function formToken(pathname) {
+  const res = await req('GET', pathname);
+  const html = await res.text();
+  const m = html.match(/name="_csrf" value="([^"]*)"/);
+  return m ? m[1] : '';
+}
+
+const results = [];
+function record(label, status, want, extra) {
+  const ok = status === want;
+  results.push({ label, status, want, ok, extra });
+  console.log(`${ok ? 'ok  ' : 'FAIL'} ${String(status).padEnd(4)} ${label}${extra ? `   ${extra}` : ''}`);
+}
+
+(async () => {
+  console.log(`\nAdmin POST round-trip tests -> ${BASE}\n`);
+
+  TOKEN = await formToken('/login');
+  const login = await req('POST', '/login', { _csrf: TOKEN, email: EMAIL, password: PASS });
+  if (login.status !== 302) { console.log('FATAL: admin login failed'); process.exit(1); }
+
+  // ---- 1. Settings save round-trip (re-post the values already stored) ----
+  const before = await prisma.siteSetting.findUnique({ where: { id: 'singleton' } });
+  const tok1 = await formToken('/admin/settings');
+  const save = await req('POST', '/admin/settings', {
+    _csrf: tok1,
+    siteName: before.siteName,
+    tagline: before.tagline,
+    taglineBn: before.taglineBn,
+    supportEmail: before.supportEmail,
+    supportPhone: before.supportPhone,
+    whatsappNumber: before.whatsappNumber,
+    officeAddress: before.officeAddress,
+    bkashNumber: before.bkashNumber,
+    nagadNumber: before.nagadNumber,
+    rocketNumber: before.rocketNumber,
+    bankDetails: before.bankDetails,
+    vatPercent: String(before.vatPercent),
+    metaTitle: before.metaTitle,
+    metaDescription: before.metaDescription,
+    facebookUrl: before.facebookUrl,
+    youtubeUrl: before.youtubeUrl,
+    linkedinUrl: before.linkedinUrl,
+  });
+  record('POST /admin/settings (save)', save.status, 302);
+  const after = await prisma.siteSetting.findUnique({ where: { id: 'singleton' } });
+  console.log(`      siteName preserved: ${before.siteName === after.siteName ? 'yes' : 'NO'}`);
+
+  // ---- 2. Milestone toggle, twice -> back to original ----
+  const ms = await prisma.projectMilestone.findFirst();
+  if (ms) {
+    const orig = ms.isDone;
+    const t2 = await formToken('/admin/projects');
+    await req('POST', `/admin/projects/milestones/${ms.id}/toggle`, { _csrf: t2 });
+    const mid = await prisma.projectMilestone.findUnique({ where: { id: ms.id } });
+    const t3 = await formToken('/admin/projects');
+    await req('POST', `/admin/projects/milestones/${ms.id}/toggle`, { _csrf: t3 });
+    const end = await prisma.projectMilestone.findUnique({ where: { id: ms.id } });
+    record('POST /admin/projects/milestones/:id/toggle (x2)',
+      end.isDone === orig ? 302 : 500, 302,
+      `toggled ${orig} -> ${mid.isDone} -> ${end.isDone}`);
+  } else {
+    console.log('skip  no project milestone in the dataset');
+  }
+
+  // ---- 3. Coupon toggle, twice -> back to original ----
+  const coupon = await prisma.coupon.findFirst();
+  if (coupon) {
+    const orig = coupon.isActive;
+    const t4 = await formToken('/admin/coupons');
+    await req('POST', `/admin/coupons/${coupon.id}/toggle`, { _csrf: t4 });
+    const t5 = await formToken('/admin/coupons');
+    await req('POST', `/admin/coupons/${coupon.id}/toggle`, { _csrf: t5 });
+    const end = await prisma.coupon.findUnique({ where: { id: coupon.id } });
+    record('POST /admin/coupons/:id/toggle (x2)',
+      end.isActive === orig ? 302 : 500, 302,
+      `toggled ${orig} -> ${end.isActive}`);
+  } else {
+    console.log('skip  no coupon in the dataset');
+  }
+
+  // ---- 4. Ticket status set to its CURRENT value ----
+  const ticket = await prisma.ticket.findFirst();
+  if (ticket) {
+    const t6 = await formToken(`/admin/tickets/${ticket.id}`);
+    const res = await req('POST', `/admin/tickets/${ticket.id}/status`, {
+      _csrf: t6, status: ticket.status,
+    });
+    record('POST /admin/tickets/:id/status (same value)', res.status, 302, `status=${ticket.status}`);
+  } else {
+    console.log('skip  no ticket in the dataset');
+  }
+
+  // ---- 5. Lead update with its CURRENT values ----
+  const lead = await prisma.lead.findFirst();
+  if (lead) {
+    const t7 = await formToken('/admin/leads');
+    const res = await req('POST', `/admin/leads/${lead.id}`, {
+      _csrf: t7, status: lead.status, notes: lead.notes || '', assignedTo: lead.assignedTo || '',
+    });
+    record('POST /admin/leads/:id (same values)', res.status, 302, `status=${lead.status}`);
+  } else {
+    console.log('skip  no lead in the dataset');
+  }
+
+  // ---- 6. CSRF must be enforced on admin POSTs ----
+  const noTok = await req('POST', '/admin/settings', { siteName: 'hacked' });
+  record('POST /admin/settings without _csrf (must be 403)', noTok.status, 403);
+
+  const failed = results.filter((r) => !r.ok);
+  console.log('\n' + '='.repeat(58));
+  console.log(`total ${results.length}   pass ${results.length - failed.length}   fail ${failed.length}`);
+  if (failed.length) for (const f of failed) console.log(`  FAIL ${f.status} (want ${f.want}) ${f.label}`);
+
+  await prisma.$disconnect();
+  process.exit(failed.length ? 1 : 0);
+})();

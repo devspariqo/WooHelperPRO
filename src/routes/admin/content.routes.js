@@ -453,10 +453,39 @@ router.post('/settings', requirePermission('settings'), async (req, res, next) =
   try {
     const str = (key, fallback = '') => String(req.body[key] ?? fallback).trim();
 
+    // Colours are injected straight into a <style> block by the layout, so an
+    // unvalidated value is a CSS-injection vector. Accept only 3/6-digit hex and
+    // fall back to the stored value rather than writing something dangerous.
+    const hex = (key, fallback) => {
+      const v = str(key).toLowerCase();
+      return /^#[0-9a-f]{6}$/.test(v) || /^#[0-9a-f]{3}$/.test(v) ? v : fallback;
+    };
+
+    // Font names become part of a Google Fonts URL, so strip anything that could
+    // break out of the query string. Letters, digits, spaces and hyphens only.
+    const font = (key, fallback) => {
+      const v = str(key).replace(/[^A-Za-z0-9 \-]/g, '').trim();
+      return v || fallback;
+    };
+
+    const int = (key, fallback, min, max) => {
+      const n = Number(req.body[key]);
+      if (!Number.isFinite(n)) return fallback;
+      return Math.max(min, Math.min(max, Math.round(n)));
+    };
+
+    // The analytics ID is echoed into a <script> tag; keep it to the documented
+    // character set so nothing else can be injected there.
+    const gaId = str('googleAnalyticsId').replace(/[^A-Za-z0-9\-]/g, '');
+
+    const current = await prisma.siteSetting.findUnique({ where: { id: 'singleton' } });
+    const cur = current || {};
+
     await prisma.siteSetting.upsert({
       where: { id: 'singleton' },
       create: { id: 'singleton' },
       update: {
+        // --- identity & contact ---
         siteName: str('siteName') || 'WooHelperPro',
         tagline: str('tagline'),
         taglineBn: str('taglineBn'),
@@ -464,16 +493,52 @@ router.post('/settings', requirePermission('settings'), async (req, res, next) =
         supportPhone: str('supportPhone'),
         whatsappNumber: str('whatsappNumber').replace(/[^\d]/g, ''),
         officeAddress: str('officeAddress'),
+
+        // --- branding: logo & favicon ---
+        logoUrl: str('logoUrl'),
+        logoAlt: str('logoAlt'),
+        logoHeightPx: int('logoHeightPx', cur.logoHeightPx ?? 32, 16, 96),
+        faviconUrl: str('faviconUrl'),
+
+        // --- branding: colours ---
+        primaryColor: hex('primaryColor', cur.primaryColor || '#7c3aed'),
+        secondaryColor: hex('secondaryColor', cur.secondaryColor || '#17141f'),
+        accentColor: hex('accentColor', cur.accentColor || '#f59e0b'),
+
+        // --- typography ---
+        fontHeading: font('fontHeading', cur.fontHeading || 'Inter'),
+        fontBody: font('fontBody', cur.fontBody || 'Inter'),
+        fontHeadingBn: font('fontHeadingBn', cur.fontHeadingBn || 'Hind Siliguri'),
+        fontBodyBn: font('fontBodyBn', cur.fontBodyBn || 'Hind Siliguri'),
+
+        // --- payment destinations & tax ---
         bkashNumber: str('bkashNumber'),
         nagadNumber: str('nagadNumber'),
         rocketNumber: str('rocketNumber'),
         bankDetails: str('bankDetails'),
         vatPercent: Math.max(0, Math.min(30, Number(req.body.vatPercent) || 0)),
+
+        // --- SEO ---
         metaTitle: str('metaTitle'),
         metaDescription: str('metaDescription'),
+        metaKeywords: str('metaKeywords'),
+        metaRobots: str('metaRobots') || 'index, follow',
+        ogImageUrl: str('ogImageUrl'),
+        googleAnalyticsId: gaId,
+        googleSiteVerification: str('googleSiteVerification'),
+        twitterHandle: str('twitterHandle').replace(/^@+/, ''),
+
+        // --- social ---
         facebookUrl: str('facebookUrl'),
         youtubeUrl: str('youtubeUrl'),
         linkedinUrl: str('linkedinUrl'),
+
+        // --- general ---
+        timezone: str('timezone') || 'Asia/Dhaka',
+        defaultLanguage: str('defaultLanguage') === 'bn' ? 'bn' : 'en',
+        dateFormat: str('dateFormat') || 'DD MMM YYYY',
+        footerText: str('footerText'),
+
         maintenanceMode: req.body.maintenanceMode === 'on',
       },
     });

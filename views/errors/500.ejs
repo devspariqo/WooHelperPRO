@@ -1,3 +1,12 @@
+<%
+  // Rendered by the terminal error handler in src/server.js, which can be reached
+  // from anywhere -- including middleware that runs before loadUser. It must
+  // therefore never depend on post-loadUser locals.
+  //
+  // The layout is pinned to 'layouts/error' by the res.render wrapper in
+  // src/middleware/csrf.js. Inheriting the public layout is what made the 403 path
+  // cascade into a second 500, and the same thing happened here.
+%>
 <section class="section">
   <div class="container container-narrow center">
     <div class="empty-state">

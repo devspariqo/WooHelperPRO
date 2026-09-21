@@ -74,6 +74,126 @@
     </div>
 
     <div class="card">
+      <div class="card-header">
+        <h3 class="mt-0 mb-0">Logo &amp; favicon</h3>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3">
+          Give a path under <code>/images/</code> (for example <code>/images/logo.svg</code>)
+          or a full https:// URL. Leave the logo blank to keep the built-in text wordmark.
+        </div>
+        <div class="form-grid two">
+          <div class="field full">
+            <label for="logoUrl">Logo URL</label>
+            <input type="text" id="logoUrl" name="logoUrl" maxlength="300"
+                   value="<%= site.logoUrl %>" placeholder="/images/logo.svg">
+          </div>
+          <div class="field">
+            <label for="logoAlt">Logo alt text</label>
+            <input type="text" id="logoAlt" name="logoAlt" maxlength="120"
+                   value="<%= site.logoAlt %>" placeholder="WooHelperPro">
+            <span class="hint">Read aloud by screen readers. Defaults to the site name.</span>
+          </div>
+          <div class="field">
+            <label for="logoHeightPx">Logo height (px)</label>
+            <input type="number" id="logoHeightPx" name="logoHeightPx" min="16" max="96" step="1"
+                   value="<%= site.logoHeightPx %>">
+          </div>
+          <div class="field full">
+            <label for="faviconUrl">Favicon URL</label>
+            <input type="text" id="faviconUrl" name="faviconUrl" maxlength="300"
+                   value="<%= site.faviconUrl %>" placeholder="/images/favicon.svg">
+            <span class="hint">Shown in the browser tab and in search results.</span>
+          </div>
+        </div>
+
+        <% if (site.logoUrl) { %>
+          <div class="mt-3">
+            <span class="hint">Preview</span>
+            <div class="mt-1" style="padding:12px;border:1px solid var(--border);border-radius:8px">
+              <img src="<%= site.logoUrl %>" alt="<%= site.logoAlt || site.siteName %>"
+                   style="height:<%= site.logoHeightPx %>px;max-width:100%">
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3 class="mt-0 mb-0">Colours &amp; fonts</h3>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3">
+          Applied across the public site and the dashboards as CSS variables, so changes
+          show up on the next page load with no rebuild.
+        </div>
+        <div class="form-grid three">
+          <div class="field">
+            <label for="primaryColor">Primary colour</label>
+            <div class="color-row">
+              <input type="color" id="primaryColorPicker"
+                     value="<%= site.primaryColor %>"
+                     oninput="document.getElementById('primaryColor').value=this.value">
+              <input type="text" id="primaryColor" name="primaryColor" maxlength="7"
+                     pattern="#[0-9A-Fa-f]{3,6}" value="<%= site.primaryColor %>"
+                     oninput="document.getElementById('primaryColorPicker').value=this.value">
+            </div>
+          </div>
+          <div class="field">
+            <label for="secondaryColor">Secondary colour</label>
+            <div class="color-row">
+              <input type="color" id="secondaryColorPicker"
+                     value="<%= site.secondaryColor %>"
+                     oninput="document.getElementById('secondaryColor').value=this.value">
+              <input type="text" id="secondaryColor" name="secondaryColor" maxlength="7"
+                     pattern="#[0-9A-Fa-f]{3,6}" value="<%= site.secondaryColor %>"
+                     oninput="document.getElementById('secondaryColorPicker').value=this.value">
+            </div>
+          </div>
+          <div class="field">
+            <label for="accentColor">Accent colour</label>
+            <div class="color-row">
+              <input type="color" id="accentColorPicker"
+                     value="<%= site.accentColor %>"
+                     oninput="document.getElementById('accentColor').value=this.value">
+              <input type="text" id="accentColor" name="accentColor" maxlength="7"
+                     pattern="#[0-9A-Fa-f]{3,6}" value="<%= site.accentColor %>"
+                     oninput="document.getElementById('accentColorPicker').value=this.value">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid two mt-3">
+          <div class="field">
+            <label for="fontHeading">Heading font (English)</label>
+            <input type="text" id="fontHeading" name="fontHeading" maxlength="60"
+                   value="<%= site.fontHeading %>" placeholder="Inter">
+          </div>
+          <div class="field">
+            <label for="fontBody">Body font (English)</label>
+            <input type="text" id="fontBody" name="fontBody" maxlength="60"
+                   value="<%= site.fontBody %>" placeholder="Inter">
+          </div>
+          <div class="field">
+            <label for="fontHeadingBn">Heading font (Bangla)</label>
+            <input type="text" id="fontHeadingBn" name="fontHeadingBn" maxlength="60"
+                   value="<%= site.fontHeadingBn %>" placeholder="Hind Siliguri">
+          </div>
+          <div class="field">
+            <label for="fontBodyBn">Body font (Bangla)</label>
+            <input type="text" id="fontBodyBn" name="fontBodyBn" maxlength="60"
+                   value="<%= site.fontBodyBn %>" placeholder="Hind Siliguri">
+          </div>
+        </div>
+        <span class="hint">
+          Google Fonts family names. The stylesheet link is built from these values, so any
+          family Google serves will work.
+        </span>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-header"><h3 class="mt-0 mb-0">Payment destinations</h3></div>
       <div class="card-body">
         <div class="alert alert-info mb-3">
@@ -125,11 +245,89 @@
             <label for="metaTitle">Default meta title</label>
             <input type="text" id="metaTitle" name="metaTitle" maxlength="160"
                    value="<%= site.metaTitle %>">
+            <span class="hint">Aim for 50–60 characters.</span>
           </div>
           <div class="field">
             <label for="metaDescription">Default meta description</label>
             <textarea id="metaDescription" name="metaDescription" rows="3"
                       maxlength="320"><%= site.metaDescription %></textarea>
+            <span class="hint">Aim for 150–160 characters.</span>
+          </div>
+          <div class="field">
+            <label for="metaKeywords">Keywords</label>
+            <input type="text" id="metaKeywords" name="metaKeywords" maxlength="300"
+                   value="<%= site.metaKeywords %>"
+                   placeholder="ecommerce website design bangladesh, online shop builder">
+            <span class="hint">Comma separated. Ignored by Google, still read by some engines.</span>
+          </div>
+          <div class="field">
+            <label for="metaRobots">Robots directive</label>
+            <select id="metaRobots" name="metaRobots">
+              <% ['index, follow', 'noindex, follow', 'index, nofollow', 'noindex, nofollow']
+                   .forEach(function (opt) { %>
+                <option value="<%= opt %>" <%= site.metaRobots === opt ? 'selected' : '' %>><%= opt %></option>
+              <% }); %>
+            </select>
+            <span class="hint">Set to noindex while the site is still being built.</span>
+          </div>
+          <div class="field">
+            <label for="ogImageUrl">Social share image</label>
+            <input type="text" id="ogImageUrl" name="ogImageUrl" maxlength="300"
+                   value="<%= site.ogImageUrl %>" placeholder="/images/og-cover.png">
+            <span class="hint">Shown when a link is shared on Facebook or WhatsApp. 1200×630 works best.</span>
+          </div>
+          <div class="field">
+            <label for="twitterHandle">X / Twitter handle</label>
+            <input type="text" id="twitterHandle" name="twitterHandle" maxlength="40"
+                   value="<%= site.twitterHandle %>" placeholder="woohelperpro">
+          </div>
+          <div class="field">
+            <label for="googleAnalyticsId">Google Analytics ID</label>
+            <input type="text" id="googleAnalyticsId" name="googleAnalyticsId" maxlength="30"
+                   value="<%= site.googleAnalyticsId %>" placeholder="G-XXXXXXXXXX">
+            <span class="hint">Leave blank to load no analytics at all.</span>
+          </div>
+          <div class="field">
+            <label for="googleSiteVerification">Search Console verification</label>
+            <input type="text" id="googleSiteVerification" name="googleSiteVerification" maxlength="120"
+                   value="<%= site.googleSiteVerification %>">
+            <span class="hint">The <code>content</code> value of the verification meta tag.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">General</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="timezone">Timezone</label>
+            <input type="text" id="timezone" name="timezone" maxlength="60"
+                   value="<%= site.timezone %>" placeholder="Asia/Dhaka">
+            <span class="hint">Used for date display and the billing sweep cut-off.</span>
+          </div>
+          <div class="field">
+            <label for="defaultLanguage">Default language</label>
+            <select id="defaultLanguage" name="defaultLanguage">
+              <option value="en" <%= site.defaultLanguage === 'en' ? 'selected' : '' %>>English</option>
+              <option value="bn" <%= site.defaultLanguage === 'bn' ? 'selected' : '' %>>বাংলা (Bangla)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="dateFormat">Date format</label>
+            <select id="dateFormat" name="dateFormat">
+              <% ['DD MMM YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD', 'MMM DD, YYYY']
+                   .forEach(function (opt) { %>
+                <option value="<%= opt %>" <%= site.dateFormat === opt ? 'selected' : '' %>><%= opt %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="field">
+            <label for="footerText">Footer text</label>
+            <input type="text" id="footerText" name="footerText" maxlength="200"
+                   value="<%= site.footerText %>"
+                   placeholder="Built in Dhaka for Bangladeshi businesses">
           </div>
         </div>
       </div>

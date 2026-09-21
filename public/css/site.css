@@ -140,6 +140,12 @@ p  { margin: 0 0 1em; }
 .brand-text strong { font-size: 15.5px; letter-spacing: -.01em; }
 .brand-text small { font-size: 11px; color: var(--text-mute); font-weight: 500; }
 
+/* Uploaded/configured logo. Height comes from SiteSetting.logoHeightPx as an
+   inline style, so the admin controls it; cap the width so a wide logo cannot
+   push the nav off-screen on mobile. */
+.brand-logo { display: block; max-width: min(220px, 46vw); object-fit: contain; }
+[data-theme="dark"] .brand-logo { filter: brightness(1.08); }
+
 .site-nav { display: flex; gap: 4px; margin-left: auto; }
 .site-nav a {
   padding: 8px 12px; border-radius: var(--radius-sm);
@@ -580,9 +586,24 @@ p  { margin: 0 0 1em; }
 
 .form-grid { display: grid; gap: 18px; }
 .form-grid.two { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.form-grid.three { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
 
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field.full { grid-column: 1 / -1; }
+
+/* Colour swatch paired with its hex text input, in the settings screen.
+   The swatch and the text field write to each other so either can be edited. */
+.color-row { display: flex; align-items: center; gap: 8px; }
+.color-row input[type="color"] {
+  flex: 0 0 auto; width: 44px; height: 38px; padding: 2px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); cursor: pointer;
+}
+.color-row input[type="text"] {
+  flex: 1 1 auto; min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-transform: lowercase;
+}
 
 .field label { font-size: 13.5px; font-weight: 600; color: var(--text); }
 .field label .req { color: var(--err-500); margin-left: 2px; }
