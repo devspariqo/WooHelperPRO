@@ -3,13 +3,19 @@
   <div class="sidebar-brand">
     <a href="/" class="brand">
       <%
-        // Theme-aware logo -- the sidebar sits on a dark surface in BOTH themes,
-        // so it always wants the dark-background variant regardless of the page
-        // theme. Falling back to the generic logo keeps a single-logo install
-        // working.
-        const sideLogo = (settings.logoUrlDark || '').trim()
-          || (settings.logoUrl || '').trim()
-          || (settings.logoUrlLight || '').trim();
+        /*
+         * Theme-aware logo.
+         *
+         * This used to hardcode `logoUrlDark || logoUrl`, on the assumption that the
+         * sidebar is always a dark surface. It is not: the sidebar background is
+         * `var(--surface)`, which is #ffffff in light mode and #17141f in dark. So
+         * the hardcoded dark logo was being drawn on a WHITE sidebar in light mode
+         * -- effectively invisible.
+         *
+         * Use the same resolver as everywhere else so the variant matches the
+         * surface it is actually drawn on.
+         */
+        const sideLogo = helpers.logoFor(settings, theme);
       %>
       <% if (sideLogo) { %>
         <img class="brand-logo" src="<%= sideLogo %>"
@@ -28,115 +34,115 @@
   <% if (panel === 'admin') { %>
 
     <nav class="sidebar-nav" aria-label="Admin navigation">
-      <p class="sidebar-label">Overview</p>
+      <p class="sidebar-label"><%= t('Overview') %></p>
       <% if (can ? can('dashboard') : true) { %>
       <a href="/admin" class="<%= active === 'dashboard' ? 'active' : '' %>">
-        <span class="ico">▦</span> Dashboard
+        <span class="ico">▦</span> <%= t('Dashboard') %>
       </a>
       <% } %>
       <% if (can ? can('reports') : false) { %>
       <a href="/admin/reports" class="<%= active === 'reports' ? 'active' : '' %>">
-        <span class="ico">◪</span> Reports
+        <span class="ico">◪</span> <%= t('Reports') %>
       </a>
       <% } %>
 
-      <p class="sidebar-label">Sales</p>
+      <p class="sidebar-label"><%= t('Sales') %></p>
       <% if (can ? can('orders') : false) { %>
       <a href="/admin/orders" class="<%= active === 'orders' ? 'active' : '' %>">
-        <span class="ico">▤</span> Orders
+        <span class="ico">▤</span> <%= t('Orders') %>
       </a>
       <% } %>
       <% if (can ? can('leads') : false) { %>
       <a href="/admin/leads" class="<%= active === 'leads' ? 'active' : '' %>">
-        <span class="ico">◈</span> Leads
+        <span class="ico">◈</span> <%= t('Leads') %>
       </a>
       <% } %>
       <% if (can ? can('coupons') : false) { %>
       <a href="/admin/coupons" class="<%= active === 'coupons' ? 'active' : '' %>">
-        <span class="ico">◇</span> Coupons
+        <span class="ico">◇</span> <%= t('Coupons') %>
       </a>
       <% } %>
 
       <p class="sidebar-label">Customers &amp; billing</p>
       <% if (can ? can('users') : false) { %>
       <a href="/admin/users" class="<%= active === 'users' ? 'active' : '' %>">
-        <span class="ico">◉</span> Users
+        <span class="ico">◉</span> <%= t('Users') %>
       </a>
       <% } %>
       <% if (can ? can('subscriptions') : false) { %>
       <a href="/admin/subscriptions" class="<%= active === 'subscriptions' ? 'active' : '' %>">
-        <span class="ico">↻</span> Subscriptions
+        <span class="ico">↻</span> <%= t('Subscriptions') %>
       </a>
       <% } %>
       <% if (can ? can('invoices') : false) { %>
       <a href="/admin/invoices" class="<%= active === 'invoices' ? 'active' : '' %>">
-        <span class="ico">▣</span> Invoices
+        <span class="ico">▣</span> <%= t('Invoices') %>
       </a>
       <% } %>
       <% if (can ? can('payments') : false) { %>
       <a href="/admin/payments" class="<%= active === 'payments' ? 'active' : '' %>">
-        <span class="ico">৳</span> Payments
+        <span class="ico">৳</span> <%= t('Payments') %>
       </a>
       <% } %>
 
-      <p class="sidebar-label">Catalogue</p>
+      <p class="sidebar-label"><%= t('Catalogue') %></p>
       <% if (can ? can('services') : false) { %>
       <a href="/admin/services" class="<%= active === 'services' ? 'active' : '' %>">
-        <span class="ico">◆</span> Services
+        <span class="ico">◆</span> <%= t('Services') %>
       </a>
       <% } %>
       <% if (can ? can('packages') : false) { %>
       <a href="/admin/packages" class="<%= active === 'packages' ? 'active' : '' %>">
-        <span class="ico">▥</span> Packages
+        <span class="ico">▥</span> <%= t('Packages') %>
       </a>
       <% } %>
       <% if (can ? can('projects') : false) { %>
       <a href="/admin/projects" class="<%= active === 'projects' ? 'active' : '' %>">
-        <span class="ico">▧</span> Projects
+        <span class="ico">▧</span> <%= t('Projects') %>
       </a>
       <% } %>
 
-      <p class="sidebar-label">Support</p>
+      <p class="sidebar-label"><%= t('Support') %></p>
       <% if (can ? can('tickets') : false) { %>
       <a href="/admin/tickets" class="<%= active === 'tickets' ? 'active' : '' %>">
-        <span class="ico">☰</span> Tickets
+        <span class="ico">☰</span> <%= t('Tickets') %>
       </a>
       <% } %>
 
-      <p class="sidebar-label">Content</p>
+      <p class="sidebar-label"><%= t('Content') %></p>
       <% if (can ? can('portfolio') : false) { %>
       <a href="/admin/portfolio" class="<%= active === 'portfolio' ? 'active' : '' %>">
-        <span class="ico">▨</span> Portfolio
+        <span class="ico">▨</span> <%= t('Portfolio') %>
       </a>
       <% } %>
       <% if (can ? can('content') : false) { %>
       <a href="/admin/blog" class="<%= active === 'blog' ? 'active' : '' %>">
-        <span class="ico">✎</span> Blog
+        <span class="ico">✎</span> <%= t('Blog') %>
       </a>
       <a href="/admin/faqs" class="<%= active === 'faqs' ? 'active' : '' %>">
-        <span class="ico">?</span> FAQs
+        <span class="ico">?</span> <%= t('FAQs') %>
       </a>
       <% } %>
       <% if (can ? can('testimonials') : false) { %>
       <a href="/admin/testimonials" class="<%= active === 'testimonials' ? 'active' : '' %>">
-        <span class="ico">★</span> Testimonials
+        <span class="ico">★</span> <%= t('Testimonials') %>
       </a>
       <% } %>
       <% if (can ? can('media') : false) { %>
       <a href="/admin/media" class="<%= active === 'media' ? 'active' : '' %>">
-        <span class="ico">▩</span> Media library
+        <span class="ico">▩</span> <%= t('Media library') %>
       </a>
       <% } %>
 
-      <p class="sidebar-label">System</p>
+      <p class="sidebar-label"><%= t('System') %></p>
       <% if (can ? can('settings') : false) { %>
       <a href="/admin/settings" class="<%= active === 'settings' ? 'active' : '' %>">
-        <span class="ico">⚙</span> Settings
+        <span class="ico">⚙</span> <%= t('Settings') %>
       </a>
       <% } %>
       <% if (can ? can('activity') : false) { %>
       <a href="/admin/activity" class="<%= active === 'activity' ? 'active' : '' %>">
-        <span class="ico">≡</span> Activity log
+        <span class="ico">≡</span> <%= t('Activity log') %>
       </a>
       <% } %>
     </nav>
@@ -144,34 +150,34 @@
   <% } else { %>
 
     <nav class="sidebar-nav" aria-label="Account navigation">
-      <p class="sidebar-label">My account</p>
+      <p class="sidebar-label"><%= t('My account') %></p>
       <a href="/account" class="<%= active === 'dashboard' ? 'active' : '' %>">
-        <span class="ico">▦</span> Dashboard
+        <span class="ico">▦</span> <%= t('Dashboard') %>
       </a>
       <a href="/account/orders" class="<%= active === 'orders' ? 'active' : '' %>">
-        <span class="ico">▤</span> My orders
+        <span class="ico">▤</span> <%= t('My orders') %>
       </a>
       <a href="/account/subscriptions" class="<%= active === 'subscriptions' ? 'active' : '' %>">
-        <span class="ico">↻</span> Subscriptions
+        <span class="ico">↻</span> <%= t('Subscriptions') %>
       </a>
       <a href="/account/invoices" class="<%= active === 'invoices' ? 'active' : '' %>">
-        <span class="ico">▣</span> Invoices
+        <span class="ico">▣</span> <%= t('Invoices') %>
       </a>
       <a href="/account/payments" class="<%= active === 'payments' ? 'active' : '' %>">
-        <span class="ico">৳</span> Payments
+        <span class="ico">৳</span> <%= t('Payments') %>
       </a>
 
-      <p class="sidebar-label">Support</p>
+      <p class="sidebar-label"><%= t('Support') %></p>
       <a href="/account/tickets" class="<%= active === 'tickets' ? 'active' : '' %>">
-        <span class="ico">☰</span> Support tickets
+        <span class="ico">☰</span> <%= t('Support tickets') %>
       </a>
       <a href="/packages">
-        <span class="ico">＋</span> Buy a package
+        <span class="ico">＋</span> <%= t('Buy a package') %>
       </a>
 
-      <p class="sidebar-label">Settings</p>
+      <p class="sidebar-label"><%= t('Settings') %></p>
       <a href="/account/profile" class="<%= active === 'profile' ? 'active' : '' %>">
-        <span class="ico">◉</span> My profile
+        <span class="ico">◉</span> <%= t('My profile') %>
       </a>
     </nav>
 

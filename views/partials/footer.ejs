@@ -38,8 +38,8 @@
         </div>
 
         <div class="pay-logos">
-          <span>bKash</span><span>Nagad</span><span>Rocket</span>
-          <span>SSLCommerz</span><span>Bank transfer</span>
+          <span><%= t('bKash') %></span><span><%= t('Nagad') %></span><span><%= t('Rocket') %></span>
+          <span><%= t('SSLCommerz') %></span><span><%= t('Bank transfer') %></span>
         </div>
       </div>
 
@@ -48,9 +48,9 @@
         <ul>
           <li><a href="/services"><%= t('All services') %></a></li>
           <li><a href="/packages">Packages &amp; pricing</a></li>
-          <li><a href="/order/checkout">Order a website</a></li>
+          <li><a href="/order/checkout"><%= t('Order a website') %></a></li>
           <li><a href="/portfolio"><%= t('Our work') %></a></li>
-          <li><a href="/services?category=ecommerce">E-commerce builds</a></li>
+          <li><a href="/services?category=ecommerce"><%= t('E-commerce builds') %></a></li>
         </ul>
       </div>
 
@@ -61,7 +61,7 @@
           <li><a href="/blog"><%= t('Blog') %></a></li>
           <li><a href="/contact"><%= t('Contact') %></a></li>
           <li><a href="/contact#faq">FAQ</a></li>
-          <li><a href="/register">Create an account</a></li>
+          <li><a href="/register"><%= t('Create an account') %></a></li>
         </ul>
       </div>
 
@@ -69,7 +69,7 @@
         <h4><%= t('Support') %></h4>
         <ul>
           <li><a href="/login"><%= t('Sign in') %></a></li>
-          <li><a href="/account/tickets">Open a ticket</a></li>
+          <li><a href="/account/tickets"><%= t('Open a ticket') %></a></li>
           <li><a href="/account/subscriptions"><%= t('Manage subscription') %></a></li>
           <li><a href="/legal/terms">Terms &amp; conditions</a></li>
           <li><a href="/legal/privacy"><%= t('Privacy policy') %></a></li>
@@ -89,9 +89,9 @@
       <% } %>
 
       <div class="footer-social">
-        <% if (settings.facebookUrl) { %><a href="<%= settings.facebookUrl %>" target="_blank" rel="noopener">Facebook</a><% } %>
-        <% if (settings.youtubeUrl) { %><a href="<%= settings.youtubeUrl %>" target="_blank" rel="noopener">YouTube</a><% } %>
-        <% if (settings.linkedinUrl) { %><a href="<%= settings.linkedinUrl %>" target="_blank" rel="noopener">LinkedIn</a><% } %>
+        <% if (settings.facebookUrl) { %><a href="<%= settings.facebookUrl %>" target="_blank" rel="noopener"><%= t('Facebook') %></a><% } %>
+        <% if (settings.youtubeUrl) { %><a href="<%= settings.youtubeUrl %>" target="_blank" rel="noopener"><%= t('YouTube') %></a><% } %>
+        <% if (settings.linkedinUrl) { %><a href="<%= settings.linkedinUrl %>" target="_blank" rel="noopener"><%= t('LinkedIn') %></a><% } %>
         <a href="/api/health"><%= t('System status') %></a>
       </div>
     </div>

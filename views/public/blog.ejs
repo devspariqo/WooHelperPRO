@@ -1,15 +1,15 @@
 <section class="section">
   <div class="container">
     <div class="section-head center">
-      <p class="section-kicker">Blog</p>
-      <h1 class="mt-0">Guides for selling online in Bangladesh</h1>
+      <p class="section-kicker"><%= t('Blog') %></p>
+      <h1 class="mt-0"><%= t('Guides for selling online in Bangladesh') %></h1>
       <p class="muted">Payment gateways, courier pricing, Facebook ads, and what actually converts here.</p>
     </div>
 
     <% if (!posts.length) { %>
       <div class="empty-state">
         <div class="empty-icon">▭</div>
-        <h3>No posts yet</h3>
+        <h3><%= t('No posts yet') %></h3>
         <p class="muted">We are writing the first batch of guides.</p>
       </div>
     <% } else { %>

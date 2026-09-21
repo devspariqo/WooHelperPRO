@@ -1,7 +1,7 @@
 <section class="section">
   <div class="container">
     <nav class="muted mb-3">
-      <a href="/">Home</a> <span>/</span> <a href="/packages">Packages</a> <span>/</span>
+      <a href="/"><%= t('Home') %></a> <span>/</span> <a href="/packages"><%= t('Packages') %></a> <span>/</span>
       <span><%= package.name %></span>
     </nav>
 
@@ -17,7 +17,7 @@
           <p><%= package.description || '' %></p>
         </div>
 
-        <h3>What you get</h3>
+        <h3><%= t('What you get') %></h3>
         <ul class="prose">
           <% features.forEach(function (f) { %>
             <li><%= f %></li>
@@ -25,7 +25,7 @@
         </ul>
 
         <% if (excluded.length) { %>
-          <h3>Not included in this tier</h3>
+          <h3><%= t('Not included in this tier') %></h3>
           <ul class="prose excluded">
             <% excluded.forEach(function (f) { %>
               <li class="excluded"><%= f %></li>
@@ -37,44 +37,44 @@
       <aside>
         <div class="card">
           <div class="card-header">
-            <h3 class="mt-0 mb-0">Pricing</h3>
+            <h3 class="mt-0 mb-0"><%= t('Pricing') %></h3>
           </div>
           <div class="card-body">
             <ul class="summary-list">
               <% if (package.setupFee > 0) { %>
                 <li>
-                  <span class="label">One-time setup fee</span>
+                  <span class="label"><%= t('One-time setup fee') %></span>
                   <span class="value"><%= fmt.bdt(package.setupFee) %></span>
                 </li>
               <% } %>
               <% if (package.monthlyPrice > 0) { %>
                 <li>
-                  <span class="label">Monthly</span>
+                  <span class="label"><%= t('Monthly') %></span>
                   <span class="value"><%= fmt.bdt(package.monthlyPrice) %></span>
                 </li>
               <% } %>
               <% if (package.yearlyPrice > 0) { %>
                 <li>
-                  <span class="label">Yearly <span class="pkg-save">save 2 months</span></span>
+                  <span class="label"><%= t('Yearly') %> <span class="pkg-save">save 2 months</span></span>
                   <span class="value"><%= fmt.bdt(package.yearlyPrice) %></span>
                 </li>
               <% } %>
               <% if (package.price > 0) { %>
                 <li>
-                  <span class="label">One-time purchase</span>
+                  <span class="label"><%= t('One-time purchase') %></span>
                   <span class="value"><%= fmt.bdt(package.price) %></span>
                 </li>
               <% } %>              <% if (package.trialDays > 0) { %>
                 <li>
-                  <span class="label">Free trial</span>
-                  <span class="value"><%= package.trialDays %> days</span>
+                  <span class="label"><%= t('Free trial') %></span>
+                  <span class="value"><%= package.trialDays %> <%= t('days') %></span>
                 </li>
               <% } %>
             </ul>
 
             <div class="form-actions mt-3">
               <a class="btn btn-primary btn-block btn-lg"
-                 href="/order/checkout?packageId=<%= package.id %>">Order this package</a>
+                 href="/order/checkout?packageId=<%= package.id %>"><%= t('Order this package') %></a>
               <a class="btn btn-outline btn-block" href="/contact?package=<%= package.slug %>">
                 Ask a question first
               </a>

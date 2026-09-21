@@ -1,7 +1,7 @@
 <article class="section">
   <div class="container container-narrow">
     <nav class="muted mb-3">
-      <a href="/">Home</a> <span>/</span> <a href="/blog">Blog</a> <span>/</span>
+      <a href="/"><%= t('Home') %></a> <span>/</span> <a href="/blog"><%= t('Blog') %></a> <span>/</span>
       <span><%= post.title %></span>
     </nav>
 
@@ -31,7 +31,7 @@
 <% if (related && related.length) { %>
   <section class="section section-soft">
     <div class="container">
-      <div class="section-head"><h2 class="mt-0">Read next</h2></div>
+      <div class="section-head"><h2 class="mt-0"><%= t('Read next') %></h2></div>
       <div class="grid grid-3">
         <% related.forEach(function (p) { %>
           <article class="post-card">

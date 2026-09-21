@@ -21,6 +21,7 @@
     "verify:dark": "node scripts/dark-mode-check.js",
     "verify:provision": "node scripts/provision-test.js",
     "lint:views": "node scripts/audit-view-locals.js",
+    "lint:i18n": "node scripts/lint-i18n.js",
     "lint:views:selftest": "node scripts/audit-view-locals.js --selftest",
     "lint:view": "node scripts/run-audit.js",
     "db:provider": "node scripts/set-db-provider.js"

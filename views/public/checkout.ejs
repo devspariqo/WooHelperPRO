@@ -2,7 +2,7 @@
   <div class="container">
     <div class="section-head">
       <p class="section-kicker">Step 1 of 2</p>
-      <h1 class="mt-0">Tell us what to build</h1>
+      <h1 class="mt-0"><%= t('Tell us what to build') %></h1>
       <p class="muted mb-0">
         No account needed — we will create one for you using this email so you can track the build.
       </p>
@@ -22,13 +22,13 @@
 
       <div>
         <div class="card">
-          <div class="card-header"><h3 class="mt-0 mb-0">Your project</h3></div>
+          <div class="card-header"><h3 class="mt-0 mb-0"><%= t('Your project') %></h3></div>
           <div class="card-body">
 
             <div class="field">
-              <label for="packageId">Package <span class="req">*</span></label>
+              <label for="packageId"><%= t('Package') %> <span class="req">*</span></label>
               <select id="packageId" name="packageId" required>
-                <option value="">Select a package</option>
+                <option value=""><%= t('Select a package') %></option>
                 <% packages.forEach(function (p) { %>
                   <option value="<%= p.id %>"
                     <%= pkgSelected === p.id ? 'selected' : '' %>
@@ -50,31 +50,31 @@
                 rather than left as markup that can't work. %>
 
             <fieldset class="field">
-              <legend>Payment mode <span class="req">*</span></legend>
+              <legend><%= t('Payment mode') %> <span class="req">*</span></legend>
               <div class="radio-cards">
                 <label class="radio-card <%= v.paymentMode !== 'monthly' && v.paymentMode !== 'yearly' ? 'selected' : '' %>">
                   <input type="radio" name="paymentMode" value="one_time"
                          <%= v.paymentMode !== 'monthly' && v.paymentMode !== 'yearly' ? 'checked' : '' %>>
-                  <span class="name">One-time</span>
+                  <span class="name"><%= t('One-time') %></span>
                   <span class="note">Pay once, own the build. No renewal.</span>
                 </label>
                 <label class="radio-card <%= v.paymentMode === 'monthly' ? 'selected' : '' %>">
                   <input type="radio" name="paymentMode" value="monthly"
                          <%= v.paymentMode === 'monthly' ? 'checked' : '' %>>
-                  <span class="name">Monthly</span>
+                  <span class="name"><%= t('Monthly') %></span>
                   <span class="note">Hosting, updates and support billed every month.</span>
                 </label>
                 <label class="radio-card <%= v.paymentMode === 'yearly' ? 'selected' : '' %>">
                   <input type="radio" name="paymentMode" value="yearly"
                          <%= v.paymentMode === 'yearly' ? 'checked' : '' %>>
-                  <span class="name">Yearly</span>
+                  <span class="name"><%= t('Yearly') %></span>
                   <span class="note">Same plan billed annually — two months free.</span>
                 </label>
               </div>
             </fieldset>
 
             <div class="field">
-              <label for="projectName">Project / business name <span class="req">*</span></label>
+              <label for="projectName"><%= t('Project / business name') %> <span class="req">*</span></label>
               <input id="projectName" name="projectName" type="text" required
                      value="<%= v.projectName || '' %>"
                      placeholder="e.g. Ahmed Fashion">
@@ -82,9 +82,9 @@
 
             <% if (businessTypes && businessTypes.length) { %>
               <div class="field">
-                <label for="businessType">Business type</label>
+                <label for="businessType"><%= t('Business type') %></label>
                 <select id="businessType" name="businessType">
-                  <option value="">Not sure / other</option>
+                  <option value=""><%= t('Not sure / other') %></option>
                   <% businessTypes.forEach(function (bt) { %>
                     <option value="<%= bt %>" <%= v.businessType === bt ? 'selected' : '' %>><%= bt %></option>
                   <% }); %>
@@ -93,21 +93,21 @@
             <% } %>
 
             <div class="field">
-              <label for="requirements">What do you need built?</label>
+              <label for="requirements"><%= t('What do you need built?') %></label>
               <textarea id="requirements" name="requirements" rows="4"
                         placeholder="Products, delivery areas, whether you want bKash checkout, existing logo and photos..."><%= v.requirements || '' %></textarea>
             </div>
 
             <div class="form-grid two">
               <div class="field">
-                <label for="domainName">Preferred domain</label>
+                <label for="domainName"><%= t('Preferred domain') %></label>
                 <input id="domainName" name="domainName" type="text"
                        value="<%= v.domainName || '' %>" placeholder="yourbusiness.com.bd">
               </div>
               <div class="field">
-                <label for="district">District <span class="req">*</span></label>
+                <label for="district"><%= t('District') %> <span class="req">*</span></label>
                 <select id="district" name="district" required>
-                  <option value="">Select district</option>
+                  <option value=""><%= t('Select district') %></option>
                   <% districts.forEach(function (d) { %>
                     <option value="<%= d[0] %>" <%= v.district === d[0] ? 'selected' : '' %>>
                       <%= d[0] %> — <%= d[1] %>
@@ -120,16 +120,16 @@
         </div>
 
         <div class="card mt-3">
-          <div class="card-header"><h3 class="mt-0 mb-0">Your details</h3></div>
+          <div class="card-header"><h3 class="mt-0 mb-0"><%= t('Your details') %></h3></div>
           <div class="card-body">
             <div class="form-grid two">
               <div class="field">
-                <label for="contactName">Contact person <span class="req">*</span></label>
+                <label for="contactName"><%= t('Contact person') %> <span class="req">*</span></label>
                 <input id="contactName" name="contactName" type="text" required
                        value="<%= v.contactName || me.name || '' %>">
               </div>
               <div class="field">
-                <label for="contactPhone">Mobile number <span class="req">*</span></label>
+                <label for="contactPhone"><%= t('Mobile number') %> <span class="req">*</span></label>
                 <input id="contactPhone" name="contactPhone" type="tel" required
                        value="<%= v.contactPhone || me.phone || '' %>"
                        placeholder="01XXXXXXXXX">
@@ -137,7 +137,7 @@
             </div>
 
             <div class="field">
-              <label for="contactEmail">Email address</label>
+              <label for="contactEmail"><%= t('Email address') %></label>
               <input id="contactEmail" name="contactEmail" type="email"
                      value="<%= v.contactEmail || me.email || '' %>">
               <% if (typeof isAuthenticated !== 'undefined' && isAuthenticated) { %>
@@ -148,7 +148,7 @@
             </div>
 
             <div class="field">
-              <label for="company">Business name</label>
+              <label for="company"><%= t('Business name') %></label>
               <input id="company" name="company" type="text" value="<%= v.company || '' %>">
             </div>
           </div>
@@ -157,7 +157,7 @@
 
       <aside>
         <div class="field">
-          <label for="couponCode">Coupon code</label>
+          <label for="couponCode"><%= t('Coupon code') %></label>
           <input id="couponCode" name="couponCode" type="text" value="<%= v.couponCode || '' %>"
                  placeholder="Have a discount code?">
         </div>
@@ -168,10 +168,10 @@
 
         <div class="form-actions mt-3">
           <button class="btn btn-outline btn-block" type="button" data-quote-refresh>
-            Update summary
+            <%= t('Update summary') %>
           </button>
           <button class="btn btn-primary btn-block btn-lg" type="submit">
-            Place order
+            <%= t('Place order') %>
           </button>
         </div>
 

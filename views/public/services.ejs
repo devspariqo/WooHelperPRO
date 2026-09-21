@@ -1,7 +1,7 @@
 <section class="section section-soft">
   <div class="container">
     <div class="section-head center">
-      <p class="section-kicker">Our services</p>
+      <p class="section-kicker"><%= t('Our services') %></p>
       <h1 class="mt-0">Everything a Bangladeshi business needs to sell online</h1>
       <p class="muted">
         From a single-page landing site to a full e-commerce store with bKash checkout, courier
@@ -11,14 +11,14 @@
 
     <form class="filters" method="get" action="/services">
       <div class="field grow">
-        <label for="q">Search services</label>
+        <label for="q"><%= t('Search services') %></label>
         <input id="q" name="q" type="search" value="<%= searchQuery || '' %>"
                placeholder="e.g. ecommerce, SEO, landing page">
       </div>
       <div class="field">
-        <label for="category">Category</label>
+        <label for="category"><%= t('Category') %></label>
         <select id="category" name="category" data-auto-submit>
-          <option value="">All categories</option>
+          <option value=""><%= t('All categories') %></option>
           <% categories.forEach(function (cat) { %>
             <option value="<%= cat.slug %>" <%= activeCategory === cat.slug ? 'selected' : '' %>>
               <%= cat.name %>
@@ -27,16 +27,16 @@
         </select>
       </div>
       <div class="field">
-        <button class="btn btn-primary" type="submit">Filter</button>
+        <button class="btn btn-primary" type="submit"><%= t('Filter') %></button>
       </div>
     </form>
 
     <% if (!services.length) { %>
       <div class="empty-state">
         <div class="empty-icon">◎</div>
-        <h3>No services matched that search</h3>
+        <h3><%= t('No services matched that search') %></h3>
         <p class="muted">Try a broader keyword, or browse every category.</p>
-        <a class="btn btn-outline" href="/services">Clear filters</a>
+        <a class="btn btn-outline" href="/services"><%= t('Clear filters') %></a>
       </div>
     <% } else { %>
       <div class="grid grid-3 mt-4">
@@ -51,18 +51,18 @@
                 <span class="badge badge-info"><%= svc.category.name %></span>
               <% } %>
               <% if (svc.deliveryDays) { %>
-                <span class="badge badge-muted"><%= svc.deliveryDays %> days delivery</span>
+                <span class="badge badge-muted"><%= svc.deliveryDays %> <%= t('days delivery') %></span>
               <% } %>
             </div>
 
             <div class="svc-price">
-              <span class="muted">Starting from</span>
+              <span class="muted"><%= t('Starting from') %></span>
               <strong><%= fmt.bdt(svc.startingPrice || svc.basePrice || 0) %></strong>
             </div>
 
             <div class="form-actions">
-              <a class="btn btn-outline btn-sm" href="/services/<%= svc.slug %>">See details</a>
-              <a class="btn btn-primary btn-sm" href="/order/checkout?serviceId=<%= svc.id %>">Request this</a>
+              <a class="btn btn-outline btn-sm" href="/services/<%= svc.slug %>"><%= t('See details') %></a>
+              <a class="btn btn-primary btn-sm" href="/order/checkout?serviceId=<%= svc.id %>"><%= t('Request this') %></a>
             </div>
           </article>
         <% }); %>
@@ -76,8 +76,8 @@
     <h2 class="mt-0">Not sure which service you need?</h2>
     <p>Tell us what your business does and we will recommend the smallest thing that solves it.</p>
     <div class="form-actions center">
-      <a class="btn btn-accent btn-lg" href="/contact">Talk to a consultant</a>
-      <a class="btn btn-outline btn-lg" href="/packages">Compare packages</a>
+      <a class="btn btn-accent btn-lg" href="/contact"><%= t('Talk to a consultant') %></a>
+      <a class="btn btn-outline btn-lg" href="/packages"><%= t('Compare packages') %></a>
     </div>
   </div>
 </section>

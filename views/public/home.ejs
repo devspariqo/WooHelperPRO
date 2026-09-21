@@ -34,26 +34,26 @@
         </p>
 
         <div class="hero-cta">
-          <a href="/order/checkout" class="btn btn-primary btn-lg">Start my website</a>
+          <a href="/order/checkout" class="btn btn-primary btn-lg"><%= t('Start my website') %></a>
           <a href="/packages" class="btn btn-outline btn-lg">See packages &amp; pricing</a>
         </div>
 
         <div class="hero-proof">
           <div>
             <strong><%= fmt.number(stats.orders) %>+</strong>
-            <span>Websites delivered</span>
+            <span><%= t('Websites delivered') %></span>
           </div>
           <div>
             <strong>7 days</strong>
-            <span>Average go-live</span>
+            <span><%= t('Average go-live') %></span>
           </div>
           <div>
             <strong>0.8s</strong>
-            <span>Average load time</span>
+            <span><%= t('Average load time') %></span>
           </div>
           <div>
             <strong>24/7</strong>
-            <span>Support in Bangla</span>
+            <span><%= t('Support in Bangla') %></span>
           </div>
         </div>
       </div>
@@ -81,7 +81,7 @@
               <span class="browser-url">yourbusiness.com.bd</span>
             </div>
             <div class="browser-body">
-              <div class="mock-badge">Order placed</div>
+              <div class="mock-badge"><%= t('Order placed') %></div>
               <div class="mock-line w-90"></div>
               <div class="mock-line w-70"></div>
               <div class="mock-row">
@@ -113,9 +113,9 @@
 <div class="trust-strip">
   <div class="container">
     <div class="trust-inner">
-      <span><strong>bKash</strong> &middot; Nagad &middot; Rocket</span>
-      <span><strong>Pathao</strong> &middot; Steadfast &middot; RedX</span>
-      <span>SSLCommerz certified</span>
+      <span><strong><%= t('bKash') %></strong> &middot; Nagad &middot; Rocket</span>
+      <span><strong><%= t('Pathao') %></strong> &middot; Steadfast &middot; RedX</span>
+      <span><%= t('SSLCommerz certified') %></span>
       <span>Bangla + English support</span>
       <span>All 64 districts</span>
     </div>
@@ -146,13 +146,13 @@
           <div class="svc-meta">
             <span class="svc-price">
               <% if (service.basePrice > 0) { %>
-                From <%= fmt.bdt(service.basePrice) %>
+                <%= t('From') %> <%= fmt.bdt(service.basePrice) %>
               <% } else { %>
                 Custom quote
               <% } %>
-              <small><%= service.deliveryDays %> days delivery</small>
+              <small><%= service.deliveryDays %> <%= t('days delivery') %></small>
             </span>
-            <a href="/services/<%= service.slug %>" class="btn btn-outline btn-sm">Details</a>
+            <a href="/services/<%= service.slug %>" class="btn btn-outline btn-sm"><%= t('Details') %></a>
           </div>
         </article>
       <% }); %>
@@ -166,7 +166,7 @@
     <% } %>
 
     <div class="center mt-4">
-      <a href="/services" class="btn btn-outline">Browse all services</a>
+      <a href="/services" class="btn btn-outline"><%= t('Browse all services') %></a>
     </div>
 
   </div>
@@ -190,7 +190,7 @@
            const excluded = json.parse(pkg.excluded);
       %>
         <article class="pkg-card <%= pkg.isPopular ? 'popular' : '' %>" data-reveal>
-          <% if (pkg.isPopular) { %><span class="pkg-ribbon">Most popular</span><% } %>
+          <% if (pkg.isPopular) { %><span class="pkg-ribbon"><%= t('Most popular') %></span><% } %>
 
           <span class="pkg-tier"><%= C.PACKAGE_TIER[pkg.tier].en %></span>
           <h3><%= pkg.name %></h3>
@@ -198,7 +198,7 @@
 
           <div class="pkg-price">
             <span class="amount"><%= fmt.bdt(pkg.price).replace('৳', '') %></span>
-            <span class="cycle">BDT one-time</span>
+            <span class="cycle"><%= t('BDT one-time') %></span>
           </div>
 
           <% if (pkg.monthlyPrice > 0) { %>
@@ -209,7 +209,7 @@
           <% } %>
 
           <% if (pkg.discountPercent > 0) { %>
-            <span class="pkg-save">Save <%= pkg.discountPercent %>%</span>
+            <span class="pkg-save"><%= t('Save') %> <%= pkg.discountPercent %>%</span>
           <% } else { %>
             <div style="height:8px"></div>
           <% } %>
@@ -225,16 +225,16 @@
 
           <div class="pkg-footer">
             <a href="/order/checkout?package=<%= pkg.id %>" class="btn <%= pkg.isPopular ? 'btn-primary' : 'btn-outline' %> btn-block">
-              Order this package
+              <%= t('Order this package') %>
             </a>
-            <a href="/packages/<%= pkg.slug %>" class="pkg-note">See full feature list</a>
+            <a href="/packages/<%= pkg.slug %>" class="pkg-note"><%= t('See full feature list') %></a>
           </div>
         </article>
       <% }); %>
     </div>
 
     <div class="center mt-4">
-      <a href="/packages" class="btn btn-outline">Compare all packages</a>
+      <a href="/packages" class="btn btn-outline"><%= t('Compare all packages') %></a>
     </div>
 
   </div>
@@ -260,7 +260,7 @@
       <div class="feature-row" data-reveal>
         <span class="ico" aria-hidden="true">৳</span>
         <div>
-          <h4>All the local payment rails, wired up</h4>
+          <h4><%= t('All the local payment rails, wired up') %></h4>
           <p>bKash, Nagad, Rocket, Upay and SSLCommerz card checkout — plus cash on delivery with
              order confirmation. Money reaches your account, not a middleman's.</p>
         </div>
@@ -269,7 +269,7 @@
       <div class="feature-row" data-reveal>
         <span class="ico" aria-hidden="true">⇥</span>
         <div>
-          <h4>One-click courier booking</h4>
+          <h4><%= t('One-click courier booking') %></h4>
           <p>Pathao, Steadfast, RedX and e-Courier integrated. Book a delivery from the order
              screen, print the label, and tracking updates flow back automatically.</p>
         </div>
@@ -278,7 +278,7 @@
       <div class="feature-row" data-reveal>
         <span class="ico" aria-hidden="true">⛨</span>
         <div>
-          <h4>Fake order protection</h4>
+          <h4><%= t('Fake order protection') %></h4>
           <p>Phone number risk scoring against courier history, duplicate-order detection and
              velocity checks. Block the orders that cost you money before you ship them.</p>
         </div>
@@ -305,7 +305,7 @@
       <div class="feature-row" data-reveal>
         <span class="ico" aria-hidden="true">⌨</span>
         <div>
-          <h4>You own everything</h4>
+          <h4><%= t('You own everything') %></h4>
           <p>Your domain, your hosting account, your admin credentials, your data export.
              We hand over full access at launch — no vendor lock-in, ever.</p>
         </div>
@@ -324,19 +324,19 @@
     <div class="stat-grid">
       <div class="stat-card">
         <div class="num"><%= fmt.number(stats.orders) %>+</div>
-        <div class="lbl">Websites delivered</div>
+        <div class="lbl"><%= t('Websites delivered') %></div>
       </div>
       <div class="stat-card">
         <div class="num"><%= fmt.number(stats.customers) %>+</div>
-        <div class="lbl">Active clients</div>
+        <div class="lbl"><%= t('Active clients') %></div>
       </div>
       <div class="stat-card">
         <div class="num"><%= fmt.bdt(stats.revenue, { compact: true }) %></div>
-        <div class="lbl">Client revenue generated</div>
+        <div class="lbl"><%= t('Client revenue generated') %></div>
       </div>
       <div class="stat-card">
         <div class="num"><%= stats.portfolio %>+</div>
-        <div class="lbl">Live websites in portfolio</div>
+        <div class="lbl"><%= t('Live websites in portfolio') %></div>
       </div>
     </div>
   </div>
@@ -377,7 +377,7 @@
     </div>
 
     <div class="center mt-4">
-      <a href="/portfolio" class="btn btn-outline">View full portfolio</a>
+      <a href="/portfolio" class="btn btn-outline"><%= t('View full portfolio') %></a>
     </div>
 
   </div>
@@ -478,7 +478,7 @@
     </div>
 
     <div class="center mt-4">
-      <a href="/blog" class="btn btn-outline">Read all articles</a>
+      <a href="/blog" class="btn btn-outline"><%= t('Read all articles') %></a>
     </div>
 
   </div>
@@ -526,8 +526,8 @@
         free consultation, no pressure, in Bangla or English.
       </p>
       <div class="btn-group" style="justify-content:center">
-        <a href="/order/checkout" class="btn btn-accent btn-lg">Order a package</a>
-        <a href="/contact" class="btn btn-outline btn-lg">Talk to our team</a>
+        <a href="/order/checkout" class="btn btn-accent btn-lg"><%= t('Order a package') %></a>
+        <a href="/contact" class="btn btn-outline btn-lg"><%= t('Talk to our team') %></a>
       </div>
       <p style="margin-top:20px;font-size:13.5px;opacity:.85">
         Or call us directly

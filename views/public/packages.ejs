@@ -1,7 +1,7 @@
 <section class="section section-soft">
   <div class="container">
     <div class="section-head center">
-      <p class="section-kicker">Packages</p>
+      <p class="section-kicker"><%= t('Packages') %></p>
       <h1 class="mt-0">A website package built for how Bangladeshi businesses actually sell</h1>
       <p class="muted">
         Every package includes hosting setup, SSL, mobile-first design, Bangla/English support and
@@ -11,7 +11,7 @@
 
     <div class="center mb-4">
       <div class="billing-toggle btn-group">
-        <a class="btn <%= !billing || billing === 'MONTHLY' ? 'btn-primary' : 'btn-outline' %>" href="/packages?billing=MONTHLY">Monthly</a>
+        <a class="btn <%= !billing || billing === 'MONTHLY' ? 'btn-primary' : 'btn-outline' %>" href="/packages?billing=MONTHLY"><%= t('Monthly') %></a>
         <a class="btn <%= billing === 'YEARLY' ? 'btn-primary' : 'btn-outline' %>" href="/packages?billing=YEARLY">Yearly — save 2 months</a>
       </div>
     </div>
@@ -29,7 +29,7 @@
           const features = json.parse(pkg.features, []);
         %>
         <article class="pkg-card <%= pkg.isPopular ? 'popular' : '' %>">
-          <% if (pkg.isPopular) { %><span class="pkg-ribbon">Most popular</span><% } %>
+          <% if (pkg.isPopular) { %><span class="pkg-ribbon"><%= t('Most popular') %></span><% } %>
 
           <div class="pkg-head">
             <span class="pkg-tier">
@@ -55,7 +55,7 @@
           </ul>
 
           <div class="pkg-footer">
-            <a class="btn btn-primary btn-block" href="/packages/<%= pkg.slug %>">Choose <%= pkg.name %></a>
+            <a class="btn btn-primary btn-block" href="/packages/<%= pkg.slug %>"><%= t('Choose') %> <%= pkg.name %></a>
           </div>
         </article>
       <% }); %>
@@ -66,7 +66,7 @@
 <section class="section">
   <div class="container">
     <div class="section-head center">
-      <h2 class="mt-0">Add a service on top of any package</h2>
+      <h2 class="mt-0"><%= t('Add a service on top of any package') %></h2>
       <p class="muted">Bolt on what your business needs — SEO, ads management, or extra pages.</p>
     </div>
 
@@ -76,7 +76,7 @@
           <div class="svc-icon"><%= svc.icon || '◆' %></div>
           <h4 class="mt-0"><a href="/services/<%= svc.slug %>"><%= svc.title %></a></h4>
           <div class="svc-price">
-            <span class="muted">From</span>
+            <span class="muted"><%= t('From') %></span>
             <strong><%= fmt.bdt(svc.startingPrice || 0) %></strong>
           </div>
         </article>
@@ -89,6 +89,6 @@
   <div class="container center">
     <h2 class="mt-0">Need something bigger than a package?</h2>
     <p>Custom quotation for multi-vendor marketplaces, ERP integrations and POS-connected stores.</p>
-    <a class="btn btn-accent btn-lg" href="/contact">Request a custom quote</a>
+    <a class="btn btn-accent btn-lg" href="/contact"><%= t('Request a custom quote') %></a>
   </div>
 </section>

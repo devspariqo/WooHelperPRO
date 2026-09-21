@@ -24,7 +24,7 @@
           <% }); %>
 
           <li class="total">
-            <span class="label">Total payable</span>
+            <span class="label"><%= t('Total payable') %></span>
             <span class="value"><%= fmt.bdt(quote.total) %></span>
           </li>
         </ul>
@@ -40,7 +40,7 @@
         <% } %>
 
         <% if (quote.coupon) { %>
-          <p class="summary-note ok">Coupon <strong><%= quote.coupon.code %></strong> applied — you saved <%= fmt.bdt(quote.discount) %>.</p>
+          <p class="summary-note ok"><%= t('Coupon') %> <strong><%= quote.coupon.code %></strong> applied — you saved <%= fmt.bdt(quote.discount) %>.</p>
         <% } else if (quote.couponMessage && quote.couponMessage !== 'No coupon applied.') { %>
           <p class="summary-note err"><%= quote.couponMessage %></p>
         <% } %>
@@ -54,11 +54,11 @@
   <% } else { %>
     <div class="card">
       <div class="card-header">
-        <h3 class="mt-0 mb-0">Order summary</h3>
+        <h3 class="mt-0 mb-0"><%= t('Order summary') %></h3>
       </div>
       <div class="card-body">
         <p class="muted mb-0">
-          Choose a package and a payment mode, then press <strong>Update summary</strong> to see
+          Choose a package and a payment mode, then press <strong><%= t('Update summary') %></strong> to see
           the exact amount you will pay.
         </p>
       </div>

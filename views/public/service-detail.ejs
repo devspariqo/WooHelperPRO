@@ -35,27 +35,27 @@
       <aside>
         <div class="card">
           <div class="card-header">
-            <h3 class="mt-0 mb-0">Start this service</h3>
+            <h3 class="mt-0 mb-0"><%= t('Start this service') %></h3>
           </div>
           <div class="card-body">
             <ul class="summary-list">
               <li>
-                <span class="label">Starting price</span>
+                <span class="label"><%= t('Starting price') %></span>
                 <span class="value"><%= fmt.bdt(service.startingPrice || 0) %></span>
               </li>
               <li>
-                <span class="label">Delivery</span>
-                <span class="value"><%= service.deliveryDays || 14 %> days</span>
+                <span class="label"><%= t('Delivery') %></span>
+                <span class="value"><%= service.deliveryDays || 14 %> <%= t('days') %></span>
               </li>
               <% if (service.revisions) { %>
                 <li>
-                  <span class="label">Revisions</span>
+                  <span class="label"><%= t('Revisions') %></span>
                   <span class="value"><%= service.revisions %></span>
                 </li>
               <% } %>
               <% if (service.billingCycle) { %>
                 <li>
-                  <span class="label">Billing</span>
+                  <span class="label"><%= t('Billing') %></span>
                   <span class="value">
                     <%= C.BILLING_CYCLE[service.billingCycle] ? C.BILLING_CYCLE[service.billingCycle].en : service.billingCycle %>
                   </span>
@@ -76,7 +76,7 @@
               Questions? Call
               <a href="tel:<%= settings.supportPhone || '' %>"><%= settings.supportPhone || 'support' %></a>
               or message us on
-              <a href="https://wa.me/<%= settings.whatsappNumber || '' %>" target="_blank" rel="noopener">WhatsApp</a>.
+              <a href="https://wa.me/<%= settings.whatsappNumber || '' %>" target="_blank" rel="noopener"><%= t('WhatsApp') %></a>.
             </p>
           </div>
         </div>
@@ -89,7 +89,7 @@
   <section class="section section-soft">
     <div class="container">
       <div class="section-head">
-        <h2 class="mt-0">Often ordered with this</h2>
+        <h2 class="mt-0"><%= t('Often ordered with this') %></h2>
       </div>
       <div class="grid grid-3">
         <% related.forEach(function (svc) { %>
@@ -98,7 +98,7 @@
             <h3 class="mt-0"><a href="/services/<%= svc.slug %>"><%= svc.title %></a></h3>
             <p class="muted"><%= fmt.truncate(svc.shortDescription || '', 110) %></p>
             <div class="svc-price">
-              <span class="muted">From</span>
+              <span class="muted"><%= t('From') %></span>
               <strong><%= fmt.bdt(svc.startingPrice || 0) %></strong>
             </div>
           </article>
