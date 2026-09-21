@@ -12,7 +12,18 @@
   <% if (settings.googleSiteVerification) { %>
   <meta name="google-site-verification" content="<%= settings.googleSiteVerification %>">
   <% } %>
-  <% if (typeof canonical !== 'undefined' && canonical) { %><link rel="canonical" href="<%= canonical %>"><% } %>
+  <%
+    // Canonical URL. A route may pass one explicitly (a detail page whose real URL
+    // differs from the request path), otherwise derive it from the request path so
+    // EVERY public page has a canonical -- which is what stops /blog?page=2 and
+    // /blog/ from being treated as duplicates. The query string is dropped on
+    // purpose: pagination and filter params should not fragment the canonical.
+    const canonicalUrl = (typeof canonical !== 'undefined' && canonical)
+      ? canonical
+      : (app.appUrl || '').replace(/\/$/, '') + currentPath;
+  %>
+  <link rel="canonical" href="<%= canonicalUrl %>">
+  <meta property="og:url" content="<%= canonicalUrl %>">
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="<%= settings.siteName %>">
@@ -77,6 +88,48 @@
     }
     h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
   </style>
+
+  <%
+    /*
+     * Structured data.
+     *
+     * Organization + WebSite go on every public page: they describe the business
+     * and power the sitelinks search box. A route can pass `structuredData` (an
+     * array of extra nodes) for page-specific types such as Service, Product,
+     * BlogPosting or BreadcrumbList, and they are merged into the same @graph so
+     * the relationships between them are explicit.
+     *
+     * JSON.stringify is safe here: values come from the settings row and from
+     * route locals, never from raw user input, and </script> cannot appear in a
+     * validated colour or a database slug.
+     */
+    const base = (app.appUrl || '').replace(/\/$/, '');
+    const org = {
+      '@type': 'Organization',
+      '@id': base + '/#organization',
+      name: settings.siteName,
+      url: base + '/',
+      logo: settings.logoUrl ? (settings.logoUrl.startsWith('http') ? settings.logoUrl : base + settings.logoUrl) : undefined,
+      description: settings.metaDescription || settings.tagline || undefined,
+      email: settings.supportEmail || undefined,
+      telephone: settings.supportPhone || undefined,
+      address: settings.officeAddress
+        ? { '@type': 'PostalAddress', streetAddress: settings.officeAddress, addressCountry: 'BD' }
+        : undefined,
+      sameAs: [settings.facebookUrl, settings.youtubeUrl, settings.linkedinUrl].filter(Boolean),
+    };
+    const website = {
+      '@type': 'WebSite',
+      '@id': base + '/#website',
+      url: base + '/',
+      name: settings.siteName,
+      publisher: { '@id': base + '/#organization' },
+      inLanguage: lang === 'bn' ? 'bn-BD' : 'en',
+    };
+    const extra = (typeof structuredData !== 'undefined' && Array.isArray(structuredData)) ? structuredData : [];
+    const graph = [org, website, ...extra];
+  %>
+  <script type="application/ld+json"><%- JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }) %></script>
 </head>
 <body class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>" data-lang="<%= lang %>">
 
