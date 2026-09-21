@@ -353,6 +353,20 @@ p  { margin: 0 0 1em; }
 
 /* Browser mock preview */
 .hero-visual { position: relative; }
+.hero-visual .browser-mock { position: relative; }
+
+/* Square hero image. Forced to 1:1 and cover-cropped so an off-ratio upload
+   never squashes the layout, with a soft frame so it reads as a deliberate
+   panel rather than a loose photo. */
+.hero-figure {
+  margin: 0; position: relative;
+  aspect-ratio: 1 / 1; width: 100%; max-width: 520px; margin-inline: auto;
+  border-radius: 20px; overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-muted);
+  box-shadow: var(--shadow-lg);
+}
+.hero-figure img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .browser-mock {
   background: var(--surface); border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg);
@@ -638,6 +652,25 @@ p  { margin: 0 0 1em; }
   object-fit: contain; padding: 3px; border-radius: 6px;
   background: var(--surface); border: 1px solid var(--border);
 }
+
+/* Side-by-side logo previews in the settings form, so an operator can see at a
+   glance whether the dark variant actually reads on a dark background. */
+.logo-preview-box {
+  margin-top: 8px; padding: 14px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; min-height: 62px;
+  border: 1px solid var(--border);
+}
+.logo-preview-box.light-box { background: #ffffff; }
+.logo-preview-box.dark-box { background: #17141f; }
+.logo-preview-box img { display: block; }
+
+/* Hero preview, forced to the 1:1 ratio the hero itself renders at. */
+.hero-preview {
+  margin-top: 8px; aspect-ratio: 1 / 1; width: 100%; max-width: 260px;
+  border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+  background: var(--bg-muted);
+}
+.hero-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* Payment method strip. Only renders for methods the admin has a logo for, so an
    empty list is impossible here -- the partial omits the wrapper entirely. */

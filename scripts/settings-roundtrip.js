@@ -62,6 +62,8 @@ function bodyFrom(row, overrides) {
     whatsappNumber: s.whatsappNumber, officeAddress: s.officeAddress,
     // branding
     logoUrl: s.logoUrl, logoAlt: s.logoAlt, logoHeightPx: String(s.logoHeightPx), faviconUrl: s.faviconUrl,
+    logoUrlLight: s.logoUrlLight, logoUrlDark: s.logoUrlDark,
+    heroImageUrl: s.heroImageUrl, heroImageAlt: s.heroImageAlt,
     primaryColor: s.primaryColor, secondaryColor: s.secondaryColor, accentColor: s.accentColor,
     // typography
     fontHeading: s.fontHeading, fontBody: s.fontBody,
@@ -122,6 +124,12 @@ function bodyFrom(row, overrides) {
     fontHeading: 'Poppins',
     fontBody: 'Roboto',
     logoUrl: '/images/logo-test.svg',
+    // All three logo slots point at the test file. The resolver prefers the
+    // theme-specific one, so setting only logoUrl would be shadowed by whatever
+    // logoUrlLight already holds and the assertion would fail for the right reason
+    // but the wrong cause.
+    logoUrlLight: '/images/logo-test.svg',
+    logoUrlDark: '/images/logo-test.svg',
     logoAlt: 'Round-trip logo',
     logoHeightPx: '40',
     faviconUrl: '/images/favicon-test.svg',

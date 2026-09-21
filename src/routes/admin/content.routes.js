@@ -499,6 +499,11 @@ router.post('/settings', requirePermission('settings'), async (req, res, next) =
         logoAlt: str('logoAlt'),
         logoHeightPx: int('logoHeightPx', cur.logoHeightPx ?? 32, 16, 96),
         faviconUrl: str('faviconUrl'),
+        // Theme-specific logos and the homepage hero image.
+        logoUrlLight: str('logoUrlLight'),
+        logoUrlDark: str('logoUrlDark'),
+        heroImageUrl: str('heroImageUrl'),
+        heroImageAlt: str('heroImageAlt'),
 
         // --- branding: colours ---
         primaryColor: hex('primaryColor', cur.primaryColor || '#7c3aed'),

@@ -608,6 +608,20 @@ model SiteSetting {
   logoHeightPx    Int      @default(32)
   faviconUrl      String   @default("")
 
+  // ---- Theme-specific logos -------------------------------------------------
+  // A logo drawn for a light background is usually illegible on a dark one, so
+  // each theme gets its own slot. Both fall back to `logoUrl` above, which is why
+  // they default to empty rather than duplicating it: an operator who uploads one
+  // logo gets it in both themes and never sees a blank brand.
+  logoUrlLight    String   @default("")
+  logoUrlDark     String   @default("")
+
+  // ---- Homepage hero --------------------------------------------------------
+  // Square (1:1) image shown on the right of the hero. Falls back to the built-in
+  // browser mockup when blank, so the hero is never half-empty.
+  heroImageUrl    String   @default("")
+  heroImageAlt    String   @default("")
+
   // ---- Branding: colours --------------------------------------------------
   // Hex strings, injected as CSS custom properties by the layouts. The defaults
   // mirror the palette already compiled into public/css/site.css (--brand-600,

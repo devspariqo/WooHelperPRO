@@ -5,15 +5,16 @@
 
       <div class="footer-col footer-about">
         <a href="/" class="brand">
-          <% if (settings.logoUrl) { %>
-            <img class="brand-logo" src="<%= settings.logoUrl %>"
-                 alt="<%= settings.logoAlt || settings.siteName %>"
+          <% const footLogo = helpers.logoFor(settings, theme); %>
+          <% if (footLogo) { %>
+            <img class="brand-logo" src="<%= footLogo %>"
+                 alt="<%= helpers.logoAltFor(settings) %>"
                  style="height:<%= settings.logoHeightPx %>px;width:auto">
           <% } else { %>
             <span class="brand-mark" aria-hidden="true">W</span>
             <span class="brand-text">
               <strong><%= settings.siteName %></strong>
-              <small>Bangladesh web studio</small>
+              <small><%= tr('Bangladesh web studio', 'বাংলাদেশের ওয়েব স্টুডিও') %></small>
             </span>
           <% } %>
         </a>

@@ -57,4 +57,34 @@ function shade(hex, amount) {
   return '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
 }
 
-module.exports = { statusBadge, statusBadgeT, progressBar, emptyState, shade };
+/**
+ * Resolve which logo to show for the active theme.
+ *
+ * A logo drawn for a light background is usually illegible on a dark one, so each
+ * theme has its own slot. Falls back in this order:
+ *
+ *   theme-specific  ->  the generic logoUrl  ->  '' (caller shows the wordmark)
+ *
+ * The fallback chain is what lets an operator upload ONE logo and have it work in
+ * both themes, rather than seeing a blank brand in one of them.
+ */
+function logoFor(settings, theme) {
+  const s = settings || {};
+  const generic = (s.logoUrl || '').trim();
+  const light = (s.logoUrlLight || '').trim();
+  const dark = (s.logoUrlDark || '').trim();
+
+  if (theme === 'dark') return dark || generic || light || '';
+  return light || generic || dark || '';
+}
+
+/**
+ * Alt text for the active logo. Prefers the explicit alt, then the site name, so
+ * the image is never announced as an unlabelled graphic.
+ */
+function logoAltFor(settings) {
+  const s = settings || {};
+  return (s.logoAlt || '').trim() || (s.siteName || '').trim() || 'Home';
+}
+
+module.exports = { statusBadge, statusBadgeT, progressBar, emptyState, shade, logoFor, logoAltFor };

@@ -113,8 +113,9 @@
       </div>
       <div class="card-body">
         <div class="alert alert-info mb-3">
-          Give a path under <code>/images/</code> (for example <code>/images/logo.svg</code>)
-          or a full https:// URL. Leave the logo blank to keep the built-in text wordmark.
+          Give a path under <code>/uploads/</code> or <code>/images/</code>, or a full https:// URL.
+          Upload files in the <a href="/admin/media">media library</a> and paste the URL here.
+          Leave the logo blank to keep the built-in text wordmark.
         </div>
         <div class="form-grid two">
           <div class="field full">
@@ -141,11 +142,69 @@
           </div>
         </div>
 
-        <% if (site.logoUrl) { %>
+        <h4 class="mt-4">Theme-specific logos</h4>
+        <p class="hint mb-2">
+          A logo drawn for a white background usually disappears on a dark one, so you can supply
+          one for each. Both fall back to the logo above, so uploading a single logo still works
+          in both themes.
+        </p>
+        <div class="form-grid two">
+          <div class="field">
+            <label for="logoUrlLight">Logo for light mode</label>
+            <input type="text" id="logoUrlLight" name="logoUrlLight" maxlength="300"
+                   value="<%= site.logoUrlLight %>" placeholder="Leave blank to use the logo above">
+            <div class="logo-preview-box light-box">
+              <% if (site.logoUrlLight || site.logoUrl) { %>
+                <img src="<%= site.logoUrlLight || site.logoUrl %>" alt=""
+                     style="height:<%= site.logoHeightPx %>px;max-width:100%">
+              <% } else { %><span class="hint">No logo</span><% } %>
+            </div>
+          </div>
+          <div class="field">
+            <label for="logoUrlDark">Logo for dark mode</label>
+            <input type="text" id="logoUrlDark" name="logoUrlDark" maxlength="300"
+                   value="<%= site.logoUrlDark %>" placeholder="Leave blank to use the logo above">
+            <div class="logo-preview-box dark-box">
+              <% if (site.logoUrlDark || site.logoUrl) { %>
+                <img src="<%= site.logoUrlDark || site.logoUrl %>" alt=""
+                     style="height:<%= site.logoHeightPx %>px;max-width:100%">
+              <% } else { %><span class="hint">No logo</span><% } %>
+            </div>
+          </div>
+        </div>
+
+        <h4 class="mt-4">Homepage hero image</h4>
+        <p class="hint mb-2">
+          A <strong>square (1:1)</strong> image shown on the right of the homepage hero. Around
+          1000&times;1000px looks sharp on retina screens. Leave blank to keep the built-in
+          browser mockup.
+        </p>
+        <div class="form-grid two">
+          <div class="field">
+            <label for="heroImageUrl">Hero image URL</label>
+            <input type="text" id="heroImageUrl" name="heroImageUrl" maxlength="300"
+                   value="<%= site.heroImageUrl %>" placeholder="/uploads/general/hero.png">
+          </div>
+          <div class="field">
+            <label for="heroImageAlt">Hero image alt text</label>
+            <input type="text" id="heroImageAlt" name="heroImageAlt" maxlength="200"
+                   value="<%= site.heroImageAlt %>" placeholder="Describe the image">
+          </div>
+          <% if (site.heroImageUrl) { %>
+            <div class="field full">
+              <span class="hint">Preview — the frame below is forced to 1:1, which is how the hero renders it.</span>
+              <div class="hero-preview">
+                <img src="<%= site.heroImageUrl %>" alt="">
+              </div>
+            </div>
+          <% } %>
+        </div>
+
+        <% if (site.logoUrl || site.logoUrlLight || site.logoUrlDark) { %>
           <div class="mt-3">
-            <span class="hint">Preview</span>
+            <span class="hint">Preview (as the active theme resolves it)</span>
             <div class="mt-1" style="padding:12px;border:1px solid var(--border);border-radius:8px">
-              <img src="<%= site.logoUrl %>" alt="<%= site.logoAlt || site.siteName %>"
+              <img src="<%= helpers.logoFor(site, theme) %>" alt="<%= helpers.logoAltFor(site) %>"
                    style="height:<%= site.logoHeightPx %>px;max-width:100%">
             </div>
           </div>

@@ -59,29 +59,46 @@
       </div>
 
       <div class="hero-visual">
-        <div class="browser-mock">
-          <div class="browser-bar">
-            <i></i><i></i><i></i>
-            <span class="browser-url">yourbusiness.com.bd</span>
-          </div>
-          <div class="browser-body">
-            <div class="mock-badge">Order placed</div>
-            <div class="mock-line w-90"></div>
-            <div class="mock-line w-70"></div>
-            <div class="mock-row">
-              <div class="mock-tile"></div>
-              <div class="mock-tile"></div>
-              <div class="mock-tile"></div>
+        <% if (settings.heroImageUrl) { %>
+          <%
+            /*
+             * Square hero image. The frame is forced to 1:1 with object-fit: cover,
+             * so a non-square upload is cropped rather than squashing the layout.
+             * width/height are set so the browser reserves the space before the
+             * image loads -- without them the hero reflows and hurts CLS.
+             */
+          %>
+          <figure class="hero-figure">
+            <img src="<%= settings.heroImageUrl %>"
+                 alt="<%= settings.heroImageAlt || settings.siteName %>"
+                 width="1000" height="1000"
+                 loading="eager" fetchpriority="high" decoding="async">
+          </figure>
+        <% } else { %>
+          <div class="browser-mock">
+            <div class="browser-bar">
+              <i></i><i></i><i></i>
+              <span class="browser-url">yourbusiness.com.bd</span>
             </div>
-            <div class="mock-line w-45"></div>
+            <div class="browser-body">
+              <div class="mock-badge">Order placed</div>
+              <div class="mock-line w-90"></div>
+              <div class="mock-line w-70"></div>
+              <div class="mock-row">
+                <div class="mock-tile"></div>
+                <div class="mock-tile"></div>
+                <div class="mock-tile"></div>
+              </div>
+              <div class="mock-line w-45"></div>
+            </div>
           </div>
-        </div>
+        <% } %>
 
         <div class="float-card">
           <span class="ok-dot" aria-hidden="true">৳</span>
           <span>
-            <strong>Payment received</strong>
-            <small>bKash &middot; verified in 4 min</small>
+            <strong><%= tr('Payment received', 'পেমেন্ট পেয়েছি') %></strong>
+            <small>bKash &middot; <%= tr('verified in 4 min', '৪ মিনিটে যাচাই') %></small>
           </span>
         </div>
       </div>

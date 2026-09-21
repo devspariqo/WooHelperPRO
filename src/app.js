@@ -155,7 +155,6 @@ function createApp() {
 
     // Theme preference is remembered per session.
     res.locals.theme = req.session.theme || 'light';
-    res.locals.lang = req.session.lang || 'en';
 
     // Site settings are needed in every header/footer.
     try {
@@ -178,6 +177,8 @@ function createApp() {
         ogImageUrl: '', googleAnalyticsId: '', googleSiteVerification: '', twitterHandle: '',
         facebookUrl: '', youtubeUrl: '', linkedinUrl: '',
         logoUrl: '', logoAlt: '', logoHeightPx: 32, faviconUrl: '',
+        logoUrlLight: '', logoUrlDark: '',
+        heroImageUrl: '', heroImageAlt: '',
         primaryColor: '#7c3aed', secondaryColor: '#17141f', accentColor: '#ff6600',
         fontHeading: 'Inter', fontBody: 'Inter',
         fontHeadingBn: 'Hind Siliguri', fontBodyBn: 'Hind Siliguri',
@@ -192,12 +193,39 @@ function createApp() {
     // project root, and throws at render time.
     res.locals.helpers = require('../views/partials/helpers');
 
-    // Simple translation helper: t('Order') / t(obj, 'bn')
+    // ---------------------------------------------------------------
+    // Language
+    // ---------------------------------------------------------------
+    // Resolved AFTER settings, because the site-wide default lives there. A
+    // visitor who explicitly switched keeps their choice in the session; everyone
+    // else gets the admin's `defaultLanguage`.
+    res.locals.lang = req.session.lang || res.locals.settings.defaultLanguage || 'en';
+    res.locals.isBn = res.locals.lang === 'bn';
+
+    /**
+     * Pick between an English and a Bangla value.
+     *
+     * The Bn columns have always existed and were editable in the admin panel, but
+     * nothing on the public site ever read them -- the old t() helper was defined
+     * and never called once. This is the helper the views actually use:
+     *
+     *   tr(service.name, service.nameBn)
+     *
+     * Falls back to the English value when the Bangla one is blank, so a
+     * half-translated record shows English rather than an empty heading.
+     */
+    res.locals.tr = (en, bn) => {
+      const useBn = res.locals.isBn;
+      if (useBn && bn !== null && bn !== undefined && String(bn).trim() !== '') return bn;
+      return en === null || en === undefined ? '' : en;
+    };
+
+    // Legacy object form: t({ en: 'Order', bn: 'অর্ডার' }). Kept because a few
+    // call sites and the constants file use it.
     res.locals.t = (value) => {
       if (value === null || value === undefined) return '';
       if (typeof value === 'object') {
-        const lang = res.locals.lang;
-        if (lang === 'bn' && value.bn) return value.bn;
+        if (res.locals.isBn && value.bn) return value.bn;
         return value.en ?? '';
       }
       return value;

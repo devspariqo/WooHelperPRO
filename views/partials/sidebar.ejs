@@ -2,9 +2,18 @@
 
   <div class="sidebar-brand">
     <a href="/" class="brand">
-      <% if (settings.logoUrl) { %>
-        <img class="brand-logo" src="<%= settings.logoUrl %>"
-             alt="<%= settings.logoAlt || settings.siteName %>"
+      <%
+        // Theme-aware logo -- the sidebar sits on a dark surface in BOTH themes,
+        // so it always wants the dark-background variant regardless of the page
+        // theme. Falling back to the generic logo keeps a single-logo install
+        // working.
+        const sideLogo = (settings.logoUrlDark || '').trim()
+          || (settings.logoUrl || '').trim()
+          || (settings.logoUrlLight || '').trim();
+      %>
+      <% if (sideLogo) { %>
+        <img class="brand-logo" src="<%= sideLogo %>"
+             alt="<%= helpers.logoAltFor(settings) %>"
              style="height:<%= Math.min(settings.logoHeightPx, 34) %>px;width:auto">
       <% } else { %>
         <span class="brand-mark" aria-hidden="true">W</span>
