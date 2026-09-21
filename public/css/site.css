@@ -883,6 +883,9 @@ table.data .strong { font-weight: 600; color: var(--text); }
    it -- flex children align to flex-start by default and the logo sat hard left.
    justify-content is what actually centres the logo image inside the anchor. */
 .auth-head .brand { justify-content: center; margin: 0 auto 14px; }
+/* The auth logo is deliberately larger than the navbar's -- see partials/auth-brand.ejs.
+   max-width keeps a wide wordmark from pushing past the card on a narrow phone. */
+.auth-head .auth-logo { max-width: min(260px, 78vw); }
 .auth-head .brand-mark { margin: 0 auto 14px; width: 44px; height: 44px; font-size: 21px; }
 .auth-head h1 { font-size: 1.6rem; margin-bottom: 6px; }
 .auth-head p { color: var(--text-mute); font-size: 14.5px; margin: 0; }

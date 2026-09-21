@@ -10,12 +10,21 @@
    * variant is chosen for the active theme and a single-logo install still works.
    */
   var authLogo = helpers.logoFor(settings, theme);
+
+  /*
+   * The auth pages are a full-page centred card with nothing competing for
+   * attention, so the logo is shown larger than in the navbar -- the global
+   * logoHeightPx is tuned for a cramped header. It still respects a deliberate
+   * large setting: whichever is bigger wins, capped so an oversized upload
+   * cannot push the form off screen.
+   */
+  var authLogoHeight = Math.min(Math.max(settings.logoHeightPx || 32, 56), 96);
 %>
 <% if (authLogo) { %>
   <a class="brand" href="/" aria-label="<%= settings.siteName %> home">
-    <img class="brand-logo" src="<%= authLogo %>"
+    <img class="brand-logo auth-logo" src="<%= authLogo %>"
          alt="<%= helpers.logoAltFor(settings) %>"
-         style="height:<%= settings.logoHeightPx %>px;width:auto">
+         style="height:<%= authLogoHeight %>px;width:auto">
   </a>
 <% } else { %>
   <a class="brand brand-text" href="/">
