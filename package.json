@@ -19,6 +19,7 @@
     "verify:sidebar": "node scripts/sidebar-permission-test.js",
     "verify:settings": "node scripts/settings-roundtrip.js",
     "verify:dark": "node scripts/dark-mode-check.js",
+    "verify:provision": "node scripts/provision-test.js",
     "lint:views": "node scripts/audit-view-locals.js",
     "lint:views:selftest": "node scripts/audit-view-locals.js --selftest",
     "lint:view": "node scripts/run-audit.js",

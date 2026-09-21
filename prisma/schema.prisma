@@ -43,6 +43,7 @@ model User {
   projects      Project[]
   staffAssigned Project[]    @relation("ProjectManager")
   mediaAssets   MediaAsset[] @relation("MediaUploader")
+  provisionedSubscriptions Subscription[] @relation("SubscriptionProvisioner")
 
   @@index([role])
   @@index([status])
@@ -260,6 +261,25 @@ model Subscription {
   notes              String?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+
+  // ---- Website handover ----------------------------------------------------
+  // Filled in by staff once the site is actually built, and shown to the customer
+  // on their dashboard. Stored on the subscription because the subscription is
+  // what the customer keeps paying for -- the details must outlive the order.
+  //
+  // The password is stored in plain text on purpose. It has to be displayed back
+  // to the customer, so a one-way hash is impossible, and encrypting it with a key
+  // that lives in the same database only moves the problem. Treat this column as
+  // the sensitive credential it is: it is never rendered to a non-owner, never
+  // logged, and never included in an email.
+  provisionedSiteUrl  String?
+  provisionedAdminUrl String?
+  provisionedUsername String?
+  provisionedPassword String?
+  provisionedNotes    String?
+  provisionedAt       DateTime?
+  provisionedById     String?
+  provisionedBy       User?              @relation("SubscriptionProvisioner", fields: [provisionedById], references: [id], onDelete: SetNull)
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   package  Package?  @relation(fields: [packageId], references: [id], onDelete: SetNull)

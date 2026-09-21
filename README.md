@@ -70,6 +70,23 @@ Both are controlled from `/admin/settings` → *Search engines & crawling*. Resp
 gzipped, and uploaded media is served `immutable` for a year because its filename is unique
 per upload.
 
+### Website handover
+
+Once a site is built, staff fill in the handover details on
+`/admin/subscriptions/:id` — site URL, admin-panel URL, username, password and notes. The
+customer then sees them on their dashboard and on the subscription page.
+
+> **The password is stored in plain text, deliberately.** It has to be shown back to the
+> customer, so a hash is impossible, and encrypting it with a key stored in the same database
+> only moves the problem. Treat the column as the credential it is: it is never rendered to a
+> non-owner, never logged, and **never emailed** — putting it in an inbox forever is worse than
+> making the customer sign in to read it. On the dashboard it is masked behind a Show button,
+> which is a shoulder-surfing guard rather than a security boundary.
+
+Both URLs are validated to `http(s):` before saving. A `javascript:` URL rendered into an anchor
+on the customer's dashboard would be stored XSS. Clearing every field withdraws the handover and
+clears the delivery timestamp, so the dashboard stops claiming it was delivered.
+
 ### Mail
 
 SMTP is configured in `/admin/settings` → *Email delivery (SMTP)*, stored in the database and

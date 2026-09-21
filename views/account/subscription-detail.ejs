@@ -51,6 +51,120 @@
   </div>
 </div>
 
+<%
+  /*
+   * Website handover.
+   *
+   * Only rendered once staff have actually saved details, so a customer on a plan
+   * that has not been built yet sees nothing rather than an empty panel implying
+   * something is missing.
+   *
+   * The password is masked by default and revealed by a button. That is a
+   * shoulder-surfing guard, not a security boundary -- the value is in the HTML
+   * either way. It is never sent by email, and this route is scoped to the owning
+   * user, so no other customer can reach it.
+   */
+  const site = subscription;
+  const hasHandover = !!(site.provisionedAt && (site.provisionedSiteUrl || site.provisionedAdminUrl));
+%>
+
+<% if (hasHandover) { %>
+<div class="card mt-4 handover-card">
+  <div class="card-header">
+    <div class="card-title-row">
+      <h3 class="mt-0 mb-0">Your website</h3>
+      <span class="badge badge-ok">Ready since <%= fmt.date(site.provisionedAt, 'medium') %></span>
+    </div>
+  </div>
+  <div class="card-body">
+    <p class="muted">
+      Your website is live. Keep these details safe &mdash; anyone with them can
+      manage your site.
+    </p>
+
+    <dl class="handover-list">
+      <% if (site.provisionedSiteUrl) { %>
+        <div class="handover-row">
+          <dt>Website</dt>
+          <dd>
+            <a href="<%= site.provisionedSiteUrl %>" target="_blank" rel="noopener noreferrer"><%= site.provisionedSiteUrl %></a>
+            <button type="button" class="btn btn-ghost btn-xs js-copy" data-copy="<%= site.provisionedSiteUrl %>">Copy</button>
+          </dd>
+        </div>
+      <% } %>
+
+      <% if (site.provisionedAdminUrl) { %>
+        <div class="handover-row">
+          <dt>Admin panel</dt>
+          <dd>
+            <a href="<%= site.provisionedAdminUrl %>" target="_blank" rel="noopener noreferrer"><%= site.provisionedAdminUrl %></a>
+            <button type="button" class="btn btn-ghost btn-xs js-copy" data-copy="<%= site.provisionedAdminUrl %>">Copy</button>
+          </dd>
+        </div>
+      <% } %>
+
+      <% if (site.provisionedUsername) { %>
+        <div class="handover-row">
+          <dt>Username</dt>
+          <dd>
+            <code><%= site.provisionedUsername %></code>
+            <button type="button" class="btn btn-ghost btn-xs js-copy" data-copy="<%= site.provisionedUsername %>">Copy</button>
+          </dd>
+        </div>
+      <% } %>
+
+      <% if (site.provisionedPassword) { %>
+        <div class="handover-row">
+          <dt>Password</dt>
+          <dd>
+            <code class="js-secret" data-secret="<%= site.provisionedPassword %>">••••••••••</code>
+            <button type="button" class="btn btn-ghost btn-xs js-reveal">Show</button>
+            <button type="button" class="btn btn-ghost btn-xs js-copy" data-copy="<%= site.provisionedPassword %>">Copy</button>
+          </dd>
+        </div>
+      <% } %>
+    </dl>
+
+    <% if (site.provisionedNotes) { %>
+      <div class="alert alert-info mt-3 mb-0">
+        <%- site.provisionedNotes.replace(/\n/g, '<br>') %>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  (function () {
+    document.querySelectorAll('.js-reveal').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var code = btn.parentNode.querySelector('.js-secret');
+        if (!code) return;
+        var shown = code.getAttribute('data-shown') === '1';
+        code.textContent = shown ? '••••••••••' : code.getAttribute('data-secret');
+        code.setAttribute('data-shown', shown ? '0' : '1');
+        btn.textContent = shown ? 'Show' : 'Hide';
+      });
+    });
+
+    document.querySelectorAll('.js-copy').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var value = btn.getAttribute('data-copy');
+        var done = function () {
+          var old = btn.textContent;
+          btn.textContent = 'Copied';
+          setTimeout(function () { btn.textContent = old; }, 1200);
+        };
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(value).then(done).catch(function () { window.prompt('Copy:', value); });
+        } else {
+          window.prompt('Copy:', value);
+        }
+      });
+    });
+  })();
+</script>
+<% } %>
+
 <div class="dash-grid cols-2 mt-4">
   <div class="card">
     <div class="card-header"><h3 class="mt-0 mb-0">Next payment</h3></div>

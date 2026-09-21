@@ -237,6 +237,69 @@ router.get('/:id', requirePermission('subscriptions'), async (req, res, next) =>
 });
 
 // ---------------------------------------------------------------
+// POST /admin/subscriptions/:id/provision — website handover details
+// ---------------------------------------------------------------
+//
+// Staff fill this in once the site is built. The customer sees it on their
+// dashboard; it is deliberately NOT emailed, because the admin-panel password
+// would then sit in plain text in an inbox indefinitely.
+router.post('/:id/provision', requirePermission('subscriptions'), async (req, res, next) => {
+  try {
+    const str = (k) => String(req.body[k] || '').trim();
+
+    const existing = await prisma.subscription.findUnique({ where: { id: req.params.id } });
+    if (!existing) {
+      req.flash('error', 'That subscription no longer exists.');
+      return res.redirect('/admin/subscriptions');
+    }
+
+    const siteUrl = str('provisionedSiteUrl');
+    const adminUrl = str('provisionedAdminUrl');
+
+    // Only accept http(s). A javascript: URL here would be rendered into an
+    // anchor on the customer dashboard, which is a stored-XSS vector.
+    for (const [label, value] of [['Website URL', siteUrl], ['Admin panel URL', adminUrl]]) {
+      if (value && !/^https?:\/\//i.test(value)) {
+        req.flash('error', `${label} must start with http:// or https://`);
+        return res.redirect(`/admin/subscriptions/${req.params.id}`);
+      }
+    }
+
+    // Clearing every field means "withdraw the handover", which should also clear
+    // the timestamp so the dashboard stops claiming it was delivered.
+    const cleared = !siteUrl && !adminUrl && !str('provisionedUsername') && !str('provisionedPassword');
+
+    await prisma.subscription.update({
+      where: { id: req.params.id },
+      data: {
+        provisionedSiteUrl: siteUrl || null,
+        provisionedAdminUrl: adminUrl || null,
+        provisionedUsername: str('provisionedUsername') || null,
+        // Blank password means "keep the stored one" -- the form never echoes it
+        // back, so treating blank as a clear would wipe it on every unrelated save.
+        provisionedPassword: str('provisionedPassword') || existing.provisionedPassword || null,
+        provisionedNotes: str('provisionedNotes') || null,
+        provisionedAt: cleared ? null : (existing.provisionedAt || new Date()),
+        provisionedById: cleared ? null : (req.user ? req.user.id : null),
+      },
+    });
+
+    await audit.log(req, 'subscription.provisioned', {
+      entityType: 'Subscription',
+      entityId: req.params.id,
+      detail: cleared ? 'Handover details cleared' : `Site: ${siteUrl || '(none)'}`,
+    });
+
+    req.flash('success', cleared
+      ? 'Handover details cleared. The customer no longer sees them.'
+      : 'Website details saved. The customer can now see them on their dashboard.');
+    return res.redirect(`/admin/subscriptions/${req.params.id}`);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+// ---------------------------------------------------------------
 // POST /admin/subscriptions/:id/action — pause / resume / cancel / expire
 // ---------------------------------------------------------------
 router.post('/:id/action', requirePermission('subscriptions'), async (req, res, next) => {

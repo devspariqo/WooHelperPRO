@@ -134,6 +134,77 @@
       </div>
     </div>
 
+    <!-- ============ Website handover ============ -->
+    <%
+      /*
+       * Website handover details.
+       *
+       * Shown to the customer on their dashboard once saved. Deliberately not
+       * emailed -- an admin-panel password sitting in an inbox forever is worse
+       * than making the customer sign in to read it.
+       */
+      const prov = subscription;
+      const isProvisioned = !!(prov.provisionedAt && (prov.provisionedSiteUrl || prov.provisionedAdminUrl));
+    %>
+    <div class="card mt-4">
+      <div class="card-header">
+        <div class="card-title-row">
+          <h3 class="mt-0 mb-0">Website handover</h3>
+          <% if (isProvisioned) { %>
+            <span class="badge badge-ok">Delivered <%= fmt.date(prov.provisionedAt) %></span>
+          <% } else { %>
+            <span class="badge">Not sent yet</span>
+          <% } %>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3">
+          These details appear on the customer&rsquo;s dashboard under
+          <strong>My website</strong> as soon as you save them. The password is
+          <strong>not</strong> emailed &mdash; the customer signs in to read it.
+          Leave the password blank to keep the one already stored.
+        </div>
+
+        <form method="post" action="/admin/subscriptions/<%= subscription.id %>/provision" class="form-grid two">
+          <%- csrfField %>
+          <div class="field">
+            <label for="provisionedSiteUrl">Website URL</label>
+            <input type="url" id="provisionedSiteUrl" name="provisionedSiteUrl" maxlength="300"
+                   value="<%= prov.provisionedSiteUrl || '' %>" placeholder="https://customer-shop.com">
+          </div>
+          <div class="field">
+            <label for="provisionedAdminUrl">Admin panel URL</label>
+            <input type="url" id="provisionedAdminUrl" name="provisionedAdminUrl" maxlength="300"
+                   value="<%= prov.provisionedAdminUrl || '' %>" placeholder="https://customer-shop.com/wp-admin">
+          </div>
+          <div class="field">
+            <label for="provisionedUsername">Username</label>
+            <input type="text" id="provisionedUsername" name="provisionedUsername" maxlength="160"
+                   autocomplete="off" value="<%= prov.provisionedUsername || '' %>">
+          </div>
+          <div class="field">
+            <label for="provisionedPassword">Password</label>
+            <input type="text" id="provisionedPassword" name="provisionedPassword" maxlength="200"
+                   autocomplete="off"
+                   placeholder="<%= prov.provisionedPassword ? '•••••••• (saved — leave blank to keep)' : 'Not set' %>">
+          </div>
+          <div class="field full">
+            <label for="provisionedNotes">Notes for the customer</label>
+            <textarea id="provisionedNotes" name="provisionedNotes" rows="3" maxlength="2000"
+                      placeholder="Where to log in, how to change the password, who to contact for support…"><%= prov.provisionedNotes || '' %></textarea>
+          </div>
+          <div class="field full">
+            <button class="btn btn-primary" type="submit">
+              <%= isProvisioned ? 'Update details' : 'Send to customer dashboard' %>
+            </button>
+            <% if (isProvisioned) { %>
+              <span class="hint">Clearing every field withdraws the handover.</span>
+            <% } %>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- ============ Next invoice preview ============ -->
     <div class="card mt-4">
       <div class="card-header">

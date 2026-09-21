@@ -29,6 +29,113 @@
   </div>
 </div>
 
+<%
+  /*
+   * Website handover, surfaced on the dashboard so the customer does not have to
+   * go hunting for it. Any subscription with saved details qualifies; the most
+   * recently provisioned one is shown first, and a "View all" link appears if
+   * there is more than one (a customer can hold several sites).
+   */
+  const handedOver = (subscriptions || [])
+    .filter(function (s) { return s.provisionedAt && (s.provisionedSiteUrl || s.provisionedAdminUrl); })
+    .sort(function (a, b) { return new Date(b.provisionedAt) - new Date(a.provisionedAt); });
+  const handover = handedOver[0];
+%>
+
+<% if (handover) { %>
+  <div class="card mt-4 handover-card">
+    <div class="card-header">
+      <div class="card-title-row">
+        <h3 class="mt-0 mb-0">Your website</h3>
+        <span class="badge badge-ok">Live</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <p class="muted mb-3">
+        <%= handover.planName %> &mdash; handed over <%= fmt.date(handover.provisionedAt, 'medium') %>.
+        Manage your site from the admin panel below.
+      </p>
+
+      <dl class="handover-list">
+        <% if (handover.provisionedSiteUrl) { %>
+          <div class="handover-row">
+            <dt>Website</dt>
+            <dd>
+              <a href="<%= handover.provisionedSiteUrl %>" target="_blank" rel="noopener noreferrer"><%= handover.provisionedSiteUrl %></a>
+              <button type="button" class="btn btn-ghost btn-xs js-copy" data-copy="<%= handover.provisionedSiteUrl %>">Copy</button>
+            </dd>
+          </div>
+        <% } %>
+        <% if (handover.provisionedAdminUrl) { %>
+          <div class="handover-row">
+            <dt>Admin panel</dt>
+            <dd>
+              <a href="<%= handover.provisionedAdminUrl %>" target="_blank" rel="noopener noreferrer"><%= handover.provisionedAdminUrl %></a>
+              <button type="button" class="btn btn-ghost btn-xs js-copy" data-copy="<%= handover.provisionedAdminUrl %>">Copy</button>
+            </dd>
+          </div>
+        <% } %>
+        <% if (handover.provisionedUsername) { %>
+          <div class="handover-row">
+            <dt>Username</dt>
+            <dd>
+              <code><%= handover.provisionedUsername %></code>
+              <button type="button" class="btn btn-ghost btn-xs js-copy" data-copy="<%= handover.provisionedUsername %>">Copy</button>
+            </dd>
+          </div>
+        <% } %>
+        <% if (handover.provisionedPassword) { %>
+          <div class="handover-row">
+            <dt>Password</dt>
+            <dd>
+              <code class="js-secret" data-secret="<%= handover.provisionedPassword %>">••••••••••</code>
+              <button type="button" class="btn btn-ghost btn-xs js-reveal">Show</button>
+              <button type="button" class="btn btn-ghost btn-xs js-copy" data-copy="<%= handover.provisionedPassword %>">Copy</button>
+            </dd>
+          </div>
+        <% } %>
+      </dl>
+
+      <div class="form-actions mt-3">
+        <a class="btn btn-outline btn-sm" href="/account/subscriptions/<%= handover.id %>">Full details</a>
+        <% if (handedOver.length > 1) { %>
+          <a class="btn btn-ghost btn-sm" href="/account/subscriptions">All <%= handedOver.length %> websites</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      document.querySelectorAll('.js-reveal').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var code = btn.parentNode.querySelector('.js-secret');
+          if (!code) return;
+          var shown = code.getAttribute('data-shown') === '1';
+          code.textContent = shown ? '••••••••••' : code.getAttribute('data-secret');
+          code.setAttribute('data-shown', shown ? '0' : '1');
+          btn.textContent = shown ? 'Show' : 'Hide';
+        });
+      });
+      document.querySelectorAll('.js-copy').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var value = btn.getAttribute('data-copy');
+          var done = function () {
+            var old = btn.textContent;
+            btn.textContent = 'Copied';
+            setTimeout(function () { btn.textContent = old; }, 1200);
+          };
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(value).then(done).catch(function () { window.prompt('Copy:', value); });
+          } else {
+            window.prompt('Copy:', value);
+          }
+        });
+      });
+    })();
+  </script>
+<% } %>
+
 <% if (renewals && renewals.length) { %>
   <div class="card mt-4">
     <div class="card-header">
