@@ -64,8 +64,22 @@ All demo passwords are printed by the seeder. Defaults with an unmodified `.env`
 | Customer | `shahidul@fashionhub.com.bd` | `Demo@1234` |
 
 Roles: `SUPER_ADMIN`, `ADMIN`, `MANAGER`, `STAFF`, `SUPPORT`, `CUSTOMER`.
-Permissions are a data-driven matrix in `src/middleware/auth.js`, exposed to every view
-as the `can('permissionName')` helper.
+
+Permissions are a **data-driven matrix** (`PERMISSIONS`, 21 keys) in `src/middleware/auth.js`.
+There are two consumers, and they must agree:
+
+- `requirePermission('orders')` — route middleware. Returns 403 on a denied request.
+- `can('orders')` — the view helper, exposed to every template. Hides UI the role cannot use.
+
+Both resolve through the same `can(role, permission)` function, so there is exactly one
+definition of what a permission means. If you add a permission, add it to the matrix — do not
+sprinkle role comparisons through views or routes.
+
+> **`can()` takes a PERMISSION name, not a role.** `can('orders')` is correct;
+> `can('MANAGER')` is not. This was once implemented inline as a role comparison, so every
+> `can('dashboard')`-style call evaluated `['dashboard'].includes('SUPER_ADMIN')` and returned
+> false for everyone — which silently emptied the entire admin sidebar for every role, including
+> super admin, while all routes kept returning 200. `npm run verify:sidebar` now guards this.
 
 ---
 
@@ -148,6 +162,7 @@ npm run lint:view <file>      # audit a single view and print what it requires
 npm run smoke                 # end-to-end HTTP sweep across all three surfaces
 npm run verify:admin          # every admin GET route, with real record IDs
 npm run verify:admin:post     # admin form submissions, each self-reversing
+npm run verify:sidebar        # sidebar links present/hidden per role
 npm run verify:settings       # settings form -> database -> rendered HTML
 ```
 
@@ -161,6 +176,17 @@ value already in place. It also asserts that an admin POST without a CSRF token 
 `npm run verify:settings` writes a distinctive colour, logo and font, confirms each one appears
 in the rendered public HTML, checks that a CSS-injection attempt in a colour field is refused,
 and then restores the original settings.
+
+`npm run verify:sidebar` signs in as each of the five staff roles, reads the sidebar out of the
+rendered `/admin` page, and compares it against the `PERMISSIONS` matrix — asserting both that
+every entitled item is present **and** that nothing a role is not entitled to leaks through. It
+then requests all 19 destinations as a super admin to confirm they resolve. The matrix is read
+from `src/middleware/auth.js` at runtime, so the test cannot drift from the real policy.
+
+> A 200 on `/admin` does **not** prove the admin UI works. The sidebar once rendered completely
+> empty for every role — section headings with no links under them — while every route returned
+> 200 and `npm run smoke` stayed green, because the bug was in a view helper rather than a route.
+> That is the gap `verify:sidebar` exists to close.
 
 ### `npm run lint:views`
 
@@ -361,6 +387,7 @@ integrations are live. Nothing silently pretends to be configured.
 | `npm run smoke` | End-to-end HTTP sweep against a running server |
 | `npm run verify:admin` | Sweep every admin GET route with real record IDs |
 | `npm run verify:admin:post` | Submit admin forms; each action self-reverses |
+| `npm run verify:sidebar` | Sidebar links present/hidden per role vs the matrix |
 | `npm run verify:settings` | Settings form round-trip into the rendered HTML |
 | `npm run lint:views` | Audit view/locals contracts |
 | `npm run lint:views:selftest` | Prove the view auditor can detect faults |

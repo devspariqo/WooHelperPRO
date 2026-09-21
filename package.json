@@ -16,6 +16,7 @@
     "smoke": "bash scripts/smoke-test.sh",
     "verify:admin": "node scripts/admin-sweep.js",
     "verify:admin:post": "node scripts/admin-post-test.js",
+    "verify:sidebar": "node scripts/sidebar-permission-test.js",
     "verify:settings": "node scripts/settings-roundtrip.js",
     "lint:views": "node scripts/audit-view-locals.js",
     "lint:views:selftest": "node scripts/audit-view-locals.js --selftest",

@@ -40,10 +40,19 @@ async function loadUser(req, res, next) {
     res.locals.isAuthenticated = true;
     res.locals.isStaff = user.role !== 'CUSTOMER';
     res.locals.isAdmin = ['SUPER_ADMIN', 'ADMIN'].includes(user.role);
-    res.locals.can = (roles) => {
-      const list = Array.isArray(roles) ? roles : [roles];
-      return list.includes(user.role);
-    };
+
+    // The view helper. Every caller in views/ passes a PERMISSION name from the
+    // matrix below -- can('dashboard'), can('orders'), can('settings'), and so on.
+    //
+    // This used to be implemented inline as `(roles) => [roles].includes(user.role)`,
+    // which compared the permission name against the ROLE. So can('dashboard')
+    // evaluated `['dashboard'].includes('SUPER_ADMIN')` and returned false for
+    // everyone -- including a super admin. The effect was that the entire admin
+    // sidebar rendered empty: section headings with no links under them, on every
+    // admin page, for every role. Delegate to the matrix instead of reimplementing
+    // the check, so there is one definition of what a permission means.
+    res.locals.can = (permission) => can(user.role, permission);
+
     return next();
   } catch (err) {
     return next(err);
