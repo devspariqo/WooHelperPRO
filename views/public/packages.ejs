@@ -35,8 +35,8 @@
             <span class="pkg-tier">
               <%= C.PACKAGE_TIER[pkg.tier] ? C.PACKAGE_TIER[pkg.tier].en : pkg.tier %>
             </span>
-            <h3 class="pkg-name mt-0"><%= pkg.name %></h3>
-            <p class="pkg-tagline muted"><%= pkg.tagline || '' %></p>
+            <h3 class="pkg-name mt-0"><%= tr(pkg.name, pkg.nameBn) %></h3>
+            <p class="pkg-tagline muted"><%= tr(pkg.tagline, pkg.taglineBn) || '' %></p>
           </div>
 
           <div class="pkg-price">

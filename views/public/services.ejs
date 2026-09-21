@@ -43,8 +43,8 @@
         <% services.forEach(function (svc) { %>
           <article class="svc-card">
             <div class="svc-icon"><%= svc.icon || '◆' %></div>
-            <h3 class="mt-0"><a href="/services/<%= svc.slug %>"><%= svc.title %></a></h3>
-            <p class="muted"><%= fmt.truncate(svc.shortDescription || svc.description || '', 130) %></p>
+            <h3 class="mt-0"><a href="/services/<%= svc.slug %>"><%= tr(svc.title, svc.titleBn) %></a></h3>
+            <p class="muted"><%= fmt.truncate(tr(svc.shortDescription, svc.shortDescBn) || tr(svc.description, svc.descriptionBn) || '', 130) %></p>
 
             <div class="svc-meta">
               <% if (svc.category) { %>
