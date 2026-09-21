@@ -24,11 +24,45 @@
   </div>
 <% } %>
 
-<form method="post" action="/admin/settings" class="mt-4">
+<%
+  /*
+   * Settings tabs.
+   *
+   * Cards carry data-tab; this nav switches which ones are visible. Two things
+   * matter for correctness:
+   *
+   *  1. Hidden panels stay IN the form. `display: none` inputs still submit --
+   *     only `disabled` ones do not -- so switching tabs never drops a field from
+   *     the POST. That is why the panels are hidden with CSS rather than removed.
+   *  2. Without JS every panel is visible and stacked, so the page degrades to
+   *     the old long-form layout instead of showing nothing. The `.js` class is
+   *     added by the script below, and only `.js` hides inactive panels.
+   */
+  const TABS = [
+    { id: 'general',  label: 'General',  hint: 'Identity, contact and availability' },
+    { id: 'branding', label: 'Branding', hint: 'Logo, colours and fonts' },
+    { id: 'payments', label: 'Payments', hint: 'Destinations and method logos' },
+    { id: 'seo',      label: 'SEO',      hint: 'Meta defaults, sitemap and robots' },
+    { id: 'email',    label: 'Email',    hint: 'SMTP and notifications' },
+  ];
+%>
+
+<nav class="settings-tabs" role="tablist" aria-label="Settings sections">
+  <% TABS.forEach(function (t, i) { %>
+    <button type="button" role="tab" class="settings-tab<%= i === 0 ? ' is-active' : '' %>"
+            data-tab-target="<%= t.id %>" aria-controls="panel-<%= t.id %>"
+            aria-selected="<%= i === 0 ? 'true' : 'false' %>">
+      <span class="tab-label"><%= t.label %></span>
+      <span class="tab-hint"><%= t.hint %></span>
+    </button>
+  <% }); %>
+</nav>
+
+<form method="post" action="/admin/settings" class="mt-4 settings-form">
   <%- csrfField %>
 
   <div class="dash-grid cols-2">
-    <div class="card">
+    <div class="card" data-tab="general">
       <div class="card-header"><h3 class="mt-0 mb-0">Brand &amp; contact</h3></div>
       <div class="card-body">
         <div class="form-grid two">
@@ -73,7 +107,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-tab="branding">
       <div class="card-header">
         <h3 class="mt-0 mb-0">Logo &amp; favicon</h3>
       </div>
@@ -119,7 +153,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-tab="branding">
       <div class="card-header">
         <h3 class="mt-0 mb-0">Colours &amp; fonts</h3>
       </div>
@@ -193,7 +227,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-tab="payments">
       <div class="card-header"><h3 class="mt-0 mb-0">Payment destinations</h3></div>
       <div class="card-body">
         <div class="alert alert-info mb-3">
@@ -237,7 +271,7 @@
   </div>
 
   <div class="dash-grid cols-3 mt-4">
-    <div class="card">
+    <div class="card" data-tab="payments">
       <div class="card-header"><h3 class="mt-0 mb-0">Payment method logos</h3></div>
       <div class="card-body">
         <div class="alert alert-info mb-3">
@@ -271,7 +305,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-tab="seo">
       <div class="card-header"><h3 class="mt-0 mb-0">Search engine defaults</h3></div>
       <div class="card-body">
         <div class="form-grid">
@@ -331,7 +365,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-tab="general">
       <div class="card-header"><h3 class="mt-0 mb-0">General</h3></div>
       <div class="card-body">
         <div class="form-grid">
@@ -367,7 +401,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-tab="general">
       <div class="card-header"><h3 class="mt-0 mb-0">Social profiles</h3></div>
       <div class="card-body">
         <div class="form-grid">
@@ -390,7 +424,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-tab="email">
       <div class="card-header"><h3 class="mt-0 mb-0">Email delivery (SMTP)</h3></div>
       <div class="card-body">
         <div class="alert alert-info mb-3">
@@ -490,7 +524,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-tab="seo">
       <div class="card-header"><h3 class="mt-0 mb-0">Search engines &amp; crawling</h3></div>
       <div class="card-body">
         <div class="form-grid">
@@ -525,7 +559,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-tab="general">
       <div class="card-header"><h3 class="mt-0 mb-0">Availability</h3></div>
       <div class="card-body">
         <label class="check-row" for="maintenanceMode">
@@ -681,3 +715,65 @@
     </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    var form = document.querySelector('.settings-form');
+    var nav = document.querySelector('.settings-tabs');
+    if (!form || !nav) return;
+
+    var tabs = [].slice.call(nav.querySelectorAll('.settings-tab'));
+    var cards = [].slice.call(form.querySelectorAll('.card[data-tab]'));
+    if (!tabs.length || !cards.length) return;
+
+    // Only now does the CSS hide inactive panels. Before this runs, everything is
+    // visible, so a JS failure leaves a usable (if long) page rather than a blank one.
+    document.documentElement.classList.add('js-tabs');
+
+    function show(id, pushHash) {
+      tabs.forEach(function (t) {
+        var on = t.getAttribute('data-tab-target') === id;
+        t.classList.toggle('is-active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      cards.forEach(function (c) {
+        c.classList.toggle('tab-active', c.getAttribute('data-tab') === id);
+      });
+      // Keep the tab in the hash so a save-and-redirect lands back on the same tab.
+      if (pushHash) history.replaceState(null, '', '#' + id);
+      try { sessionStorage.setItem('whp.settingsTab', id); } catch (e) { /* private mode */ }
+    }
+
+    var valid = tabs.map(function (t) { return t.getAttribute('data-tab-target'); });
+
+    // Restore: hash first (shareable), then the remembered tab, else the first one.
+    var initial = location.hash.replace('#', '');
+    if (valid.indexOf(initial) === -1) {
+      try { initial = sessionStorage.getItem('whp.settingsTab') || ''; } catch (e) { initial = ''; }
+    }
+    if (valid.indexOf(initial) === -1) initial = valid[0];
+    show(initial, false);
+
+    tabs.forEach(function (t) {
+      t.addEventListener('click', function () {
+        show(t.getAttribute('data-tab-target'), true);
+      });
+      // Left/right arrows move between tabs, as expected of role="tablist".
+      t.addEventListener('keydown', function (e) {
+        var i = valid.indexOf(t.getAttribute('data-tab-target'));
+        var next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : -1;
+        if (next < 0 || next >= valid.length) return;
+        e.preventDefault();
+        tabs[next].focus();
+        show(valid[next], true);
+      });
+    });
+
+    // If a field fails validation on a hidden tab, the browser focuses it but the
+    // user sees nothing -- so surface that tab instead of silently doing nothing.
+    form.addEventListener('invalid', function (e) {
+      var card = e.target.closest ? e.target.closest('.card[data-tab]') : null;
+      if (card) show(card.getAttribute('data-tab'), true);
+    }, true);
+  })();
+</script>

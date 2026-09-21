@@ -304,10 +304,15 @@ p  { margin: 0 0 1em; }
   background: var(--bg-soft); border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
+/* Card grids.
+   These are FIXED column counts rather than `auto-fit`, so a listing shows the
+   intended number of cards across instead of however many happen to fit -- at a
+   1300px container, auto-fit with a 260px minimum silently produced 4-5 columns.
+   Each one collapses at 900px and again at 620px so mobile stays usable. */
 .grid { display: grid; gap: 22px; }
-.grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-.grid-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-.grid-4 { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
 /* ==========================================================================
    Hero
@@ -899,6 +904,9 @@ table.data .strong { font-weight: 600; color: var(--text); }
   .hero-grid { grid-template-columns: 1fr; gap: 44px; }
   .hero-visual { max-width: 520px; }
   .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  /* Card grids step down rather than jumping straight to one column. */
+  .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 860px) {
@@ -920,6 +928,12 @@ table.data .strong { font-weight: 600; color: var(--text); }
   .footer-grid { grid-template-columns: 1fr; gap: 30px; }
   .cta-band { padding: 40px 24px; }
   .float-card { display: none; }
+  /* Two columns is still comfortable here; single column kicks in at 620px. */
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: minmax(0, 1fr); gap: 16px; }
 }
 
 @media (max-width: 560px) {

@@ -30,12 +30,16 @@
       --brand-600: <%= settings.primaryColor %>;
       --brand-500: <%= settings.primaryColor %>;
       --brand-700: <%= settings.primaryColor %>;
-      --text: <%= settings.secondaryColor %>;
       --accent-500: <%= settings.accentColor %>;
       --accent-600: <%= helpers.shade(settings.accentColor) %>;
       --font: '<%= settings.fontBody %>', '<%= settings.fontBodyBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-stack: '<%= settings.fontBody %>', '<%= settings.fontBodyBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-heading: '<%= settings.fontHeading %>', '<%= settings.fontHeadingBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    /* Scoped to light mode -- see the note in layouts/public.ejs. Unscoped, this
+       would override the dark theme's own --text and make the page unreadable. */
+    :root:not([data-theme="dark"]) {
+      --text: <%= settings.secondaryColor %>;
     }
     h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
   </style>
@@ -43,5 +47,8 @@
 <body class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
 <%- body %>
 <script src="/js/site.js" defer></script>
+
+<%# Re-emit view scripts extracted by express-ejs-layouts -- see layouts/dashboard.ejs. %>
+<%- typeof script !== 'undefined' ? script : '' %>
 </body>
 </html>
