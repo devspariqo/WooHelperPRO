@@ -18,3 +18,9 @@ tmp/
 
 # Local deployment credentials -- never commit
 *.local.md
+
+# Scratch dir used by verification scripts
+.whp-verify/
+.whp-*.json
+.whp-*.png
+.whp-*.log
