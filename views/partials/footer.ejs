@@ -78,6 +78,9 @@
 
     </div>
 
+    <%# Payment methods actually accepted, on every public page. %>
+    <%- include('./payment-logos', { heading: 'We accept', compact: true }) %>
+
     <div class="footer-bottom">
       <span>&copy; <%= new Date().getFullYear() %> <%= settings.siteName %>. All rights reserved.</span>
       <% if (settings.footerText) { %>

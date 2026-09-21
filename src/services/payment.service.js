@@ -55,7 +55,16 @@ async function submitManual(input) {
     throw Object.assign(new Error('This transaction ID has already been submitted.'), { status: 409 });
   }
 
-  return createPayment({ ...input, status: 'PENDING' });
+  const payment = await createPayment({ ...input, status: 'PENDING' });
+
+  // Tell the team a transfer is waiting to be checked. Fire-and-forget: a mail
+  // failure must never roll back a payment the customer has already sent.
+  // Required lazily to avoid a require cycle (mailer -> prisma -> ... -> here).
+  try {
+    require('./mailer.service').notify('adminNewPayment', [payment], { kind: 'admin' }).catch(() => {});
+  } catch { /* mail is best-effort */ }
+
+  return payment;
 }
 
 /**

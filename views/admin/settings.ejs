@@ -238,6 +238,40 @@
 
   <div class="dash-grid cols-3 mt-4">
     <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Payment method logos</h3></div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3">
+          Shown on the checkout, package pages and the public footer so a customer can see which
+          rails you accept before they pay. Upload a file in the
+          <a href="/admin/media">media library</a>, then paste its URL here. Leave one blank and
+          that method simply is not advertised.
+        </div>
+        <div class="form-grid two">
+          <% [
+               ['bkashLogoUrl', 'bKash logo'],
+               ['nagadLogoUrl', 'Nagad logo'],
+               ['rocketLogoUrl', 'Rocket logo'],
+               ['sslcommerzLogoUrl', 'SSLCommerz logo'],
+               ['bankLogoUrl', 'Bank transfer logo'],
+               ['codLogoUrl', 'Cash on delivery logo'],
+               ['cardLogoUrl', 'Card / Visa-Mastercard logo'],
+             ].forEach(function (pair) { %>
+            <div class="field">
+              <label for="<%= pair[0] %>"><%= pair[1] %></label>
+              <div class="logo-field">
+                <input type="text" id="<%= pair[0] %>" name="<%= pair[0] %>" maxlength="300"
+                       value="<%= site[pair[0]] %>" placeholder="/uploads/payments/bkash.png">
+                <% if (site[pair[0]]) { %>
+                  <img src="<%= site[pair[0]] %>" alt="" class="logo-preview" loading="lazy">
+                <% } %>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-header"><h3 class="mt-0 mb-0">Search engine defaults</h3></div>
       <div class="card-body">
         <div class="form-grid">
@@ -357,6 +391,141 @@
     </div>
 
     <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Email delivery (SMTP)</h3></div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3">
+          Used for order, payment and support notifications. Leave the host blank to fall back to
+          the <code>SMTP_*</code> environment variables. When nothing is configured, messages are
+          written to the server log instead of being sent — useful in development.
+        </div>
+        <div class="form-grid two">
+          <div class="field">
+            <label for="smtpHost">SMTP host</label>
+            <input type="text" id="smtpHost" name="smtpHost" maxlength="160"
+                   value="<%= site.smtpHost %>" placeholder="smtp.hostinger.com">
+          </div>
+          <div class="field">
+            <label for="smtpPort">Port</label>
+            <input type="number" id="smtpPort" name="smtpPort" min="1" max="65535"
+                   value="<%= site.smtpPort %>">
+            <span class="hint">465 for implicit TLS, 587 for STARTTLS.</span>
+          </div>
+          <div class="field">
+            <label for="smtpUser">Username</label>
+            <input type="text" id="smtpUser" name="smtpUser" maxlength="160"
+                   value="<%= site.smtpUser %>" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="smtpPassword">Password</label>
+            <input type="password" id="smtpPassword" name="smtpPassword" maxlength="200"
+                   autocomplete="new-password"
+                   placeholder="<%= site.smtpPassword ? '•••••••• (saved)' : 'Not set' %>">
+            <span class="hint">Leave blank to keep the saved password.</span>
+          </div>
+          <div class="field">
+            <label for="mailFromName">From name</label>
+            <input type="text" id="mailFromName" name="mailFromName" maxlength="120"
+                   value="<%= site.mailFromName %>" placeholder="<%= site.siteName %>">
+          </div>
+          <div class="field">
+            <label for="mailFromEmail">From address</label>
+            <input type="email" id="mailFromEmail" name="mailFromEmail" maxlength="160"
+                   value="<%= site.mailFromEmail %>" placeholder="no-reply@example.com">
+          </div>
+          <div class="field">
+            <label for="adminNotificationEmail">Admin notification address</label>
+            <input type="email" id="adminNotificationEmail" name="adminNotificationEmail" maxlength="160"
+                   value="<%= site.adminNotificationEmail %>">
+            <span class="hint">Where internal alerts go. Falls back to the support email.</span>
+          </div>
+          <div class="field">
+            <label for="smtpSecure">Encryption</label>
+            <label class="check-row" for="smtpSecure">
+              <input type="checkbox" id="smtpSecure" name="smtpSecure"
+                     <%= site.smtpSecure ? 'checked' : '' %>>
+              <span>Use implicit TLS (usually port 465)</span>
+            </label>
+          </div>
+        </div>
+
+        <h4 class="mt-4">Which notifications to send</h4>
+        <div class="form-grid two">
+          <div class="field">
+            <label>To the team</label>
+            <label class="check-row" for="notifyAdminOnOrder">
+              <input type="checkbox" id="notifyAdminOnOrder" name="notifyAdminOnOrder"
+                     <%= site.notifyAdminOnOrder ? 'checked' : '' %>>
+              <span>New order placed</span>
+            </label>
+            <label class="check-row" for="notifyAdminOnPayment">
+              <input type="checkbox" id="notifyAdminOnPayment" name="notifyAdminOnPayment"
+                     <%= site.notifyAdminOnPayment ? 'checked' : '' %>>
+              <span>Payment awaiting verification</span>
+            </label>
+            <label class="check-row" for="notifyAdminOnTicket">
+              <input type="checkbox" id="notifyAdminOnTicket" name="notifyAdminOnTicket"
+                     <%= site.notifyAdminOnTicket ? 'checked' : '' %>>
+              <span>New support ticket</span>
+            </label>
+            <label class="check-row" for="notifyAdminOnLead">
+              <input type="checkbox" id="notifyAdminOnLead" name="notifyAdminOnLead"
+                     <%= site.notifyAdminOnLead ? 'checked' : '' %>>
+              <span>New enquiry from the contact form</span>
+            </label>
+          </div>
+          <div class="field">
+            <label>To the customer</label>
+            <label class="check-row" for="notifyCustomerOnOrder">
+              <input type="checkbox" id="notifyCustomerOnOrder" name="notifyCustomerOnOrder"
+                     <%= site.notifyCustomerOnOrder ? 'checked' : '' %>>
+              <span>Order received and status changes</span>
+            </label>
+            <label class="check-row" for="notifyCustomerOnPayment">
+              <input type="checkbox" id="notifyCustomerOnPayment" name="notifyCustomerOnPayment"
+                     <%= site.notifyCustomerOnPayment ? 'checked' : '' %>>
+              <span>Payment confirmed</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3 class="mt-0 mb-0">Search engines &amp; crawling</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="field">
+            <label class="check-row" for="sitemapEnabled">
+              <input type="checkbox" id="sitemapEnabled" name="sitemapEnabled"
+                     <%= site.sitemapEnabled ? 'checked' : '' %>>
+              <span>Serve a generated <code>/sitemap.xml</code></span>
+            </label>
+            <span class="hint">
+              Built automatically from your published services, packages, blog posts and portfolio
+              items. Changes as soon as you publish something.
+            </span>
+          </div>
+          <div class="field">
+            <label for="robotsExtraDisallow">Extra paths to disallow</label>
+            <textarea id="robotsExtraDisallow" name="robotsExtraDisallow" rows="3"
+                      maxlength="1000"
+                      placeholder="/preview&#10;/internal"><%= site.robotsExtraDisallow %></textarea>
+            <span class="hint">One path per line. Account and admin areas are always excluded.</span>
+          </div>
+          <div class="field">
+            <label for="robotsTxt">Custom robots.txt</label>
+            <textarea id="robotsTxt" name="robotsTxt" rows="6" maxlength="4000"
+                      placeholder="Leave blank to use the generated file"><%= site.robotsTxt %></textarea>
+            <span class="hint">
+              If you fill this in it replaces the generated <code>robots.txt</code> entirely —
+              you then own the sitemap reference too.
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-header"><h3 class="mt-0 mb-0">Availability</h3></div>
       <div class="card-body">
         <label class="check-row" for="maintenanceMode">
@@ -380,6 +549,33 @@
     <div class="card-body form-actions">
       <button type="submit" class="btn btn-primary">Save settings</button>
       <a class="btn btn-outline" href="/admin">Cancel</a>
+    </div>
+  </div>
+</form>
+
+<%#
+  Separate form on purpose: the test-mail action must not be a nested <form>, and it
+  must NOT submit the settings form — testing the transport should be possible while
+  the SMTP fields are still unsaved-and-then-saved in a deliberate order.
+%>
+<form method="post" action="/admin/settings/test-mail" class="card mt-4">
+  <%- csrfField %>
+  <div class="card-header"><h3 class="mt-0 mb-0">Send a test email</h3></div>
+  <div class="card-body">
+    <p class="muted">
+      Sends one message using the settings <strong>as currently saved</strong>. Save your SMTP
+      changes first, then test.
+    </p>
+    <div class="form-grid two">
+      <div class="field">
+        <label for="testTo">Send to</label>
+        <input type="email" id="testTo" name="testTo" maxlength="160"
+               value="<%= site.adminNotificationEmail || site.supportEmail %>">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="btn btn-outline" type="submit">Send test email</button>
+      </div>
     </div>
   </div>
 </form>

@@ -154,7 +154,7 @@ router.post('/', requirePermission('users'), async (req, res, next) => {
       detail: `${user.email} created as ${finalRole}`,
     });
 
-    mailer.send({ to: user.email, ...mailer.templates.welcome(user) }).catch(() => {});
+    mailer.notify('welcome', [user], { to: user.email }).catch(() => {});
 
     req.flash('success', `${user.name} has been created as ${ROLES[finalRole]}.`);
     return res.redirect(`/admin/users/${user.id}`);

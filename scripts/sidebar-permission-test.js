@@ -42,6 +42,7 @@ const SIDEBAR = [
   ['/admin/blog', 'content'],
   ['/admin/faqs', 'content'],
   ['/admin/testimonials', 'testimonials'],
+  ['/admin/media', 'media'],
   ['/admin/settings', 'settings'],
   ['/admin/activity', 'activity'],
 ];

@@ -105,6 +105,36 @@ function settingsBody(row) {
     defaultLanguage: row.defaultLanguage,
     dateFormat: row.dateFormat,
     footerText: row.footerText,
+    // payment method logos
+    bkashLogoUrl: row.bkashLogoUrl,
+    nagadLogoUrl: row.nagadLogoUrl,
+    rocketLogoUrl: row.rocketLogoUrl,
+    sslcommerzLogoUrl: row.sslcommerzLogoUrl,
+    bankLogoUrl: row.bankLogoUrl,
+    codLogoUrl: row.codLogoUrl,
+    cardLogoUrl: row.cardLogoUrl,
+    // mail
+    smtpHost: row.smtpHost,
+    smtpPort: String(row.smtpPort),
+    smtpUser: row.smtpUser,
+    smtpPassword: row.smtpPassword,
+    mailFromName: row.mailFromName,
+    mailFromEmail: row.mailFromEmail,
+    adminNotificationEmail: row.adminNotificationEmail,
+    // crawling
+    robotsTxt: row.robotsTxt,
+    robotsExtraDisallow: row.robotsExtraDisallow,
+    // Checkboxes: an unchecked box sends nothing and the handler reads `=== 'on'`,
+    // so an omitted box turns the feature OFF rather than leaving it alone.
+    smtpSecure: row.smtpSecure ? 'on' : '',
+    sitemapEnabled: row.sitemapEnabled ? 'on' : '',
+    maintenanceMode: row.maintenanceMode ? 'on' : '',
+    notifyAdminOnOrder: row.notifyAdminOnOrder ? 'on' : '',
+    notifyAdminOnPayment: row.notifyAdminOnPayment ? 'on' : '',
+    notifyAdminOnTicket: row.notifyAdminOnTicket ? 'on' : '',
+    notifyAdminOnLead: row.notifyAdminOnLead ? 'on' : '',
+    notifyCustomerOnOrder: row.notifyCustomerOnOrder ? 'on' : '',
+    notifyCustomerOnPayment: row.notifyCustomerOnPayment ? 'on' : '',
   };
 }
 

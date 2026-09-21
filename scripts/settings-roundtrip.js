@@ -49,25 +49,60 @@ function check(label, pass, detail) {
 }
 
 // Build the POST body from a settings row, overriding selected fields.
+//
+// CRITICAL: every editable column must appear here. The handler treats an absent
+// key as "clear it", so a field omitted from this map is WIPED on every run.
+// Keep in sync with the update block in src/routes/admin/content.routes.js.
 function bodyFrom(row, overrides) {
   const s = { ...row, ...overrides };
   return {
+    // identity & contact
     siteName: s.siteName, tagline: s.tagline, taglineBn: s.taglineBn,
     supportEmail: s.supportEmail, supportPhone: s.supportPhone,
     whatsappNumber: s.whatsappNumber, officeAddress: s.officeAddress,
+    // branding
     logoUrl: s.logoUrl, logoAlt: s.logoAlt, logoHeightPx: String(s.logoHeightPx), faviconUrl: s.faviconUrl,
     primaryColor: s.primaryColor, secondaryColor: s.secondaryColor, accentColor: s.accentColor,
+    // typography
     fontHeading: s.fontHeading, fontBody: s.fontBody,
     fontHeadingBn: s.fontHeadingBn, fontBodyBn: s.fontBodyBn,
+    // payments & tax
     bkashNumber: s.bkashNumber, nagadNumber: s.nagadNumber, rocketNumber: s.rocketNumber,
     bankDetails: s.bankDetails, vatPercent: String(s.vatPercent),
+    // payment method logos
+    bkashLogoUrl: s.bkashLogoUrl, nagadLogoUrl: s.nagadLogoUrl, rocketLogoUrl: s.rocketLogoUrl,
+    sslcommerzLogoUrl: s.sslcommerzLogoUrl, bankLogoUrl: s.bankLogoUrl,
+    codLogoUrl: s.codLogoUrl, cardLogoUrl: s.cardLogoUrl,
+    // SEO
     metaTitle: s.metaTitle, metaDescription: s.metaDescription,
     metaKeywords: s.metaKeywords, metaRobots: s.metaRobots, ogImageUrl: s.ogImageUrl,
     googleAnalyticsId: s.googleAnalyticsId,
     googleSiteVerification: s.googleSiteVerification, twitterHandle: s.twitterHandle,
+    // social
     facebookUrl: s.facebookUrl, youtubeUrl: s.youtubeUrl, linkedinUrl: s.linkedinUrl,
+    // general
     timezone: s.timezone, defaultLanguage: s.defaultLanguage,
     dateFormat: s.dateFormat, footerText: s.footerText,
+    // mail
+    smtpHost: s.smtpHost, smtpPort: String(s.smtpPort), smtpUser: s.smtpUser,
+    // A blank password means "keep the stored one", so echoing it back is safe.
+    smtpPassword: s.smtpPassword,
+    mailFromName: s.mailFromName, mailFromEmail: s.mailFromEmail,
+    adminNotificationEmail: s.adminNotificationEmail,
+    // crawling
+    robotsTxt: s.robotsTxt, robotsExtraDisallow: s.robotsExtraDisallow,
+    // Checkboxes. These are the sharpest edge in this file: an unchecked box sends
+    // NOTHING, and the handler reads `=== 'on'`, so omitting one silently turns the
+    // feature OFF rather than leaving it alone. Echo them back explicitly.
+    smtpSecure: s.smtpSecure ? 'on' : '',
+    sitemapEnabled: s.sitemapEnabled ? 'on' : '',
+    maintenanceMode: s.maintenanceMode ? 'on' : '',
+    notifyAdminOnOrder: s.notifyAdminOnOrder ? 'on' : '',
+    notifyAdminOnPayment: s.notifyAdminOnPayment ? 'on' : '',
+    notifyAdminOnTicket: s.notifyAdminOnTicket ? 'on' : '',
+    notifyAdminOnLead: s.notifyAdminOnLead ? 'on' : '',
+    notifyCustomerOnOrder: s.notifyCustomerOnOrder ? 'on' : '',
+    notifyCustomerOnPayment: s.notifyCustomerOnPayment ? 'on' : '',
   };
 }
 

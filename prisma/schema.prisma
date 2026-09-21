@@ -42,6 +42,7 @@ model User {
   notes         ClientNote[]
   projects      Project[]
   staffAssigned Project[]    @relation("ProjectManager")
+  mediaAssets   MediaAsset[] @relation("MediaUploader")
 
   @@index([role])
   @@index([status])
@@ -593,7 +594,7 @@ model SiteSetting {
   // --text, --accent-500) so a fresh install looks identical to the theme.
   primaryColor    String   @default("#7c3aed")
   secondaryColor  String   @default("#17141f")
-  accentColor     String   @default("#f59e0b")
+  accentColor     String   @default("#ff6600")
 
   // ---- Typography ---------------------------------------------------------
   // Google Fonts family names. The layout builds the <link> from these, so
@@ -616,4 +617,74 @@ model SiteSetting {
   defaultLanguage String   @default("en")
   dateFormat      String   @default("DD MMM YYYY")
   footerText      String   @default("")
+
+  // ---- Payment method logos ------------------------------------------------
+  // URLs into the media library. Rendered on the checkout, package pages and the
+  // public footer so a customer can see which rails are accepted before paying.
+  // Blank means the method is simply not advertised -- nothing renders.
+  bkashLogoUrl      String @default("")
+  nagadLogoUrl      String @default("")
+  rocketLogoUrl     String @default("")
+  sslcommerzLogoUrl String @default("")
+  bankLogoUrl       String @default("")
+  codLogoUrl        String @default("")
+  cardLogoUrl       String @default("")
+
+  // ---- Outbound mail ------------------------------------------------------
+  // SMTP is admin-editable so the operator can change provider without a
+  // redeploy. Falls back to the SMTP_* env vars when these are blank.
+  smtpHost        String  @default("")
+  smtpPort        Int     @default(587)
+  smtpSecure      Boolean @default(false)
+  smtpUser        String  @default("")
+  smtpPassword    String  @default("")
+  mailFromName    String  @default("")
+  mailFromEmail   String  @default("")
+
+  // Where admin alerts go. Blank falls back to supportEmail, then to env.
+  adminNotificationEmail String @default("")
+
+  // Per-event switches. Both directions, so an operator can silence one without
+  // disabling mail entirely.
+  notifyAdminOnOrder   Boolean @default(true)
+  notifyAdminOnPayment Boolean @default(true)
+  notifyAdminOnTicket  Boolean @default(true)
+  notifyAdminOnLead    Boolean @default(true)
+  notifyCustomerOnOrder   Boolean @default(true)
+  notifyCustomerOnPayment Boolean @default(true)
+
+  // ---- Crawling -----------------------------------------------------------
+  sitemapEnabled       Boolean @default(true)
+  robotsTxt            String  @default("")
+  robotsExtraDisallow  String  @default("")
+}
+
+// ============================================================
+// MEDIA LIBRARY
+// ============================================================
+//
+// One row per uploaded file. The bytes live on disk under UPLOAD_DIR and this
+// records what they are, so the admin can browse, reuse and delete them, and so
+// orphaned files can be found later.
+//
+// `url` is what templates render; it is stored rather than derived so that
+// moving to object storage later is a data change, not a code change.
+
+model MediaAsset {
+  id           String   @id @default(cuid())
+  filename     String                        // name on disk, unique
+  originalName String                        // what the user's file was called
+  url          String                        // public path, e.g. /uploads/abc.png
+  mimeType     String
+  sizeBytes    Int
+  width        Int?                          // null for non-images / undetected
+  height       Int?
+  altText      String   @default("")
+  folder       String   @default("general")  // logical grouping: general, payments, blog, portfolio
+  uploadedById String?
+  uploadedBy   User?    @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+
+  @@index([folder])
+  @@index([createdAt])
 }

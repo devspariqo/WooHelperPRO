@@ -32,7 +32,7 @@
       --brand-700: <%= settings.primaryColor %>;
       --text: <%= settings.secondaryColor %>;
       --accent-500: <%= settings.accentColor %>;
-      --accent-600: <%= settings.accentColor %>;
+      --accent-600: <%= helpers.shade(settings.accentColor) %>;
       --font: '<%= settings.fontBody %>', '<%= settings.fontBodyBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-stack: '<%= settings.fontBody %>', '<%= settings.fontBodyBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-heading: '<%= settings.fontHeading %>', '<%= settings.fontHeadingBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

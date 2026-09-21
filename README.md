@@ -23,13 +23,67 @@ Built as a single Node.js application with three separated surfaces:
   (`public`, `auth`, `dashboard`)
 - **Sessions** via `express-session` (cookie name `whp.sid`) + `connect-flash`
 - **bcryptjs** password hashing (12 rounds), **Helmet** CSP, **express-rate-limit**
-- **nodemailer** for outbound mail (optional; the app runs without SMTP configured)
+- **nodemailer** for outbound mail, **compression** for gzip, **multer** for uploads
 
-> **No upload middleware ships with this project.** `multer` and `sharp` were removed;
-> `UPLOAD_DIR` / `MAX_UPLOAD_MB` remain in `.env.example` but nothing consumes them.
-> Site settings therefore take **image URLs** (a path under `/images/` or an absolute
-> https:// URL) rather than file uploads. Adding uploads means adding a middleware, not
-> just a form field.
+### Media and uploads
+
+The media library at `/admin/media` stores images on disk under `UPLOAD_DIR`
+(`public/uploads/` by default) and records each one in the `MediaAsset` table.
+
+Uploads are validated by **magic bytes, not by filename or client-supplied MIME type** — a
+shell script renamed to `.png` and posted as `image/png` is rejected. Only PNG, JPEG, GIF,
+WebP, AVIF and ICO are accepted; the stored extension is rewritten from the sniffed type, and
+the on-disk name is random, so nothing about the path is attacker-controlled.
+
+**SVG is deliberately not accepted.** It is XML and can carry `<script>`, which would execute
+on your own origin. Place a custom SVG logo under `public/images/` by hand instead.
+
+Image dimensions are read from the file header (PNG, GIF, WebP and JPEG parsed by hand — no
+image library) so templates can emit `width`/`height` and avoid layout shift.
+
+> **Uploading is a two-part flow.** The CSRF token must travel as an `X-CSRF-Token` header,
+> not only in the form body: multer parses multipart bodies and runs *after* the CSRF
+> middleware, so when CSRF checks `req.body` a multipart form's fields are not parsed yet and
+> the token looks absent.
+
+### Payment logos
+
+`/admin/settings` → *Payment method logos* takes a URL per method (bKash, Nagad, Rocket,
+SSLCommerz, card, bank, cash on delivery). Upload the image in the media library, paste its
+URL. The `partials/payment-logos` partial renders only the methods that have a logo, so the
+strip is never a row of broken images and never advertises a rail you do not accept. It
+appears in the public footer on every page.
+
+### SEO: sitemap, robots and performance
+
+`/sitemap.xml` and `/robots.txt` are generated on request from the database, so publishing a
+service or a blog post updates them immediately — no rebuild, no cache to bust.
+
+- **sitemap.xml** lists the static pages plus published services, packages and blog posts,
+  with `lastmod` from the row. Portfolio items are deliberately excluded: there is no
+  `/portfolio/:slug` route, and a sitemap pointing at 404s is worse than one that omits them.
+- **robots.txt** always disallows `/admin`, `/account`, `/api` and the auth/checkout paths
+  regardless of configuration. Add extra paths one per line, or supply a completely custom
+  file — which then replaces the generated one entirely, sitemap reference included.
+
+Both are controlled from `/admin/settings` → *Search engines & crawling*. Responses are
+gzipped, and uploaded media is served `immutable` for a year because its filename is unique
+per upload.
+
+### Mail
+
+SMTP is configured in `/admin/settings` → *Email delivery (SMTP)*, stored in the database and
+read **per send**, so fixing a wrong port takes effect on the next email without a restart.
+Blank fields fall back to the `SMTP_*` environment variables. With no host configured at all,
+messages are written to the server log instead of throwing, so the order flow stays testable
+locally. *Send a test email* reports the real SMTP error rather than a generic failure.
+
+Notifications are per-event and can be switched off individually: new order, payment awaiting
+verification, new ticket and new enquiry go to the team; order received, status change and
+payment confirmed go to the customer. Templates take their colours from the branding settings.
+
+> Email HTML cannot use CSS variables, so every style is inlined and the brand colour is
+> interpolated at build time. Keep new templates inline — most clients strip `<style>` blocks.
 
 Payments are wallet-transfer based: bKash / Nagad / Rocket with SSLCommerz as the
 card/bank gateway. Because bKash, Nagad and Rocket have **no recurring mandate API**,

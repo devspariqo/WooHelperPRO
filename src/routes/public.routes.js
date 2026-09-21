@@ -460,8 +460,10 @@ router.post('/order/checkout', formLimiter, async (req, res, next) => {
       detail: `${order.orderNumber} — ${projectName} (৳${quote.total})`,
     });
 
-    mailer.send({ to: user.email, ...mailer.templates.orderPlaced(order) }).catch(() => {});
-    if (invoice) mailer.send({ to: user.email, ...mailer.templates.invoice(invoice) }).catch(() => {});
+    mailer.notify('orderPlaced', [order], { to: user.email }).catch(() => {});
+    if (invoice) mailer.notify('invoice', [invoice], { to: user.email }).catch(() => {});
+    // Tell the team as well, so an order is not missed until someone opens the panel.
+    mailer.notify('adminNewOrder', [order], { kind: 'admin' }).catch(() => {});
 
     // A guest has no session yet — sign them in so they can complete payment.
     if (!req.user) {
@@ -625,6 +627,10 @@ router.post('/contact', formLimiter, async (req, res, next) => {
       userId: req.user?.id ?? null,
       detail: `${cleanName} (${normalizedPhone}) — ${serviceType || 'general enquiry'}`,
     });
+
+    // Enquiries are time-sensitive: the promise on screen is a call within one
+    // business day, so the team is told immediately rather than on next login.
+    mailer.notify('adminNewLead', [lead], { kind: 'admin' }).catch(() => {});
 
     req.flash('success', 'Thank you. Our team will call you within one business day.');
     return res.redirect('/contact');

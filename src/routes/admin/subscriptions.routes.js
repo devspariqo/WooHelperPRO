@@ -190,7 +190,7 @@ router.post('/', requirePermission('subscriptions'), async (req, res, next) => {
     const invoice = await invoiceService.createInvoiceForSubscription(subscription, quote);
 
     if (customer.email) {
-      mailer.send({ to: customer.email, ...mailer.templates.invoice(invoice) }).catch(() => {});
+      mailer.notify('invoice', [invoice], { to: customer.email }).catch(() => {});
     }
 
     req.flash('success', `Subscription ${subscription.subscriptionNumber} created and the first invoice issued.`);

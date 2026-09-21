@@ -145,7 +145,7 @@ router.post('/invoices/:id/resend', requirePermission('invoices'), async (req, r
       return res.redirect('/admin/invoices');
     }
 
-    const result = await mailer.send({ to: invoice.user.email, ...mailer.templates.invoice(invoice) });
+    const result = await mailer.notify('invoice', [invoice], { to: invoice.user.email });
 
     await audit.log(req, 'invoice.resent', { entityType: 'Invoice', entityId: invoice.id });
 
@@ -232,7 +232,7 @@ router.post('/payments/:id/verify', requirePermission('payments'), async (req, r
 
     const customer = await prisma.user.findUnique({ where: { id: payment.userId } });
     if (customer?.email) {
-      mailer.send({ to: customer.email, ...mailer.templates.paymentReceived(payment) }).catch(() => {});
+      mailer.notify('paymentReceived', [payment], { to: customer.email }).catch(() => {});
     }
 
     req.flash('success', `Payment ${payment.reference} verified. Order and invoice balances updated.`);

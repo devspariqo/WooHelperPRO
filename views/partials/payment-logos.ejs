@@ -1,0 +1,46 @@
+<%
+  /*
+   * Payment method logos.
+   *
+   * Renders only the methods the admin has actually uploaded a logo for, so the
+   * strip is never a row of broken images and never advertises a rail the business
+   * does not accept. Callers can narrow the list via `methods`, otherwise all
+   * seven are considered in this order.
+   *
+   * Call as:  include('payment-logos')
+   *           include('payment-logos', { methods: ['bkash','nagad'], heading: 'Pay with' })
+   *
+   * NOTE: never write an EJS tag opener inside this comment block. EJS scans for
+   * the closing delimiter and a literal tag inside a comment breaks the whole
+   * template with "Could not find matching close tag".
+   */
+  var ALL_METHODS = [
+    { key: 'bkash',      setting: 'bkashLogoUrl',      label: 'bKash' },
+    { key: 'nagad',      setting: 'nagadLogoUrl',      label: 'Nagad' },
+    { key: 'rocket',     setting: 'rocketLogoUrl',     label: 'Rocket' },
+    { key: 'sslcommerz', setting: 'sslcommerzLogoUrl', label: 'SSLCommerz' },
+    { key: 'card',       setting: 'cardLogoUrl',       label: 'Card' },
+    { key: 'bank',       setting: 'bankLogoUrl',       label: 'Bank transfer' },
+    { key: 'cod',        setting: 'codLogoUrl',        label: 'Cash on delivery' }
+  ];
+
+  var wanted = (typeof methods !== 'undefined' && methods) ? methods : null;
+  var shown = ALL_METHODS.filter(function (m) {
+    if (!settings[m.setting]) return false;
+    return !wanted || wanted.indexOf(m.key) !== -1;
+  });
+
+  var title = (typeof heading !== 'undefined' && heading) ? heading : 'We accept';
+%>
+<% if (shown.length) { %>
+<div class="pay-logos<%= (typeof compact !== 'undefined' && compact) ? ' pay-logos-compact' : '' %>">
+  <% if (title) { %><span class="pay-logos-label"><%= title %></span><% } %>
+  <ul class="pay-logos-list">
+    <% shown.forEach(function (m) { %>
+      <li>
+        <img src="<%= settings[m.setting] %>" alt="<%= m.label %>" loading="lazy" decoding="async">
+      </li>
+    <% }); %>
+  </ul>
+</div>
+<% } %>

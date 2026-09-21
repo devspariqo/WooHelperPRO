@@ -137,6 +137,9 @@ const PERMISSIONS = {
   settings: ['SUPER_ADMIN', 'ADMIN'],
   activity: ['SUPER_ADMIN', 'ADMIN'],
   reports: ['SUPER_ADMIN', 'ADMIN', 'MANAGER'],
+  // The media library. STAFF can upload (blog covers, portfolio shots) but the
+  // destructive action is separate below.
+  media: ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'STAFF'],
 };
 
 function can(role, permission) {

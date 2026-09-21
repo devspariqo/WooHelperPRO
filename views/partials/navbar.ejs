@@ -32,6 +32,18 @@
         <%= lang === 'bn' ? 'EN' : 'বাং' %>
       </a>
 
+      <%#
+        Light/dark toggle. Server-rendered from the session, so the correct theme
+        is already on <html data-theme> at first paint -- there is no flash of the
+        wrong theme and no JS is required for it to work.
+      %>
+      <a class="theme-toggle" href="/theme/<%= theme === 'dark' ? 'light' : 'dark' %>"
+         title="Switch to <%= theme === 'dark' ? 'light' : 'dark' %> theme"
+         aria-label="Switch to <%= theme === 'dark' ? 'light' : 'dark' %> theme">
+        <span aria-hidden="true"><%= theme === 'dark' ? '☀' : '☾' %></span>
+        <span class="theme-toggle-label"><%= theme === 'dark' ? 'Light' : 'Dark' %></span>
+      </a>
+
       <% if (isAuthenticated) { %>
         <a href="<%= isStaff ? '/admin' : '/account' %>" class="btn btn-ghost btn-sm">Dashboard</a>
         <form action="/logout" method="POST" class="inline-form">

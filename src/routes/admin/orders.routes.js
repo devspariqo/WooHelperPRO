@@ -145,10 +145,7 @@ router.post('/:id/status', requirePermission('orders'), async (req, res, next) =
     const notifyOn = ['PAYMENT_VERIFIED', 'IN_PROGRESS', 'CLIENT_REVIEW', 'COMPLETED', 'DELIVERED', 'CANCELLED', 'ON_HOLD'];
     if (notifyOn.includes(nextStatus) && updated.contactEmail) {
       mailer
-        .send({
-          to: updated.contactEmail,
-          ...mailer.templates.orderStatus(updated, ORDER_STATUS[nextStatus].en),
-        })
+        .notify('orderStatus', [updated, ORDER_STATUS[nextStatus].en], { to: updated.contactEmail })
         .catch(() => {});
     }
 
@@ -388,7 +385,7 @@ router.post('/:id/invoice', requirePermission('invoices'), async (req, res, next
     });
 
     if (order.contactEmail) {
-      mailer.send({ to: order.contactEmail, ...mailer.templates.invoice(invoice) }).catch(() => {});
+      mailer.notify('invoice', [invoice], { to: order.contactEmail }).catch(() => {});
     }
 
     req.flash('success', `Invoice ${invoice.invoiceNumber} created.`);

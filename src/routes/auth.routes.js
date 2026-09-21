@@ -173,7 +173,7 @@ router.post('/register', authLimiter, async (req, res) => {
     detail: `${user.email} registered`,
   });
 
-  mailer.send({ to: user.email, ...mailer.templates.welcome(user) }).catch(() => {});
+  mailer.notify('welcome', [user], { to: user.email }).catch(() => {});
 
   // Signing the user straight in removes a friction step in checkout.
   req.session.regenerate((err) => {

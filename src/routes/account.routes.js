@@ -519,10 +519,14 @@ router.post('/tickets', async (req, res, next) => {
       status: 'OPEN',
     });
 
+    // Alert the team so an OPEN ticket is not left sitting until someone checks.
+    require('../services/mailer.service')
+      .notify('adminNewTicket', [ticket], { kind: 'admin' })
+      .catch(() => {});
+
     await audit.log(req, 'ticket.created', {
       entityType: 'Ticket',
-      entityId: ticket.id,
-      detail: `${ticket.ticketNumber} — ${subject}`,
+      entityId: ticket.id,detail: `${ticket.ticketNumber} — ${subject}`,
     });
 
     req.flash('success', 'Ticket opened. Our support team replies within one business day.');

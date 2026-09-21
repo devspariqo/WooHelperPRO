@@ -1,0 +1,194 @@
+<%
+  /*
+   * Media library.
+   *
+   * The upload form posts with fetch() rather than a normal submit so the grid can
+   * be updated in place without losing the current filter. The endpoint returns
+   * JSON and reports validation failures as { ok: false, error } -- those messages
+   * come from the server's magic-byte check, so they are shown verbatim.
+   */
+%>
+
+<section class="detail-head">
+  <div class="ident">
+    <h1>Media library</h1>
+    <p class="meta-line muted mb-0">
+      <%= total %> file<%= total === 1 ? '' : 's' %>.
+      Uploads are checked by content, not by filename — PNG, JPEG, GIF, WebP, AVIF and ICO only,
+      up to <%= maxMb %> MB each.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline btn-sm" href="/admin/settings">Site settings</a>
+  </div>
+</section>
+
+<%# ---------------- Upload ---------------- %>
+<div class="card mt-4">
+  <div class="card-header"><h3 class="mt-0 mb-0">Upload</h3></div>
+  <div class="card-body">
+    <form id="mediaUploadForm" class="form-grid two" enctype="multipart/form-data">
+      <%- csrfField %>
+      <div class="field">
+        <label for="uploadFile">Choose an image</label>
+        <input type="file" id="uploadFile" name="file" accept="image/*" required>
+      </div>
+      <div class="field">
+        <label for="uploadFolder">Folder</label>
+        <select id="uploadFolder" name="folder">
+          <% folders.forEach(function (f) { %>
+            <option value="<%= f %>" <%= folder === f ? 'selected' : '' %>><%= f %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="field full">
+        <label for="uploadAlt">Alt text</label>
+        <input type="text" id="uploadAlt" name="altText" maxlength="200"
+               placeholder="Describe the image for screen readers and search engines">
+      </div>
+      <div class="field full">
+        <button class="btn btn-primary" type="submit" id="uploadBtn">Upload</button>
+        <span class="hint" id="uploadStatus"></span>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%# ---------------- Filter ---------------- %>
+<form method="get" action="/admin/media" class="toolbar mt-4">
+  <input type="search" name="q" value="<%= q %>" placeholder="Search filename or alt text…" aria-label="Search media">
+  <select name="folder" aria-label="Filter by folder">
+    <option value="">All folders</option>
+    <% folders.forEach(function (f) { %>
+      <option value="<%= f %>" <%= folder === f ? 'selected' : '' %>><%= f %></option>
+    <% }); %>
+  </select>
+  <button class="btn btn-outline btn-sm" type="submit">Filter</button>
+  <% if (q || folder) { %>
+    <a class="btn btn-ghost btn-sm" href="/admin/media">Clear</a>
+  <% } %>
+</form>
+
+<%# ---------------- Grid ---------------- %>
+<% if (!items.length) { %>
+  <div class="card mt-4">
+    <div class="card-body">
+      <div class="empty-state">
+        <div class="empty-icon">▩</div>
+        <h3 class="mt-0">No files yet</h3>
+        <p class="muted">
+          <% if (q || folder) { %>
+            Nothing matches that filter. <a href="/admin/media">Show everything</a>.
+          <% } else { %>
+            Upload your first image above. Once a file is here you can reuse its URL
+            anywhere in the admin panel.
+          <% } %>
+        </p>
+      </div>
+    </div>
+  </div>
+<% } else { %>
+  <div class="media-grid mt-4">
+    <% items.forEach(function (a) { %>
+      <figure class="media-card">
+        <div class="media-thumb">
+          <img src="<%= a.url %>" alt="<%= a.altText || a.originalName %>" loading="lazy"
+               <% if (a.width && a.height) { %>width="<%= a.width %>" height="<%= a.height %>"<% } %>>
+        </div>
+        <figcaption>
+          <p class="media-name" title="<%= a.originalName %>"><%= a.originalName %></p>
+          <p class="media-meta muted">
+            <%= a.folder %>
+            &middot; <%= Math.max(1, Math.round(a.sizeBytes / 1024)) %> KB
+            <% if (a.width && a.height) { %>
+              &middot; <%= a.width %>×<%= a.height %>
+            <% } %>
+          </p>
+
+          <form method="post" action="/admin/media/<%= a.id %>" class="media-alt">
+            <%- csrfField %>
+            <label class="sr-only" for="alt-<%= a.id %>">Alt text</label>
+            <input type="text" id="alt-<%= a.id %>" name="altText" maxlength="200"
+                   value="<%= a.altText %>" placeholder="Alt text">
+            <button class="btn btn-ghost btn-xs" type="submit">Save</button>
+          </form>
+
+          <div class="media-actions">
+            <button type="button" class="btn btn-outline btn-xs js-copy-url"
+                    data-url="<%= a.url %>">Copy URL</button>
+            <form method="post" action="/admin/media/<%= a.id %>/delete"
+                  onsubmit="return confirm('Delete this file permanently? Pages already using it will show a broken image.')">
+              <%- csrfField %>
+              <button class="btn btn-ghost btn-xs" type="submit">Delete</button>
+            </form>
+          </div>
+        </figcaption>
+      </figure>
+    <% }); %>
+  </div>
+<% } %>
+
+<script>
+  (function () {
+    var form = document.getElementById('mediaUploadForm');
+    if (!form) return;
+    var status = document.getElementById('uploadStatus');
+    var btn = document.getElementById('uploadBtn');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var fileInput = document.getElementById('uploadFile');
+      if (!fileInput.files.length) return;
+
+      btn.disabled = true;
+      status.textContent = 'Uploading…';
+      status.className = 'hint';
+
+      fetch('/admin/media/upload', {
+        method: 'POST',
+        body: new FormData(form),
+        headers: {
+          'X-Requested-With': 'fetch',
+          // The token must travel as a HEADER, not only in the form body.
+          // multer parses multipart bodies, and it runs after the csrf
+          // middleware -- so at the moment csrf checks req.body, a multipart
+          // form's fields are not parsed yet and the token looks absent.
+          // The middleware reads x-csrf-token for exactly this case.
+          'X-CSRF-Token': <%- JSON.stringify(csrfToken) %>,
+        },
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          if (!res.d.ok) {
+            status.textContent = res.d.error || 'Upload failed.';
+            status.className = 'hint text-err';
+            return;
+          }
+          // Reload so the new file lands in the grid with the active filter applied.
+          window.location.reload();
+        })
+        .catch(function () {
+          status.textContent = 'Upload failed — check your connection and try again.';
+          status.className = 'hint text-err';
+        })
+        .finally(function () { btn.disabled = false; });
+    });
+
+    // Copy URL, with a fallback for non-secure origins where clipboard is absent.
+    document.querySelectorAll('.js-copy-url').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var url = b.getAttribute('data-url');
+        var done = function () {
+          var old = b.textContent;
+          b.textContent = 'Copied';
+          setTimeout(function () { b.textContent = old; }, 1200);
+        };
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).then(done).catch(function () { window.prompt('Copy this URL:', url); });
+        } else {
+          window.prompt('Copy this URL:', url);
+        }
+      });
+    });
+  })();
+</script>

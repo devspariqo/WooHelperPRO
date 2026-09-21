@@ -148,6 +148,7 @@ function routes(i) {
   if (i.post) add(`/admin/blog/${i.post.id}/edit`, 200, 'blog edit');
   add('/admin/faqs');
   add('/admin/settings');
+  add('/admin/media');
 
   return r;
 }

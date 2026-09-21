@@ -15,8 +15,8 @@
   --brand-800: #5b21b6;
   --brand-900: #4c1d95;
 
-  --accent-500: #f59e0b;
-  --accent-600: #d97706;
+  --accent-500: #ff6600;
+  --accent-600: #cc5200;
 
   --ok-50: #ecfdf5;   --ok-500: #10b981;  --ok-700: #047857;
   --warn-50: #fffbeb; --warn-500: #f59e0b; --warn-700: #b45309;
@@ -43,7 +43,9 @@
   --shadow:    0 4px 14px rgba(23, 20, 31, .08);
   --shadow-lg: 0 18px 48px rgba(23, 20, 31, .12);
 
-  --container: 1180px;
+  /* Public page container. 1300px gives the marketing pages room to breathe on
+     large screens; the responsive rules below clamp it on narrower viewports. */
+  --container: 1300px;
   --header-h: 68px;
   --font: 'Inter', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -163,6 +165,22 @@ p  { margin: 0 0 1em; }
   color: var(--text-soft); background: var(--surface);
 }
 .lang-toggle:hover { border-color: var(--brand-400); color: var(--brand-700); }
+
+/* Light/dark switch in the public navbar. Mirrors .lang-toggle so the two sit
+   together in the header; the text label hides on small screens where only the
+   glyph fits. */
+.theme-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 700; padding: 5px 9px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  color: var(--text-soft); background: var(--surface); white-space: nowrap;
+}
+.theme-toggle:hover { border-color: var(--accent-500); color: var(--accent-600); }
+.theme-toggle span[aria-hidden] { font-size: 14px; line-height: 1; }
+@media (max-width: 720px) {
+  .theme-toggle-label { display: none; }
+  .theme-toggle { padding: 5px 8px; }
+}
 
 .inline-form { display: inline; margin: 0; }
 
@@ -604,6 +622,46 @@ p  { margin: 0 0 1em; }
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   text-transform: lowercase;
 }
+
+/* A URL input paired with a live thumbnail of whatever it points at, used by the
+   payment-method logos. The preview is deliberately small and object-fit: contain
+   so a wide logo cannot blow out the settings grid. */
+.logo-field { display: flex; align-items: center; gap: 10px; }
+.logo-field input { flex: 1 1 auto; min-width: 0; }
+.logo-preview {
+  flex: 0 0 auto; height: 30px; width: auto; max-width: 84px;
+  object-fit: contain; padding: 3px; border-radius: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+}
+
+/* Payment method strip. Only renders for methods the admin has a logo for, so an
+   empty list is impossible here -- the partial omits the wrapper entirely. */
+.pay-logos {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 14px 0;
+}
+.pay-logos-label {
+  font-size: 12px; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--text-mute);
+}
+.pay-logos-list {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  list-style: none; margin: 0; padding: 0;
+}
+.pay-logos-list li {
+  display: flex; align-items: center; justify-content: center;
+  height: 34px; padding: 4px 8px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+}
+.pay-logos-list img { height: 20px; width: auto; max-width: 78px; object-fit: contain; display: block; }
+
+.pay-logos-compact { padding: 8px 0; gap: 10px; }
+.pay-logos-compact .pay-logos-list li { height: 28px; padding: 3px 6px; }
+.pay-logos-compact .pay-logos-list img { height: 16px; }
+
+/* On a dark background the logos sit on their own light chip so a dark-on-dark
+   mark stays legible. */
+[data-theme="dark"] .pay-logos-list li { background: #ffffff; border-color: #ffffff; }
 
 .field label { font-size: 13.5px; font-weight: 600; color: var(--text); }
 .field label .req { color: var(--err-500); margin-left: 2px; }

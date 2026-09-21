@@ -113,6 +113,11 @@
         <span class="ico">★</span> Testimonials
       </a>
       <% } %>
+      <% if (can ? can('media') : false) { %>
+      <a href="/admin/media" class="<%= active === 'media' ? 'active' : '' %>">
+        <span class="ico">▩</span> Media library
+      </a>
+      <% } %>
 
       <p class="sidebar-label">System</p>
       <% if (can ? can('settings') : false) { %>

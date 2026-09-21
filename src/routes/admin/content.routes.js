@@ -503,7 +503,7 @@ router.post('/settings', requirePermission('settings'), async (req, res, next) =
         // --- branding: colours ---
         primaryColor: hex('primaryColor', cur.primaryColor || '#7c3aed'),
         secondaryColor: hex('secondaryColor', cur.secondaryColor || '#17141f'),
-        accentColor: hex('accentColor', cur.accentColor || '#f59e0b'),
+        accentColor: hex('accentColor', cur.accentColor || '#ff6600'),
 
         // --- typography ---
         fontHeading: font('fontHeading', cur.fontHeading || 'Inter'),
@@ -539,6 +539,38 @@ router.post('/settings', requirePermission('settings'), async (req, res, next) =
         dateFormat: str('dateFormat') || 'DD MMM YYYY',
         footerText: str('footerText'),
 
+        // --- payment method logos ---
+        bkashLogoUrl: str('bkashLogoUrl'),
+        nagadLogoUrl: str('nagadLogoUrl'),
+        rocketLogoUrl: str('rocketLogoUrl'),
+        sslcommerzLogoUrl: str('sslcommerzLogoUrl'),
+        bankLogoUrl: str('bankLogoUrl'),
+        codLogoUrl: str('codLogoUrl'),
+        cardLogoUrl: str('cardLogoUrl'),
+
+        // --- outbound mail ---
+        smtpHost: str('smtpHost'),
+        smtpPort: Math.max(1, Math.min(65535, Number(req.body.smtpPort) || 587)),
+        smtpSecure: req.body.smtpSecure === 'on',
+        smtpUser: str('smtpUser'),
+        // A blank password means "leave the stored one alone" -- otherwise every
+        // save would wipe the credential, since the form never echoes it back.
+        smtpPassword: str('smtpPassword') || (cur.smtpPassword || ''),
+        mailFromName: str('mailFromName'),
+        mailFromEmail: str('mailFromEmail'),
+        adminNotificationEmail: str('adminNotificationEmail'),
+        notifyAdminOnOrder: req.body.notifyAdminOnOrder === 'on',
+        notifyAdminOnPayment: req.body.notifyAdminOnPayment === 'on',
+        notifyAdminOnTicket: req.body.notifyAdminOnTicket === 'on',
+        notifyAdminOnLead: req.body.notifyAdminOnLead === 'on',
+        notifyCustomerOnOrder: req.body.notifyCustomerOnOrder === 'on',
+        notifyCustomerOnPayment: req.body.notifyCustomerOnPayment === 'on',
+
+        // --- crawling ---
+        sitemapEnabled: req.body.sitemapEnabled === 'on',
+        robotsTxt: str('robotsTxt'),
+        robotsExtraDisallow: str('robotsExtraDisallow'),
+
         maintenanceMode: req.body.maintenanceMode === 'on',
       },
     });
@@ -546,6 +578,43 @@ router.post('/settings', requirePermission('settings'), async (req, res, next) =
     await audit.log(req, 'settings.updated', { detail: 'Site settings saved' });
 
     req.flash('success', 'Settings saved.');
+    return res.redirect('/admin/settings');
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/**
+ * Send a test message using the settings currently in the database.
+ *
+ * Reports the transport's actual reply rather than a generic success, because the
+ * usual failure here is a wrong port or a provider that rejects the from-address,
+ * and the operator needs the real error to fix it.
+ */
+router.post('/settings/test-mail', requirePermission('settings'), async (req, res, next) => {
+  try {
+    const mailer = require('../../services/mailer.service');
+    const settings = await prisma.siteSetting.findUnique({ where: { id: 'singleton' } });
+
+    const to = String(req.body.testTo || '').trim()
+      || (settings && settings.adminNotificationEmail)
+      || (settings && settings.supportEmail)
+      || (req.user && req.user.email);
+
+    if (!to) {
+      req.flash('error', 'No recipient — set an admin notification address or a support email first.');
+      return res.redirect('/admin/settings');
+    }
+
+    const result = await mailer.sendTest({ to, settings });
+
+    if (result.queued) {
+      req.flash('success', `Test email sent to ${to}.`);
+    } else if (result.mode === 'development-log') {
+      req.flash('info', `SMTP is not configured, so the message was written to the server log instead of being sent to ${to}.`);
+    } else {
+      req.flash('error', `Could not send: ${result.error || 'unknown error'}`);
+    }
     return res.redirect('/admin/settings');
   } catch (err) {
     return next(err);

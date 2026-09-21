@@ -35,4 +35,26 @@ function emptyState(message, actionHtml) {
   </div>`;
 }
 
-module.exports = { statusBadge, statusBadgeT, progressBar, emptyState };
+/**
+ * Darken (or lighten, with a negative amount) a #rrggbb colour.
+ *
+ * Used by the layouts to derive a hover shade from the admin-configured accent.
+ * Without it `--accent-500` and `--accent-600` would both be the same literal
+ * value, so hover states would show no change at all.
+ *
+ * Returns the input unchanged if it is not a 6-digit hex colour, so a bad value
+ * degrades to "no hover shift" rather than emitting broken CSS.
+ */
+function shade(hex, amount) {
+  const m = /^#([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const clamp = (v) => Math.max(0, Math.min(255, Math.round(v)));
+  const f = amount === undefined ? -0.18 : amount;
+  const r = clamp(((n >> 16) & 255) * (1 + f));
+  const g = clamp(((n >> 8) & 255) * (1 + f));
+  const b = clamp((n & 255) * (1 + f));
+  return '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+
+module.exports = { statusBadge, statusBadgeT, progressBar, emptyState, shade };

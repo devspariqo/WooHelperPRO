@@ -11,6 +11,7 @@ const subscriptionsRoutes = require('./subscriptions.routes');
 const billingRoutes = require('./billing.routes');
 const crmRoutes = require('./crm.routes');
 const contentRoutes = require('./content.routes');
+const mediaRoutes = require('./media.routes');
 
 const router = express.Router();
 
@@ -25,5 +26,6 @@ router.use('/subscriptions', subscriptionsRoutes);
 router.use('/', billingRoutes);   // /invoices, /payments
 router.use('/', crmRoutes);       // /tickets, /leads, /coupons, /projects
 router.use('/', contentRoutes);   // /testimonials, /portfolio, /blog, /faqs, /settings
+router.use('/', mediaRoutes);     // /media
 
 module.exports = router;

@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const methodOverride = require('method-override');
 const expressLayouts = require('express-ejs-layouts');
+const compression = require('compression');
 
 const config = require('./config');
 const prisma = require('./config/prisma');
@@ -63,6 +64,15 @@ function createApp() {
   );
 
   // ---------------------------------------------------------------
+  // Compression
+  // ---------------------------------------------------------------
+  // Registered before the static handler and before any route, so HTML, CSS and
+  // JS all go out gzipped. This is the single biggest PageSpeed win on a text-
+  // heavy site, and it costs nothing when the client does not accept gzip.
+  // Images are already compressed, so the default filter skips them.
+  app.use(compression());
+
+  // ---------------------------------------------------------------
   // Parsing & static assets
   // ---------------------------------------------------------------
   app.use(morgan(config.isProd ? 'combined' : 'dev'));
@@ -73,8 +83,19 @@ function createApp() {
 
   app.use(
     express.static(path.join(config.rootDir, 'public'), {
+      // Uploaded media gets a long cache because filenames are content-unique
+      // (random suffix), so a new upload is a new URL and can never go stale.
+      // Everything else is fingerprinted by hand-editing, so a shorter window.
+      setHeaders(res, filePath) {
+        if (filePath.includes(`${path.sep}uploads${path.sep}`)) {
+          res.setHeader('Cache-Control', config.isProd ? 'public, max-age=31536000, immutable' : 'no-cache');
+        }
+      },
       maxAge: config.isProd ? '30d' : 0,
       etag: true,
+      // Serve pre-compressed .gz siblings when the client supports them.
+      // Cheap win on repeat visits; falls through when absent.
+      index: false,
     }),
   );
 
@@ -157,7 +178,7 @@ function createApp() {
         ogImageUrl: '', googleAnalyticsId: '', googleSiteVerification: '', twitterHandle: '',
         facebookUrl: '', youtubeUrl: '', linkedinUrl: '',
         logoUrl: '', logoAlt: '', logoHeightPx: 32, faviconUrl: '',
-        primaryColor: '#7c3aed', secondaryColor: '#17141f', accentColor: '#f59e0b',
+        primaryColor: '#7c3aed', secondaryColor: '#17141f', accentColor: '#ff6600',
         fontHeading: 'Inter', fontBody: 'Inter',
         fontHeadingBn: 'Hind Siliguri', fontBodyBn: 'Hind Siliguri',
         timezone: 'Asia/Dhaka', defaultLanguage: 'en',

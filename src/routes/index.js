@@ -14,6 +14,7 @@ const accountRoutes = require('./account.routes');
 const adminRoutes = require('./admin');
 const paymentRoutes = require('./payment.routes');
 const apiRoutes = require('./api.routes');
+const seoRoutes = require('./seo.routes');
 
 module.exports = function registerRoutes(app) {
   // Health probe — no auth, no DB dependency beyond a trivial query.
@@ -38,6 +39,10 @@ module.exports = function registerRoutes(app) {
 
   app.use('/payments', paymentRoutes);
   app.use('/api', apiRoutes);
+
+  // /sitemap.xml and /robots.txt must sit at the origin root, so this is mounted
+  // before the catch-all public router.
+  app.use('/', seoRoutes);
 
   app.use('/', authRoutes);
   app.use('/account', accountRoutes);
