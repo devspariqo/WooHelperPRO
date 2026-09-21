@@ -1,35 +1,31 @@
+<%
+  // Pick the feature list for the active language. The route passes both
+  // features and featuresBn; falling back to English keeps a half-translated
+  // service showing its included items rather than an empty list.
+  const featureList = (isBn && featuresBn && featuresBn.length) ? featuresBn : features;
+  const svcTitle = tr(service.title, service.titleBn);
+%>
 <section class="section">
   <div class="container">
     <nav class="muted mb-3">
-      <a href="/">Home</a> <span>/</span> <a href="/services">Services</a> <span>/</span>
-      <span><%= service.title %></span>
+      <a href="/"><%= tr('Home', 'হোম') %></a> <span>/</span>
+      <a href="/services"><%= tr('Services', 'সার্ভিস') %></a> <span>/</span>
+      <span><%= svcTitle %></span>
     </nav>
 
     <div class="grid grid-2 mt-0" style="align-items:start">
       <div>
-        <span class="section-kicker"><%= service.category ? service.category.name : 'Service' %></span>
-        <h1 class="mt-1"><%= service.title %></h1>
-        <% if (service.titleBn) { %>
-          <p class="muted"><%= service.titleBn %></p>
-        <% } %>
+        <span class="section-kicker"><%= service.category ? tr(service.category.name, service.category.nameBn) : tr('Service', 'সার্ভিস') %></span>
+        <h1 class="mt-1"><%= svcTitle %></h1>
 
         <div class="prose">
-          <p><%= service.description || service.shortDescription %></p>
+          <p><%= tr(service.description, service.descriptionBn) || tr(service.shortDescription, service.shortDescBn) %></p>
         </div>
 
-        <% if (features.length) { %>
-          <h3>What is included</h3>
+        <% if (featureList.length) { %>
+          <h3><%= tr('What is included', 'যা যা অন্তর্ভুক্ত') %></h3>
           <ul class="prose">
-            <% features.forEach(function (f) { %>
-              <li><%= f %></li>
-            <% }); %>
-          </ul>
-        <% } %>
-
-        <% if (featuresBn && featuresBn.length) { %>
-          <h3>বাংলায় যা যা থাকছে</h3>
-          <ul class="prose">
-            <% featuresBn.forEach(function (f) { %>
+            <% featureList.forEach(function (f) { %>
               <li><%= f %></li>
             <% }); %>
           </ul>
