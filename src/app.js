@@ -222,13 +222,21 @@ function createApp() {
 
     // Legacy object form: t({ en: 'Order', bn: 'অর্ডার' }). Kept because a few
     // call sites and the constants file use it.
+    //
+    // Also the UI-string form: t('Add to cart'). The Bn database columns only ever
+    // covered CONTENT (service titles, package names); the chrome -- buttons,
+    // headings, labels, empty states -- was hardcoded English in the views, which
+    // is why switching to Bangla left most of the page in English. The dictionary
+    // in config/translations.js fills that gap. A miss returns the English key
+    // unchanged rather than a placeholder, so a partial translation still reads.
+    const { translate } = require('./config/translations');
     res.locals.t = (value) => {
       if (value === null || value === undefined) return '';
       if (typeof value === 'object') {
         if (res.locals.isBn && value.bn) return value.bn;
         return value.en ?? '';
       }
-      return value;
+      return translate(value, res.locals.lang);
     };
 
     next();

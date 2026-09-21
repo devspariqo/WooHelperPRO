@@ -23,18 +23,18 @@
     </a>
 
     <nav class="site-nav" id="siteNav" aria-label="Main">
-      <a href="/" class="<%= currentPath === '/' ? 'active' : '' %>">Home</a>
-      <a href="/services" class="<%= currentPath.startsWith('/services') ? 'active' : '' %>">Services</a>
-      <a href="/packages" class="<%= currentPath.startsWith('/packages') ? 'active' : '' %>">Packages</a>
-      <a href="/portfolio" class="<%= currentPath.startsWith('/portfolio') ? 'active' : '' %>">Our work</a>
-      <a href="/blog" class="<%= currentPath.startsWith('/blog') ? 'active' : '' %>">Blog</a>
-      <a href="/about" class="<%= currentPath === '/about' ? 'active' : '' %>">About</a>
-      <a href="/contact" class="<%= currentPath === '/contact' ? 'active' : '' %>">Contact</a>
+      <a href="/" class="<%= currentPath === '/' ? 'active' : '' %>"><%= t('Home') %></a>
+      <a href="/services" class="<%= currentPath.startsWith('/services') ? 'active' : '' %>"><%= t('Services') %></a>
+      <a href="/packages" class="<%= currentPath.startsWith('/packages') ? 'active' : '' %>"><%= t('Packages') %></a>
+      <a href="/portfolio" class="<%= currentPath.startsWith('/portfolio') ? 'active' : '' %>"><%= t('Portfolio') %></a>
+      <a href="/blog" class="<%= currentPath.startsWith('/blog') ? 'active' : '' %>"><%= t('Blog') %></a>
+      <a href="/about" class="<%= currentPath === '/about' ? 'active' : '' %>"><%= t('About') %></a>
+      <a href="/contact" class="<%= currentPath === '/contact' ? 'active' : '' %>"><%= t('Contact') %></a>
     </nav>
 
     <div class="header-actions">
 
-      <a class="lang-toggle" href="/lang/<%= lang === 'bn' ? 'en' : 'bn' %>" title="Switch language">
+      <a class="lang-toggle" href="/lang/<%= lang === 'bn' ? 'en' : 'bn' %>" title="<%= t('Switch language') %>">
         <%= lang === 'bn' ? 'EN' : 'বাং' %>
       </a>
 

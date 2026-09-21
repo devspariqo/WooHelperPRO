@@ -1,0 +1,25 @@
+<%
+  /*
+   * Brand lockup for the auth pages (login, register, forgot password).
+   *
+   * These pages previously hardcoded `<span class="brand-mark">W</span>` plus the
+   * site name, so an uploaded logo never appeared on them at all -- the most
+   * visible pages for a first-time visitor were the only ones ignoring branding.
+   *
+   * Uses the same theme-aware resolver as the navbar and footer, so the correct
+   * variant is chosen for the active theme and a single-logo install still works.
+   */
+  var authLogo = helpers.logoFor(settings, theme);
+%>
+<% if (authLogo) { %>
+  <a class="brand" href="/" aria-label="<%= settings.siteName %> home">
+    <img class="brand-logo" src="<%= authLogo %>"
+         alt="<%= helpers.logoAltFor(settings) %>"
+         style="height:<%= settings.logoHeightPx %>px;width:auto">
+  </a>
+<% } else { %>
+  <a class="brand brand-text" href="/">
+    <span class="brand-mark" aria-hidden="true">W</span>
+    <%= settings.siteName || 'WooHelperPro' %>
+  </a>
+<% } %>

@@ -44,36 +44,36 @@
       </div>
 
       <div class="footer-col">
-        <h4>Services</h4>
+        <h4><%= t('Services') %></h4>
         <ul>
-          <li><a href="/services">All services</a></li>
+          <li><a href="/services"><%= t('All services') %></a></li>
           <li><a href="/packages">Packages &amp; pricing</a></li>
           <li><a href="/order/checkout">Order a website</a></li>
-          <li><a href="/portfolio">Our work</a></li>
+          <li><a href="/portfolio"><%= t('Our work') %></a></li>
           <li><a href="/services?category=ecommerce">E-commerce builds</a></li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <h4>Company</h4>
+        <h4><%= t('Company') %></h4>
         <ul>
-          <li><a href="/about">About us</a></li>
-          <li><a href="/blog">Blog</a></li>
-          <li><a href="/contact">Contact</a></li>
+          <li><a href="/about"><%= t('About us') %></a></li>
+          <li><a href="/blog"><%= t('Blog') %></a></li>
+          <li><a href="/contact"><%= t('Contact') %></a></li>
           <li><a href="/contact#faq">FAQ</a></li>
           <li><a href="/register">Create an account</a></li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <h4>Support</h4>
+        <h4><%= t('Support') %></h4>
         <ul>
-          <li><a href="/login">Sign in</a></li>
+          <li><a href="/login"><%= t('Sign in') %></a></li>
           <li><a href="/account/tickets">Open a ticket</a></li>
-          <li><a href="/account/subscriptions">Manage subscription</a></li>
+          <li><a href="/account/subscriptions"><%= t('Manage subscription') %></a></li>
           <li><a href="/legal/terms">Terms &amp; conditions</a></li>
-          <li><a href="/legal/privacy">Privacy policy</a></li>
-          <li><a href="/legal/refund">Refund policy</a></li>
+          <li><a href="/legal/privacy"><%= t('Privacy policy') %></a></li>
+          <li><a href="/legal/refund"><%= t('Refund policy') %></a></li>
         </ul>
       </div>
 
@@ -92,7 +92,7 @@
         <% if (settings.facebookUrl) { %><a href="<%= settings.facebookUrl %>" target="_blank" rel="noopener">Facebook</a><% } %>
         <% if (settings.youtubeUrl) { %><a href="<%= settings.youtubeUrl %>" target="_blank" rel="noopener">YouTube</a><% } %>
         <% if (settings.linkedinUrl) { %><a href="<%= settings.linkedinUrl %>" target="_blank" rel="noopener">LinkedIn</a><% } %>
-        <a href="/api/health">System status</a>
+        <a href="/api/health"><%= t('System status') %></a>
       </div>
     </div>
 
