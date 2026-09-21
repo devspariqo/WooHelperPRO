@@ -879,6 +879,10 @@ table.data .strong { font-weight: 600; color: var(--text); }
 }
 .auth-card.wide { max-width: 620px; }
 .auth-head { text-align: center; margin-bottom: 28px; }
+/* .brand is a flex container, so the parent's text-align: center does NOT centre
+   it -- flex children align to flex-start by default and the logo sat hard left.
+   justify-content is what actually centres the logo image inside the anchor. */
+.auth-head .brand { justify-content: center; margin: 0 auto 14px; }
 .auth-head .brand-mark { margin: 0 auto 14px; width: 44px; height: 44px; font-size: 21px; }
 .auth-head h1 { font-size: 1.6rem; margin-bottom: 6px; }
 .auth-head p { color: var(--text-mute); font-size: 14.5px; margin: 0; }
