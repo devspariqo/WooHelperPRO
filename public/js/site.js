@@ -214,6 +214,111 @@
   })();
 
   // ---------------------------------------------------------------
+  // Carousel (testimonials)
+  // ---------------------------------------------------------------
+  //
+  // The track is a scroll-snap container, so swipe, momentum and keyboard
+  // scrolling already work without any script. This only adds the arrows, the
+  // dots, and keeps them in sync with the scroll position -- which also means the
+  // markup stays usable if this file never loads.
+  (function () {
+    document.querySelectorAll('[data-carousel]').forEach(function (root) {
+      const track = root.querySelector('[data-carousel-track]');
+      const slides = Array.prototype.slice.call(root.querySelectorAll('[data-carousel-slide]'));
+      const prev = root.querySelector('[data-carousel-prev]');
+      const next = root.querySelector('[data-carousel-next]');
+      const dotsWrap = root.querySelector('[data-carousel-dots]');
+      if (!track || slides.length < 2) return;
+
+      // Arrows are hidden in the markup and revealed only once JS is running,
+      // since without script they would do nothing.
+      if (prev) prev.hidden = false;
+      if (next) next.hidden = false;
+
+      const atStart = () => track.scrollLeft <= 4;
+      const atEnd = () => track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+
+      function syncArrows() {
+        if (prev) prev.disabled = atStart();
+        if (next) next.disabled = atEnd();
+      }
+
+      /** Which slide is nearest the left edge, for the active dot. */
+      function currentIndex() {
+        let best = 0;
+        let bestGap = Infinity;
+        slides.forEach(function (slide, i) {
+          const gap = Math.abs(slide.offsetLeft - track.scrollLeft);
+          if (gap < bestGap) { bestGap = gap; best = i; }
+        });
+        return best;
+      }
+
+      // ---- dots ----
+      const dots = [];
+      if (dotsWrap) {
+        slides.forEach(function (slide, i) {
+          const dot = document.createElement('button');
+          dot.type = 'button';
+          dot.className = 'carousel-dot';
+          dot.setAttribute('role', 'tab');
+          dot.setAttribute('aria-label', (i + 1) + ' / ' + slides.length);
+          dot.addEventListener('click', function () {
+            track.scrollTo({ left: slide.offsetLeft - track.offsetLeft, behavior: 'smooth' });
+          });
+          dotsWrap.appendChild(dot);
+          dots.push(dot);
+        });
+      }
+
+      function syncDots() {
+        const active = currentIndex();
+        dots.forEach(function (dot, i) {
+          dot.classList.toggle('is-active', i === active);
+          dot.setAttribute('aria-selected', i === active ? 'true' : 'false');
+        });
+      }
+
+      /** Move by one slide, in either direction. */
+      function step(dir) {
+        const slide = slides[0];
+        const gap = slides[1] ? slides[1].offsetLeft - slide.offsetLeft : slide.offsetWidth;
+        track.scrollBy({ left: dir * gap, behavior: 'smooth' });
+      }
+
+      if (prev) prev.addEventListener('click', function () { step(-1); });
+      if (next) next.addEventListener('click', function () { step(1); });
+
+      // Arrow keys move between quotes when the track has focus. This is the
+      // requested left/right keyboard navigation.
+      track.setAttribute('tabindex', '0');
+      track.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+        else if (e.key === 'Home') { e.preventDefault(); track.scrollTo({ left: 0, behavior: 'smooth' }); }
+        else if (e.key === 'End') {
+          e.preventDefault();
+          track.scrollTo({ left: track.scrollWidth, behavior: 'smooth' });
+        }
+      });
+
+      let ticking = false;
+      track.addEventListener('scroll', function () {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(function () {
+          syncArrows();
+          syncDots();
+          ticking = false;
+        });
+      }, { passive: true });
+
+      window.addEventListener('resize', function () { syncArrows(); syncDots(); });
+      syncArrows();
+      syncDots();
+    });
+  })();
+  // ---------------------------------------------------------------
   // Reveal-on-scroll (respects reduced motion)
   // ---------------------------------------------------------------
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

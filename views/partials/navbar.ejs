@@ -58,7 +58,12 @@
         </form>
       <% } else { %>
         <a href="/login" class="btn btn-ghost btn-sm"><%= t('Sign in') %></a>
-        <a href="/order/checkout" class="btn btn-primary btn-sm"><%= t('Order now') %></a>
+        <%# Primary CTA. The arrow is decorative and hidden from screen readers --
+            the link text already says what it does. %>
+        <a href="/order/checkout" class="btn btn-primary btn-sm header-cta">
+          <%= t('Get started') %>
+          <span class="cta-arrow" aria-hidden="true">&rarr;</span>
+        </a>
       <% } %>
 
       <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" data-nav-toggle>

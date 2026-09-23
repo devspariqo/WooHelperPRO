@@ -5,7 +5,21 @@
 
       <div class="footer-col footer-about">
         <a href="/" class="brand">
-          <% const footLogo = helpers.logoFor(settings, theme); %>
+          <%
+            /*
+             * The footer is ALWAYS dark (see .site-footer in site.css), so it must
+             * always use the dark-background logo -- it must not follow the page
+             * theme. helpers.logoFor(settings, theme) would hand it the light logo
+             * whenever the page happens to be in light mode, drawing a logo made
+             * for white onto a near-black footer.
+             *
+             * Falls back through generic -> light so a single-logo install still
+             * renders something rather than nothing.
+             */
+            const footLogo = (settings.logoUrlDark || '').trim()
+              || (settings.logoUrl || '').trim()
+              || (settings.logoUrlLight || '').trim();
+          %>
           <% if (footLogo) { %>
             <img class="brand-logo" src="<%= footLogo %>"
                  alt="<%= helpers.logoAltFor(settings) %>"

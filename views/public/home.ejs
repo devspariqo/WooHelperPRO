@@ -396,22 +396,64 @@
       <h2><%= t('What our clients say') %></h2>
     </div>
 
-    <div class="grid grid-3">
-      <% testimonials.forEach(function (t) { %>
-        <article class="tst-card" data-reveal>
-          <div class="tst-stars" aria-label="<%= t.rating %> out of 5 stars">
-            <% for (let i = 0; i < t.rating; i++) { %>★<% } %>
-          </div>
-          <p class="tst-body">"<%= t.body %>"</p>
-          <div class="tst-who">
-            <span class="avatar" aria-hidden="true"><%= fmt.initials(t.clientName) %></span>
-            <span>
-              <strong><%= t.clientName %></strong>
-              <small><%= [t.company, t.district].filter(Boolean).join(' · ') %></small>
-            </span>
-          </div>
-        </article>
-      <% }); %>
+    <%
+      /*
+       * Testimonial carousel.
+       *
+       * A scroll-snap track rather than a transform-based slider: the browser then
+       * handles swipe, momentum, keyboard scrolling and scrollbar-free overflow for
+       * free, and it still works as a plain horizontal list with JS disabled. The
+       * arrows and dots only drive scrollBy/scrollTo on top of that.
+       *
+       * Each slide is a <li> in a <ul> so the count is announced, and the track has
+       * role="group" with an aria-label because it is a set of related quotes.
+       */
+    %>
+    <div class="carousel" data-carousel aria-roledescription="carousel"
+         aria-label="<%= t('Client feedback') %>">
+
+      <button type="button" class="carousel-arrow carousel-prev" data-carousel-prev
+              aria-label="<%= t('Previous') %>" hidden>
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+          <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <ul class="carousel-track" data-carousel-track>
+        <% testimonials.forEach(function (t, i) { %>
+          <li class="carousel-slide" data-carousel-slide
+              aria-label="<%= i + 1 %> / <%= testimonials.length %>">
+            <article class="tst-card">
+              <div class="tst-stars" aria-label="<%= t.rating %> out of 5 stars">
+                <% for (let s = 0; s < t.rating; s++) { %>★<% } %>
+              </div>
+              <p class="tst-body">&ldquo;<%= t.body %>&rdquo;</p>
+              <div class="tst-who">
+                <% var avTst = { user: { name: t.clientName, avatarUrl: t.avatarUrl }, size: 42 }; %>
+                <%- include('../partials/avatar', avTst) %>
+                <span>
+                  <strong><%= t.clientName %></strong>
+                  <small><%= [t.company, t.district].filter(Boolean).join(' · ') %></small>
+                </span>
+              </div>
+            </article>
+          </li>
+        <% }); %>
+      </ul>
+
+      <button type="button" class="carousel-arrow carousel-next" data-carousel-next
+              aria-label="<%= t('Next') %>" hidden>
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+          <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <% if (testimonials.length > 1) { %>
+        <div class="carousel-dots" data-carousel-dots role="tablist"
+             aria-label="<%= t('Choose a testimonial') %>"></div>
+      <% } %>
     </div>
 
   </div>
