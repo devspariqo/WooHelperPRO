@@ -125,10 +125,10 @@
         <label for="liveUrl">Live URL</label>
         <input type="url" id="liveUrl" name="liveUrl" maxlength="250">
       </div>
-      <div class="field">
-        <label for="imageUrl">Cover image URL</label>
-        <input type="url" id="imageUrl" name="imageUrl" maxlength="250">
-      </div>
+      <% var mpLocals = { name: 'imageUrl', label: 'Cover image', value: '',
+                          hint: 'Landscape (16:9) works best on the portfolio grid.',
+                          ratio: '16 / 9', folder: 'portfolio' }; %>
+      <%- include('../../partials/media-picker', mpLocals) %>
       <div class="field full">
         <label for="description">Description</label>
         <textarea id="description" name="description" rows="3" maxlength="2000"></textarea>
@@ -196,11 +196,10 @@
           <input type="url" id="e-live-<%= p.id %>" name="liveUrl" maxlength="250"
                  value="<%= p.liveUrl || '' %>">
         </div>
-        <div class="field">
-          <label for="e-img-<%= p.id %>">Cover image URL</label>
-          <input type="url" id="e-img-<%= p.id %>" name="imageUrl" maxlength="250"
-                 value="<%= p.imageUrl || '' %>">
-        </div>
+        <% var mpEdit = { name: 'imageUrl', label: 'Cover image', value: p.imageUrl,
+                          hint: 'Landscape (16:9) works best on the portfolio grid.',
+                          ratio: '16 / 9', folder: 'portfolio', id: 'e-img-' + p.id }; %>
+        <%- include('../../partials/media-picker', mpEdit) %>
         <div class="field">
           <label for="e-tech-<%= p.id %>">Tech stack</label>
           <input type="text" id="e-tech-<%= p.id %>" name="techStack" maxlength="200"

@@ -81,6 +81,11 @@
             <label for="descriptionBn">Full description in Bangla</label>
             <textarea id="descriptionBn" name="descriptionBn" rows="5"><%= v.descriptionBn || '' %></textarea>
           </div>
+
+          <% var mpLocals = { name: 'imageUrl', label: 'Card image', value: v.imageUrl,
+                              hint: 'Shown on the services listing and detail page. Landscape (16:9) works best.',
+                              ratio: '16 / 9', folder: 'services' }; %>
+          <%- include('../../partials/media-picker', mpLocals) %>
         </div>
       </div>
 

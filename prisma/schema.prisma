@@ -141,6 +141,10 @@ model Package {
   tier            String  @default("BASIC")
   tagline         String?
   taglineBn       String?
+  // Card artwork shown on the packages listing and detail page. Optional: the
+  // card falls back to a generated gradient so a package without art still looks
+  // deliberate rather than broken.
+  imageUrl        String?
   price           Float        @default(0)          // one-time build price (BDT)
   setupFee        Float        @default(0)
   monthlyPrice    Float        @default(0)
@@ -378,6 +382,9 @@ model Project {
   orderId       String        @unique
   userId        String
   name          String
+  // Screenshot / artwork for the project, used on the customer dashboard and in
+  // the admin project list. Optional.
+  imageUrl      String?
   status        String @default("NOT_STARTED")
   progress      Int           @default(0)
   currentStage  String?
@@ -615,6 +622,12 @@ model SiteSetting {
   // logo gets it in both themes and never sees a blank brand.
   logoUrlLight    String   @default("")
   logoUrlDark     String   @default("")
+
+  // ---- Payment method logos ------------------------------------------------
+  // JSON array of { label, url }. Previously the footer drew a fixed list of
+  // payment names as plain text, so an operator could not show their own brand
+  // marks or add a rail we had not thought of. Empty falls back to the text list.
+  paymentLogos    String   @default("[]")
 
   // ---- Homepage hero --------------------------------------------------------
   // Square (1:1) image shown on the right of the hero. Falls back to the built-in

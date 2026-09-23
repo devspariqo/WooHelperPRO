@@ -95,6 +95,11 @@
             <input type="text" id="taglineBn" name="taglineBn" maxlength="140"
                    value="<%= p.taglineBn || '' %>">
           </div>
+
+          <% var mpLocals = { name: 'imageUrl', label: 'Card image', value: p.imageUrl,
+                              hint: 'Shown on the packages listing and detail page. Landscape (16:9) works best.',
+                              ratio: '16 / 9', folder: 'packages' }; %>
+          <%- include('../../partials/media-picker', mpLocals) %>
         </div>
       </div>
     </div>

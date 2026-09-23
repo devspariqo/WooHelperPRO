@@ -96,11 +96,10 @@
                         placeholder="ecommerce&#10;cod&#10;bangladesh"><%= tagLines %></textarea>
             </div>
 
-            <div class="field">
-              <label for="coverImage">Cover image URL</label>
-              <input type="url" id="coverImage" name="coverImage" maxlength="250"
-                     value="<%= b.coverImage || '' %>">
-            </div>
+            <% var mpLocals = { name: 'coverImage', label: 'Cover image', value: b.coverImage,
+                                hint: 'Shown on the blog listing and at the top of the post. Landscape (16:9) works best.',
+                                ratio: '16 / 9', folder: 'blog' }; %>
+            <%- include('../../partials/media-picker', mpLocals) %>
 
             <div class="field">
               <label>Options</label>

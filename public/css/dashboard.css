@@ -422,6 +422,73 @@
 }
 
 /* ============================================================
+   Media picker
+   ============================================================ */
+
+.media-picker-row { display: flex; gap: 8px; align-items: stretch; }
+.media-picker-row input { flex: 1 1 auto; min-width: 0; }
+.media-picker-row .btn { flex: 0 0 auto; white-space: nowrap; }
+
+.media-picker-preview {
+  position: relative; margin-top: 10px;
+  width: 100%; max-width: 200px;
+  border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; background: var(--bg-muted);
+  display: flex; align-items: center; justify-content: center;
+  min-height: 74px;
+}
+.media-picker-preview img { width: 100%; height: auto; display: block; object-fit: cover; }
+.media-picker-empty { font-size: 12.5px; color: var(--text-mute); padding: 18px 0; }
+
+.media-picker-clear {
+  position: absolute; top: 6px; right: 6px;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 0; cursor: pointer; line-height: 1;
+  font-size: 16px; color: #fff; background: rgba(0,0,0,.6);
+}
+.media-picker-clear:hover { background: rgba(0,0,0,.8); }
+
+/* Busy state while an upload is in flight. */
+.media-picker input[data-busy] { opacity: .6; }
+
+/* ---- Library modal ---- */
+.media-modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; }
+.media-modal[hidden] { display: none; }
+body.media-modal-open { overflow: hidden; }
+
+.media-modal-backdrop { position: absolute; inset: 0; background: rgba(10,8,18,.62); }
+
+.media-modal-panel {
+  position: relative; width: min(880px, 94vw); max-height: 86vh;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; box-shadow: var(--shadow-lg);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.media-modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border); flex: 0 0 auto;
+}
+.media-modal-x {
+  border: 0; background: none; cursor: pointer; font-size: 22px; line-height: 1;
+  color: var(--text-soft); padding: 0 4px;
+}
+.media-modal-x:hover { color: var(--text); }
+.media-modal-body { padding: 16px; overflow-y: auto; flex: 1 1 auto; }
+
+.media-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+}
+.media-tile {
+  padding: 0; border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; cursor: pointer; background: var(--bg-muted);
+  aspect-ratio: 1 / 1; display: block;
+}
+.media-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.media-tile:hover { border-color: var(--brand-600); }
+.media-tile:focus-visible { outline: 2px solid var(--brand-500); outline-offset: 2px; }
+
+/* ============================================================
    Website handover (customer dashboard)
    ============================================================ */
 

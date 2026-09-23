@@ -82,6 +82,7 @@ function readPackageForm(body) {
     serviceId: body.serviceId || null,
     tier: PACKAGE_TIER[body.tier] ? body.tier : 'BASIC',
     tagline: String(body.tagline || '').trim() || null,
+    imageUrl: String(body.imageUrl || '').trim() || null,
     taglineBn: String(body.taglineBn || '').trim() || null,
     price: Number(body.price) || 0,
     setupFee: Number(body.setupFee) || 0,

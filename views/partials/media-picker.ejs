@@ -1,0 +1,66 @@
+<%
+  /*
+   * Reusable image field with a media-library picker.
+   *
+   * Pass locals via a scriptlet, then include on ONE line. The two lines below
+   * show the SHAPE of the call with the EJS delimiters written out, because a
+   * literal close tag in this comment would end the block early:
+   *
+   *   open-tag  var mpLocals = { name: 'imageUrl', label: 'Card image', value: x };  close-tag
+   *   open-tag  include('../partials/media-picker', mpLocals)  close-tag
+   *
+   * Two things that will bite you here:
+   *  - include() is parsed LINE BY LINE, so a multi-line object literal inside it
+   *    fails with "Could not find matching close tag". Hence the separate scriptlet.
+   *  - Never write a literal EJS close tag inside this comment block. It ends the
+   *    block early and the rest of the comment leaks into the output as text.
+   *
+   * Locals:
+   *   name    (required) form field name
+   *   label   (required) visible label
+   *   value   current URL, may be null/undefined/empty
+   *   hint    optional helper text under the input
+   *   ratio   optional CSS aspect-ratio for the preview frame (default 1 / 1)
+   *   folder  optional media-library folder for uploads (default 'general')
+   *   id      optional input id; defaults to `name`
+   *
+   * The text input is the source of truth and works on its own (paste a URL,
+   * submit). Browse/Upload only ADD a way to fill it, so with JS broken the field
+   * still submits correctly.
+   */
+  var mpName = name;
+  var mpId = typeof id !== 'undefined' ? id : name;
+  var mpValue = value || '';
+  var mpRatio = typeof ratio !== 'undefined' ? ratio : '1 / 1';
+  var mpFolder = typeof folder !== 'undefined' ? folder : 'general';
+  var mpHint = typeof hint !== 'undefined' ? hint : '';
+%>
+<div class="field media-picker" data-media-picker data-folder="<%= mpFolder %>">
+  <label for="<%= mpId %>"><%= label %></label>
+
+  <div class="media-picker-row">
+    <input type="text" id="<%= mpId %>" name="<%= mpName %>" maxlength="300"
+           value="<%= mpValue %>" placeholder="/uploads/… or https://…"
+           data-media-input autocomplete="off">
+    <button type="button" class="btn btn-outline btn-sm" data-media-browse>
+      <%- t('Browse') %>
+    </button>
+    <button type="button" class="btn btn-ghost btn-sm" data-media-upload>
+      <%- t('Upload') %>
+    </button>
+  </div>
+
+  <% if (mpHint) { %><span class="hint"><%= mpHint %></span><% } %>
+
+  <div class="media-picker-preview" data-media-preview>
+    <% if (mpValue) { %>
+      <img src="<%= mpValue %>" alt="" style="aspect-ratio:<%= mpRatio %>">
+      <button type="button" class="media-picker-clear" data-media-clear
+              title="<%= t('Remove') %>" aria-label="<%= t('Remove') %>">&times;</button>
+    <% } else { %>
+      <span class="media-picker-empty"><%= t('No image') %></span>
+    <% } %>
+  </div>
+
+  <input type="file" accept="image/*" hidden data-media-file>
+</div>

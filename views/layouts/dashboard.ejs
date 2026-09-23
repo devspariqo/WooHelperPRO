@@ -4,6 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <%#
+    CSRF token for scripts that POST via fetch (the media picker's upload).
+    It must go as an X-CSRF-Token HEADER, not a form field: multer parses the
+    multipart body after the csrf middleware runs, so a multipart form's _csrf
+    field is not yet parsed when the check happens and looks absent.
+  %>
+  <meta name="csrf-token" content="<%= csrfToken %>">
   <title><%= typeof metaTitle !== 'undefined' && metaTitle ? metaTitle : title %></title>
   <link rel="icon" type="image/svg+xml" href="<%= settings.faviconUrl || '/images/favicon.svg' %>">
   <%
@@ -77,6 +84,7 @@
 
 <script src="/js/site.js" defer></script>
 <script src="/js/dashboard.js" defer></script>
+<script src="/js/media-picker.js" defer></script>
 
 <%#
   express-ejs-layouts is configured with extractScripts: true, which REMOVES any
