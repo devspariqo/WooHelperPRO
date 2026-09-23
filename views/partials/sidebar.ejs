@@ -185,7 +185,8 @@
   <div class="sidebar-footer">
     <% if (panel === 'admin') { %>
       <div class="sidebar-user">
-        <span class="avatar"><%= fmt.initials(currentUser ? currentUser.name : '?') %></span>
+        <% var avSide = { user: currentUser || { name: 'Guest' }, size: 34, ring: true }; %>
+        <%- include('./avatar', avSide) %>
         <span class="meta">
           <strong><%= currentUser ? currentUser.name : 'Guest' %></strong>
           <small><%= C.ROLES[currentUser ? currentUser.role : 'CUSTOMER'] %></small>

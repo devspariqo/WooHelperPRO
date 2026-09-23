@@ -39,6 +39,33 @@
   </div>
 </div>
 
+<%
+  /*
+   * Quick audience tabs.
+   *
+   * The role dropdown below can already filter to any single role, but "show me
+   * the staff" is the question an operator actually asks -- and it spans five
+   * roles, which no single dropdown value can express. These tabs pass a `group`
+   * the route expands, so the definition of "staff" lives in one place
+   * (constants.STAFF_ROLES) rather than being re-listed here.
+   */
+  var activeTab = filters.group === 'staff' ? 'staff'
+    : filters.group === 'customers' ? 'customers'
+      : (!filters.role && !filters.status && !filters.q ? 'all' : 'all');
+  var tabs = [
+    { key: 'all', label: 'Everyone', href: '/admin/users' },
+    { key: 'staff', label: 'Staff', href: '/admin/users?group=staff' },
+    { key: 'customers', label: 'Customers', href: '/admin/users?group=customers' },
+  ];
+%>
+<div class="seg-tabs">
+  <% tabs.forEach(function (tb) { %>
+    <a class="seg-tab<%= activeTab === tb.key ? ' is-active' : '' %>" href="<%= tb.href %>">
+      <%= tb.label %>
+    </a>
+  <% }); %>
+</div>
+
 <form method="get" action="/admin/users" class="filters mt-4">
   <div class="field grow">
     <label for="q">Search</label>
@@ -100,12 +127,18 @@
             <% users.forEach(function (u) { %>
               <tr>
                 <td>
-                  <a class="strong" href="/admin/users/<%= u.id %>"><%= u.name %></a>
-                  <% if (u.emailVerified) { %> <span title="Email verified">✓</span><% } %>
-                  <br><small class="muted"><%= u.email %></small>
-                  <% if (u.phone) { %>
-                    <br><small class="muted"><%= u.phone %></small>
-                  <% } %>
+                  <div class="user-cell">
+                    <% var avRow = { user: u, size: 36 }; %>
+                    <%- include('../../partials/avatar', avRow) %>
+                    <div class="user-cell-text">
+                      <a class="strong" href="/admin/users/<%= u.id %>"><%= u.name %></a>
+                      <% if (u.emailVerified) { %> <span title="Email verified">✓</span><% } %>
+                      <br><small class="muted"><%= u.email %></small>
+                      <% if (u.phone) { %>
+                        <br><small class="muted"><%= u.phone %></small>
+                      <% } %>
+                    </div>
+                  </div>
                 </td>
                 <td>
                   <span class="badge badge-<%= ['SUPER_ADMIN', 'ADMIN'].includes(u.role) ? 'danger'

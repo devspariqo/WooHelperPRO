@@ -15,6 +15,15 @@ const ROLES = {
   CUSTOMER: 'Customer',
 };
 
+/**
+ * Everyone who is NOT a customer -- i.e. has some level of staff access.
+ *
+ * Kept as one list so "show me the staff" has a single definition. The admin
+ * users list, the sidebar, and any future staff-only reporting all read this
+ * rather than each re-listing the five roles and drifting apart.
+ */
+const STAFF_ROLES = ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'STAFF', 'SUPPORT'];
+
 const ROLES_BN = {
   SUPER_ADMIN: 'সুপার অ্যাডমিন',
   ADMIN: 'অ্যাডমিন',
@@ -182,7 +191,7 @@ const SUPPORT_ADDONS = [
 ];
 
 module.exports = {
-  ROLES, ROLES_BN, USER_STATUS, KYC_STATUS,
+  ROLES, ROLES_BN, STAFF_ROLES, USER_STATUS, KYC_STATUS,
   ORDER_STATUS, PAYMENT_STATUS, SUBSCRIPTION_STATUS, INVOICE_STATUS,
   TICKET_STATUS, PROJECT_STATUS, BILLING_CYCLE, PAYMENT_METHOD,
   PACKAGE_TIER, LEAD_STATUS,

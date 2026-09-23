@@ -14,7 +14,10 @@
 %>
 
 <section class="detail-head">
-  <div class="ident">
+  <div class="ident has-avatar">
+    <% var avDetail = { user: user, size: 56, ring: true }; %>
+    <%- include('../../partials/avatar', avDetail) %>
+    <div class="ident-text">
     <h1>
       <%= user.name %>
       <%- helpers.statusBadge(user.status, C.USER_STATUS) %>
@@ -28,6 +31,7 @@
       <% if (user.district) { %> · <%= user.district %><% } %>
       · joined <%= fmt.date(user.createdAt, 'long') %>
     </p>
+    </div>
   </div>
   <div class="actions">
     <a class="btn btn-outline" href="/admin/users">&larr; All users</a>

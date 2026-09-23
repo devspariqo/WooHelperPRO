@@ -94,6 +94,11 @@
             <textarea id="address" name="address" rows="2" maxlength="400"><%= u.address || '' %></textarea>
           </div>
 
+          <% var mpAvatar = { name: 'avatarUrl', label: 'Profile photo', value: u.avatarUrl,
+                              hint: 'Square works best. Shown in the staff list, user detail and the sidebar.',
+                              ratio: '1 / 1', folder: 'avatars' }; %>
+          <%- include('../../partials/media-picker', mpAvatar) %>
+
           <% if (!isEdit) { %>
             <div class="field full">
               <label for="password">Temporary password <span class="req">*</span></label>

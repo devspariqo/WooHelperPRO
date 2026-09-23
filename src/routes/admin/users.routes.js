@@ -9,7 +9,7 @@ const mailer = require('../../services/mailer.service');
 const ids = require('../../utils/ids');
 const { parse } = require('../../utils/json');
 const { requirePermission } = require('../../middleware/auth');
-const { ROLES, DISTRICTS } = require('../../config/constants');
+const { ROLES, DISTRICTS, STAFF_ROLES } = require('../../config/constants');
 
 const router = express.Router();
 
@@ -26,6 +26,15 @@ router.get('/', requirePermission('users'), async (req, res, next) => {
 
     const where = {};
     if (role) where.role = role;
+
+    // Audience groups. "Staff" spans five roles, which a single `role` value
+    // cannot express, so the tab passes group=staff instead. STAFF_ROLES is the
+    // one definition of who counts as staff -- duplicating the list in the view
+    // would let the two drift.
+    const group = String(req.query.group || '').trim();
+    if (!role && group === 'staff') where.role = { in: STAFF_ROLES };
+    if (!role && group === 'customers') where.role = 'CUSTOMER';
+
     if (status) where.status = status;
     if (q) {
       where.OR = [
@@ -66,7 +75,7 @@ router.get('/', requirePermission('users'), async (req, res, next) => {
         ),
       })),
       roleCounts: Object.fromEntries(counts.map((c) => [c.role, c._count])),
-      filters: { q, role, status },
+      filters: { q, role, status, group },
       pagination: { page, perPage, total, pages: Math.ceil(total / perPage) },
       roles: ROLES,
     });
@@ -143,6 +152,7 @@ router.post('/', requirePermission('users'), async (req, res, next) => {
         company: String(company).trim() || null,
         district: String(district).trim() || null,
         address: String(address).trim() || null,
+        avatarUrl: String(req.body.avatarUrl || '').trim() || null,
         adminNotes: String(adminNotes).trim() || null,
         emailVerified: true, // created by staff
       },
@@ -271,6 +281,7 @@ router.post('/:id', requirePermission('users'), async (req, res, next) => {
       company: String(company).trim() || null,
       district: String(district).trim() || null,
       address: String(address).trim() || null,
+      avatarUrl: String(req.body.avatarUrl || '').trim() || null,
       adminNotes: String(adminNotes).trim() || null,
       status: ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING_VERIFICATION'].includes(status) ? status : existing.status,
     };

@@ -1,0 +1,52 @@
+<%
+  /*
+   * User avatar: a photo when one is set, initials otherwise.
+   *
+   * Usage: build the locals in a scriptlet, then include on ONE line. The shape
+   * is written out rather than shown literally, because a real EJS close tag in
+   * this comment would end the block early and break the partial:
+   *
+   *   open-tag  var av = { user: u, size: 40 };  close-tag
+   *   open-tag  include('../partials/avatar', av)  close-tag
+   *
+   * Locals:
+   *   user  a User-shaped object ({ name, avatarUrl, email })
+   *   size  pixel diameter (default 40)
+   *   ring  optional boolean, adds a subtle border ring
+   *
+   * The initials fallback is not a nicety: most accounts will never have a photo,
+   * and a broken-image icon or an empty grey circle looks like a bug. Initials
+   * always render and always look deliberate.
+   *
+   * The background hue is derived from the name, so the same person keeps the same
+   * colour across pages instead of it changing on every render.
+   */
+  var avUser = user || {};
+  var avSize = typeof size !== 'undefined' ? size : 40;
+  var avRing = typeof ring !== 'undefined' ? ring : false;
+
+  var avName = String(avUser.name || '').trim();
+  var avParts = avName.split(/\s+/).filter(Boolean);
+  var avInitials = avParts.length
+    ? (avParts[0][0] + (avParts.length > 1 ? avParts[avParts.length - 1][0] : '')).toUpperCase()
+    : (String(avUser.email || '?')[0] || '?').toUpperCase();
+
+  // Cheap stable hash -> one of six hues.
+  var avHue = 0;
+  for (var i = 0; i < avName.length; i += 1) avHue = (avHue * 31 + avName.charCodeAt(i)) % 360;
+
+  var avFontSize = Math.max(10, Math.round(avSize * 0.38));
+%>
+<% if (avUser.avatarUrl) { %>
+  <img class="avatar<%= avRing ? ' avatar-ring' : '' %>" src="<%= avUser.avatarUrl %>"
+       alt="<%= avName || 'User' %>"
+       width="<%= avSize %>" height="<%= avSize %>"
+       style="width:<%= avSize %>px;height:<%= avSize %>px"
+       loading="lazy" decoding="async">
+<% } else { %>
+  <span class="avatar avatar-initials<%= avRing ? ' avatar-ring' : '' %>"
+        aria-hidden="true" title="<%= avName %>"
+        style="width:<%= avSize %>px;height:<%= avSize %>px;font-size:<%= avFontSize %>px;background:hsl(<%= avHue %> 58% 46%)">
+    <%= avInitials %>
+  </span>
+<% } %>

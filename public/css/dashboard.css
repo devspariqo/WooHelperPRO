@@ -259,6 +259,10 @@
   padding-bottom: 20px; border-bottom: 1px solid var(--border);
 }
 .detail-head .ident { min-width: 0; }
+/* Only when an avatar is present: lays the avatar beside the name block. Scoped
+   to a modifier so pages using .ident without an avatar keep their block layout. */
+.detail-head .ident.has-avatar { display: flex; align-items: center; gap: 16px; }
+.detail-head .ident.has-avatar .ident-text { min-width: 0; }
 .detail-head h2 { margin-bottom: 5px; font-size: 1.4rem; }
 .detail-head .meta-line {
   display: flex; gap: 14px; flex-wrap: wrap; font-size: 13.5px; color: var(--text-mute);
@@ -468,6 +472,55 @@
   .js-tabs .settings-form { grid-template-columns: minmax(0, 1fr); }
   .settings-tab .tab-hint { display: none; }
 }
+
+/* ============================================================
+   Segmented tabs
+
+   Used for quick audience filters (Everyone / Staff / Customers). Visually a
+   segmented control rather than page tabs, because these are filters on one
+   list -- not separate destinations.
+   ============================================================ */
+
+.seg-tabs {
+  display: inline-flex; gap: 3px; padding: 3px;
+  background: var(--bg-muted); border: 1px solid var(--border);
+  border-radius: 10px; margin-top: 20px;
+}
+.seg-tab {
+  padding: 7px 16px; border-radius: 7px;
+  font-size: 13.5px; font-weight: 600; color: var(--text-soft);
+  transition: background .14s ease, color .14s ease;
+}
+.seg-tab:hover { color: var(--text); }
+.seg-tab.is-active {
+  background: var(--surface); color: var(--brand-700);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+}
+.seg-tab:focus-visible { outline: 2px solid var(--brand-500); outline-offset: 1px; }
+
+/* ============================================================
+   Avatars
+   ============================================================ */
+
+.avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; border-radius: 50%; object-fit: cover;
+  overflow: hidden; vertical-align: middle;
+  background: var(--bg-muted); color: #fff;
+  font-weight: 700; letter-spacing: .02em; line-height: 1;
+  user-select: none;
+}
+.avatar-ring { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--border); }
+
+/* The name + avatar pair used in tables and the sidebar. */
+.user-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.user-cell .user-cell-text { min-width: 0; }
+.user-cell .user-cell-text .strong { display: block; }
+
+/* Small stack of avatars, e.g. "assigned to" on a project. */
+.avatar-stack { display: inline-flex; }
+.avatar-stack .avatar { margin-left: -8px; box-shadow: 0 0 0 2px var(--surface); }
+.avatar-stack .avatar:first-child { margin-left: 0; }
 
 /* ============================================================
    Media picker
