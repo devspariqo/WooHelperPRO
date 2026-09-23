@@ -991,6 +991,68 @@ table.data .strong { font-weight: 600; color: var(--text); }
 }
 
 /* ==========================================================================
+   FAQ accordion
+   ========================================================================== */
+
+.faq-list { margin: 0 auto; }
+
+.faq-item {
+  border: 1px solid var(--border); border-radius: 14px;
+  background: var(--surface); margin-bottom: 10px;
+  overflow: hidden;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.faq-item.is-open {
+  border-color: var(--brand-600);
+  box-shadow: 0 6px 22px -12px rgba(124, 58, 237, .35);
+}
+
+/* The question is a real <h3><button> so it is a navigable heading. */
+.faq-q { margin: 0; }
+.faq-item button {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; text-align: left; cursor: pointer;
+  background: none; border: 0; font: inherit;
+  padding: 17px 20px;
+  font-size: 15.5px; font-weight: 600; color: var(--text);
+}
+.faq-item button:focus-visible { outline: 2px solid var(--brand-500); outline-offset: -2px; }
+
+.faq-chevron {
+  flex-shrink: 0; color: var(--text-mute);
+  transition: transform .28s cubic-bezier(.4, 0, .2, 1), color .18s ease;
+}
+.faq-item.is-open .faq-chevron { transform: rotate(180deg); color: var(--brand-600); }
+
+/*
+ * Height animation via grid-template-rows 0fr -> 1fr.
+ *
+ * This animates to the panel's NATURAL height, so a long answer and a short one
+ * both get proportional motion. max-height would need a guessed ceiling that
+ * either clips the long answer or makes the short one snap open.
+ *
+ * The inner div MUST have min-height: 0, otherwise the grid row refuses to shrink
+ * below its content and the panel is permanently open.
+ */
+.faq-a {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows .32s cubic-bezier(.4, 0, .2, 1);
+}
+.faq-item.is-open .faq-a { grid-template-rows: 1fr; }
+.faq-a-inner {
+  min-height: 0; overflow: hidden;
+  padding: 0 20px;
+  color: var(--text-soft); font-size: 14.5px; line-height: 1.65;
+  transition: padding-bottom .32s cubic-bezier(.4, 0, .2, 1);
+}
+.faq-item.is-open .faq-a-inner { padding-bottom: 18px; }
+
+/* Respect reduced motion: open instantly, no sliding. */
+@media (prefers-reduced-motion: reduce) {
+  .faq-a, .faq-a-inner, .faq-chevron { transition: none; }
+}
+
+/* ==========================================================================
    Print — invoice & packing slip
    ========================================================================== */
 

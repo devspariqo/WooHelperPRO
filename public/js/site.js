@@ -167,23 +167,51 @@
   // ---------------------------------------------------------------
   // FAQ accordion
   // ---------------------------------------------------------------
-  document.querySelectorAll('[data-faq-item]').forEach(function (item) {
-    const button = item.querySelector('[data-faq-question]');
-    if (!button) return;
-    button.addEventListener('click', function () {
-      const expanded = item.getAttribute('data-open') === 'true';
-      // Single-open behaviour reads better on mobile.
-      document.querySelectorAll('[data-faq-item]').forEach(function (other) {
-        if (other !== item) {
-          other.setAttribute('data-open', 'false');
-          const b = other.querySelector('[data-faq-question]');
-          if (b) b.setAttribute('aria-expanded', 'false');
-        }
+  //
+  // Open state lives on the `.is-open` CLASS, not a data attribute, because the
+  // panel height is driven by CSS (grid-template-rows 0fr -> 1fr). That animates
+  // to the answer's natural height; max-height would need a magic number that
+  // either clips long answers or snaps too fast on short ones.
+  //
+  // aria-expanded is set alongside so the state is announced, and the chevron
+  // rotation is CSS-driven off the same class -- one source of truth.
+  (function () {
+    const items = Array.prototype.slice.call(document.querySelectorAll('[data-faq-item]'));
+    if (!items.length) return;
+
+    function setOpen(item, open) {
+      item.classList.toggle('is-open', open);
+      const btn = item.querySelector('[data-faq-question]');
+      if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    items.forEach(function (item) {
+      const btn = item.querySelector('[data-faq-question]');
+      if (!btn) return;
+
+      btn.addEventListener('click', function () {
+        const willOpen = !item.classList.contains('is-open');
+        // Single-open reads better, especially on mobile.
+        items.forEach(function (other) { if (other !== item) setOpen(other, false); });
+        setOpen(item, willOpen);
       });
-      item.setAttribute('data-open', String(!expanded));
-      button.setAttribute('aria-expanded', String(!expanded));
+
+      // Up/Down move between questions, Home/End jump to the ends -- the keyboard
+      // behaviour expected of an accordion.
+      btn.addEventListener('keydown', function (e) {
+        const i = items.indexOf(item);
+        let next = -1;
+        if (e.key === 'ArrowDown') next = i + 1;
+        else if (e.key === 'ArrowUp') next = i - 1;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = items.length - 1;
+        if (next < 0 || next >= items.length) return;
+        e.preventDefault();
+        const target = items[next].querySelector('[data-faq-question]');
+        if (target) target.focus();
+      });
     });
-  });
+  })();
 
   // ---------------------------------------------------------------
   // Reveal-on-scroll (respects reduced motion)
