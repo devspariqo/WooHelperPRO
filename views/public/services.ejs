@@ -9,27 +9,81 @@
       </p>
     </div>
 
-    <form class="filters" method="get" action="/services">
-      <div class="field grow">
-        <label for="q"><%= t('Search services') %></label>
+    <%
+      /*
+       * Filter bar.
+       *
+       * The category dropdown is replaced by chips. With a handful of categories a
+       * dropdown hides the options behind a click and gives no sense of how much is
+       * in each; chips show every choice at once and are one tap instead of two.
+       * A select is still rendered as a fallback for narrow screens, where chips
+       * would wrap into a wall.
+       *
+       * Both submit the same GET form, so the filter works with or without JS.
+       */
+      var activeCat = activeCategory || '';
+    %>
+    <form class="svc-filter" method="get" action="/services" data-svc-filter>
+      <div class="svc-filter-search">
+        <svg class="svc-search-icon" viewBox="0 0 24 24" width="17" height="17"
+             aria-hidden="true" focusable="false">
+          <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <label class="sr-only" for="q"><%= t('Search services') %></label>
         <input id="q" name="q" type="search" value="<%= searchQuery || '' %>"
-               placeholder="e.g. ecommerce, SEO, landing page">
+               placeholder="<%= t('Search services') %> — ecommerce, SEO, landing page…"
+               autocomplete="off">
+        <% if (searchQuery || activeCat) { %>
+          <a class="svc-filter-clear" href="/services" title="<%= t('Clear filters') %>"
+             aria-label="<%= t('Clear filters') %>">&times;</a>
+        <% } %>
       </div>
-      <div class="field">
-        <label for="category"><%= t('Category') %></label>
-        <select id="category" name="category" data-auto-submit>
-          <option value=""><%= t('All categories') %></option>
-          <% categories.forEach(function (cat) { %>
-            <option value="<%= cat.slug %>" <%= activeCategory === cat.slug ? 'selected' : '' %>>
-              <%= cat.name %>
-            </option>
-          <% }); %>
-        </select>
+
+      <div class="svc-chips" role="group" aria-label="<%= t('Category') %>">
+        <a class="svc-chip<%= !activeCat ? ' is-active' : '' %>"
+           href="/services<%= searchQuery ? '?q=' + encodeURIComponent(searchQuery) : '' %>">
+          <%= t('All categories') %>
+        </a>
+        <% categories.forEach(function (cat) { %>
+          <%
+            var qs = [];
+            if (searchQuery) qs.push('q=' + encodeURIComponent(searchQuery));
+            qs.push('category=' + encodeURIComponent(cat.slug));
+          %>
+          <a class="svc-chip<%= activeCat === cat.slug ? ' is-active' : '' %>"
+             href="/services?<%= qs.join('&') %>"><%= cat.name %></a>
+        <% }); %>
       </div>
-      <div class="field">
+
+      <%# Keyboard and no-JS path: the chips are links, this makes Enter work. %>
+      <noscript>
+        <div class="field">
+          <label for="category"><%= t('Category') %></label>
+          <select id="category" name="category">
+            <option value=""><%= t('All categories') %></option>
+            <% categories.forEach(function (cat) { %>
+              <option value="<%= cat.slug %>" <%= activeCat === cat.slug ? 'selected' : '' %>>
+                <%= cat.name %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
         <button class="btn btn-primary" type="submit"><%= t('Filter') %></button>
-      </div>
+      </noscript>
     </form>
+
+    <% if (services.length) { %>
+      <p class="svc-count">
+        <strong><%= services.length %></strong>
+        <%= services.length === 1 ? 'service' : 'services' %>
+        <% if (activeCat) { %>
+          <% var catName = categories.filter(function (c) { return c.slug === activeCat; })[0]; %>
+          in <strong><%= catName ? catName.name : activeCat %></strong>
+        <% } %>
+        <% if (searchQuery) { %> matching &ldquo;<%= searchQuery %>&rdquo;<% } %>
+      </p>
+    <% } %>
 
     <% if (!services.length) { %>
       <div class="empty-state">
@@ -79,13 +133,48 @@
   </div>
 </section>
 
-<section class="cta-band grad">
-  <div class="container center">
-    <h2 class="mt-0">Not sure which service you need?</h2>
-    <p>Tell us what your business does and we will recommend the smallest thing that solves it.</p>
-    <div class="form-actions center">
-      <a class="btn btn-accent btn-lg" href="/contact"><%= t('Talk to a consultant') %></a>
-      <a class="btn btn-outline btn-lg" href="/packages"><%= t('Compare packages') %></a>
+<section class="cta-band grad cta-band-rich">
+  <div class="container">
+    <div class="cta-inner">
+      <div class="cta-copy">
+        <span class="cta-kicker"><%= t('Free consultation') %></span>
+        <h2 class="mt-0">Not sure which service you need?</h2>
+        <p class="cta-lead">
+          Tell us what your business sells and how you take orders today. We will recommend
+          the smallest thing that solves it &mdash; and tell you if you do not need us yet.
+        </p>
+
+        <ul class="cta-points">
+          <li><span aria-hidden="true">✓</span> A written recommendation, not a sales call</li>
+          <li><span aria-hidden="true">✓</span> Taka pricing with no hidden setup fees</li>
+          <li><span aria-hidden="true">✓</span> Support in Bangla, on WhatsApp or phone</li>
+        </ul>
+
+        <div class="cta-actions">
+          <a class="btn btn-lg cta-primary" href="/contact">
+            <%= t('Talk to a consultant') %>
+            <span class="cta-arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="btn btn-outline btn-lg cta-secondary" href="/packages">
+            <%= t('Compare packages') %>
+          </a>
+        </div>
+
+        <p class="cta-note">
+          Usually a reply within one business day. No obligation.
+        </p>
+      </div>
+
+      <%# Decorative panel: a compact "what happens next" card, so the band has a
+          visual anchor instead of being a wall of centred text. %>
+      <aside class="cta-panel" aria-label="What happens next">
+        <p class="cta-panel-title">What happens next</p>
+        <ol class="cta-steps">
+          <li><span class="cta-step-n">1</span> You describe the business</li>
+          <li><span class="cta-step-n">2</span> We scope the smallest solution</li>
+          <li><span class="cta-step-n">3</span> You get a fixed price in Taka</li>
+        </ol>
+      </aside>
     </div>
   </div>
 </section>

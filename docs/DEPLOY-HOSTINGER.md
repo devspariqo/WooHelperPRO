@@ -94,21 +94,26 @@ Whichever you pick, **do not** leave `%` (all hosts) in the allowlist after setu
 ```bash
 cd D:/SPECIAL/WooHelperPRO
 
-# 1. Switch the Prisma datasource to MySQL
-npm run db:provider mysql
-
-# 2. Point at the database (note %23)
+# 1. Point at the database (note %23 -- see the encoding note above)
 export DATABASE_URL="mysql://<DB-USER>:<URL-ENCODED-PASSWORD>@<DB-HOST>:3306/<DB-USER>"
 
-# 3. Regenerate the client for the MySQL provider
-npx prisma generate
+# 2. Switch the datasource AND regenerate the client, in one step.
+#    `auto` reads DATABASE_URL and picks the matching provider, so the schema and
+#    the connection string cannot disagree.
+npm run db:provider:auto
 
-# 4. Create all 22 tables
+# 3. Create all 22 tables
 npx prisma db push
 
-# 5. Seed demo data
+# 4. Seed demo data
 npm run db:seed
 ```
+
+> **Why `auto` rather than a hardcoded `mysql`.** The provider used to be a manual
+> local step, which meant that if anyone forgot it, the build generated a **SQLite**
+> client against a **MySQL** database — a green build followed by a crash on the
+> first query, on the server. `auto` derives the provider from the connection
+> string, and `npm run build` now calls it, so the two cannot drift.
 
 I verified all 22 tables generate valid MySQL DDL with `utf8mb4_unicode_ci` — correct for
 Bangla text. `prisma/seed.js` uses only the Prisma Client API, so it is portable.
@@ -264,10 +269,26 @@ rolling cookies on a single instance this is survivable, but users will be logge
 often than they expect. Fix: `connect-pg-simple`-style store for MySQL, or Redis. Small,
 contained change to `src/app.js`.
 
-**No file uploads exist yet** — which is why the ephemeral filesystem is not a problem
-today. If you add image uploads later (portfolio thumbnails, blog covers), writing to
-`public/uploads` will **not** persist: Hostinger runs the app from a versioned build
-directory that is replaced on every deploy. Use object storage from the start.
+**File uploads do NOT persist.** The media library writes to `public/uploads` (or
+`UPLOAD_DIR`). Hostinger runs the app from a versioned build directory that is replaced on
+every deploy, so **every uploaded image is lost on the next push** — logos, service card
+art, portfolio covers, staff avatars, all of it. The database rows survive and keep pointing
+at URLs that now 404.
+
+This is not theoretical: the admin now has a media picker on the service, package,
+portfolio, blog and user forms, so uploads are a normal part of using the panel.
+
+Two options before you rely on it:
+
+1. **Object storage** (correct fix). Point the media service at S3, Cloudflare R2 or
+   Supabase Storage and store the returned absolute URL. The `url` column already holds an
+   absolute URL, so nothing else has to change.
+2. **An uploads directory outside the build tree.** Set `UPLOAD_DIR` to an absolute path
+   outside `hbuilds/` (for example under `~/uploads`) and symlink it into `public_html`.
+   Survives deploys, but it is outside the panel's managed area and you own the backups.
+
+Until one of those is in place, treat every uploaded image as temporary. The bundled demo
+artwork under `public/images/demo/` is committed to the repo and is therefore safe.
 
 **MySQL index note.** Prisma generated `VARCHAR(191)` for indexed string columns, which is
 required for `utf8mb4` compatibility on MySQL 5.7 and harmless on 8.x. Your account's
@@ -297,6 +318,7 @@ Push to `main` and Hostinger rebuilds automatically.
 | `Access denied ...@'<your-ip>'` | IP not allowlisted (same error as a bad password) | hPanel → Remote MySQL, or use Option A |
 | Build green, process dies | `PORT` set manually | Delete the `PORT` env var |
 | `Cannot find module '.prisma/client/default'` | Client not generated | Build command must be `npm run build` |
+| Client generated for the wrong database (queries fail on a MySQL URL) | Provider left at `sqlite` | `npm run build` now derives it from `DATABASE_URL`; check the build log for `DATABASE_URL implies provider:` |
 | `[FATAL] SESSION_SECRET is missing…` | Placeholder/absent secret | Set a random `SESSION_SECRET` |
 | Every authed route 302s | Testing over HTTP; the cookie is `Secure` in prod | Test over `https://` |
 | Could not connect at the remote hostname from the app | Used the remote host instead of loopback | Use `127.0.0.1` inside Hostinger |

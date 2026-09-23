@@ -1137,6 +1137,135 @@ table.data .strong { font-weight: 600; color: var(--text); }
 }
 
 /* ==========================================================================
+   Services filter bar
+   ========================================================================== */
+
+.svc-filter {
+  display: flex; flex-direction: column; gap: 16px;
+  align-items: center; margin: 0 auto 26px; max-width: 820px;
+}
+
+.svc-filter-search { position: relative; width: 100%; }
+.svc-filter-search input {
+  width: 100%; padding: 14px 44px 14px 44px;
+  border: 1px solid var(--border-strong); border-radius: 999px;
+  font-size: 15px; background: var(--surface); color: var(--text);
+  transition: border-color .16s, box-shadow .16s;
+}
+.svc-filter-search input:focus {
+  outline: none; border-color: var(--brand-400);
+  box-shadow: 0 0 0 4px var(--brand-50);
+}
+.svc-search-icon {
+  position: absolute; left: 17px; top: 50%; transform: translateY(-50%);
+  color: var(--text-mute); pointer-events: none;
+}
+.svc-filter-clear {
+  position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+  font-size: 20px; line-height: 1; color: var(--text-mute);
+  text-decoration: none; padding: 2px 5px; border-radius: 50%;
+}
+.svc-filter-clear:hover { color: var(--text); background: var(--bg-muted); }
+
+/* ---- Category chips ----
+   A dropdown hides the options and gives no sense of how many there are; chips
+   show every choice at once and are one tap instead of two. */
+.svc-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.svc-chip {
+  padding: 8px 16px; border-radius: 999px;
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text-soft); font-size: 13.5px; font-weight: 600;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.svc-chip:hover { border-color: var(--brand-400); color: var(--brand-700); }
+.svc-chip.is-active {
+  background: var(--brand-500); border-color: var(--brand-500); color: #fff;
+  box-shadow: var(--shadow-brand);
+}
+.svc-chip:focus-visible { outline: 2px solid var(--brand-500); outline-offset: 2px; }
+
+.svc-count { text-align: center; color: var(--text-mute); font-size: 14px; margin-bottom: 22px; }
+.svc-count strong { color: var(--text); }
+
+/* ==========================================================================
+   Rich CTA band
+
+   A two-column band rather than centred text: the copy on the left, a short
+   "what happens next" panel on the right to give the block a visual anchor.
+   ========================================================================== */
+
+.cta-band-rich { text-align: left; padding: 72px 0; }
+.cta-inner {
+  display: grid; grid-template-columns: 1.35fr 1fr;
+  gap: 56px; align-items: center;
+}
+
+.cta-kicker {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 12px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase;
+  color: #fff; opacity: .92; margin-bottom: 12px;
+}
+.cta-kicker::before {
+  content: ''; width: 22px; height: 2px; border-radius: 2px; background: #fff;
+}
+
+.cta-copy h2 { color: #fff; margin-bottom: 12px; }
+.cta-lead { color: rgba(255, 255, 255, .9); font-size: 16px; line-height: 1.6; max-width: 52ch; }
+
+.cta-points { list-style: none; padding: 0; margin: 22px 0 26px; display: grid; gap: 10px; }
+.cta-points li {
+  display: flex; align-items: flex-start; gap: 10px;
+  color: rgba(255, 255, 255, .95); font-size: 14.5px;
+}
+.cta-points li span {
+  flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, .22); font-size: 11px; font-weight: 700;
+  margin-top: 1px;
+}
+
+.cta-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+/* On the brand-coloured band the primary must invert: a brand button on a brand
+   background disappears. */
+.cta-primary { background: #fff; color: var(--brand-700); box-shadow: 0 14px 30px -12px rgba(0,0,0,.4); }
+.cta-primary:hover { background: #fff; color: var(--brand-700); transform: translateY(-1px); }
+.cta-primary .cta-arrow { display: inline-block; transition: transform .2s cubic-bezier(.4,0,.2,1); }
+.cta-primary:hover .cta-arrow { transform: translateX(3px); }
+.cta-secondary {
+  background: transparent; color: #fff; border-color: rgba(255, 255, 255, .5);
+}
+.cta-secondary:hover { background: rgba(255, 255, 255, .12); color: #fff; border-color: #fff; }
+
+.cta-note { color: rgba(255, 255, 255, .72); font-size: 13px; margin: 16px 0 0; }
+
+.cta-panel {
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: var(--radius-lg);
+  padding: 26px 24px; backdrop-filter: blur(6px);
+}
+.cta-panel-title {
+  color: #fff; font-size: 12.5px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; margin: 0 0 16px;
+}
+.cta-steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: none; }
+.cta-steps li {
+  display: flex; align-items: center; gap: 12px;
+  color: rgba(255, 255, 255, .95); font-size: 14.5px;
+}
+.cta-step-n {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; color: var(--brand-700); font-size: 13px; font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .cta-inner { grid-template-columns: 1fr; gap: 34px; }
+  .cta-band-rich { padding: 52px 0; }
+  .cta-lead { font-size: 15px; }
+}
+
+/* ==========================================================================
    Premium polish
 
    These are refinements applied on top of the base components rather than a

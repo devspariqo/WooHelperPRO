@@ -8,7 +8,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "postinstall": "prisma generate",
-    "build": "prisma generate",
+    "build": "node scripts/set-db-provider.js auto && prisma generate",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
     "db:reset": "node scripts/reset-db.js",
@@ -25,7 +25,8 @@
     "lint:i18n": "node scripts/lint-i18n.js",
     "lint:views:selftest": "node scripts/audit-view-locals.js --selftest",
     "lint:view": "node scripts/run-audit.js",
-    "db:provider": "node scripts/set-db-provider.js"
+    "db:provider": "node scripts/set-db-provider.js",
+    "db:provider:auto": "node scripts/set-db-provider.js auto"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

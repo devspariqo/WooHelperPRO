@@ -21,6 +21,23 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
+
+/*
+ * Load .env before reading DATABASE_URL.
+ *
+ * `npm run build` runs this as a plain node script, and plain node does NOT read
+ * .env -- only the Prisma CLI does. Without this, the auto mode fails locally with
+ * "needs DATABASE_URL to be set" while working fine on Hostinger (where the host
+ * injects real env vars). Failing only in one of the two environments is exactly
+ * the kind of split that wastes an afternoon.
+ *
+ * Uses dotenv if present, and silently continues if it is not: on Hostinger the
+ * variable is already in process.env, so a missing .env is not an error there.
+ */
+try {
+  require('dotenv').config({ path: path.join(ROOT, '.env') });
+} catch (e) { /* dotenv absent -- rely on the real environment */ }
+
 const SCHEMA = path.join(ROOT, 'prisma', 'schema.prisma');
 
 const SUPPORTED = ['sqlite', 'mysql', 'postgresql'];
@@ -47,12 +64,44 @@ const block = m[0];
 const providerMatch = /provider\s*=\s*"(\w+)"/.exec(block);
 const current = providerMatch ? providerMatch[1] : '(unknown)';
 
+/*
+ * `auto` derives the provider from DATABASE_URL.
+ *
+ * This exists so the build step cannot be forgotten. The provider was previously a
+ * MANUAL step ("run npm run db:provider mysql, then commit"), which meant that if
+ * anyone forgot, the build generated a SQLite client against a MySQL database and
+ * the app failed at the first query -- on the server, after a green build.
+ *
+ * Deriving it from the connection string makes the two impossible to disagree:
+ * a `mysql://` URL gets a MySQL client, a `file:` URL gets SQLite.
+ */
+if (target === 'auto') {
+  const url = (process.env.DATABASE_URL || '').trim();
+  if (!url) {
+    console.error('ERROR: --auto needs DATABASE_URL to be set.');
+    process.exit(2);
+  }
+  const detected = url.startsWith('mysql://') ? 'mysql'
+    : url.startsWith('postgres://') || url.startsWith('postgresql://') ? 'postgresql'
+      : url.startsWith('file:') ? 'sqlite'
+        : null;
+
+  if (!detected) {
+    console.error('ERROR: could not infer a provider from DATABASE_URL.');
+    console.error('       expected it to start with mysql://, postgres:// or file:');
+    process.exit(2);
+  }
+  console.log('DATABASE_URL implies provider: ' + detected);
+  return apply(detected);
+}
+
 if (!target) {
   console.log('schema          : ' + path.relative(ROOT, SCHEMA));
   console.log('datasource name : ' + m[1]);
   console.log('provider        : ' + current);
   console.log('');
-  console.log('usage: node scripts/set-db-provider.js <' + SUPPORTED.join('|') + '>');
+  console.log('usage: node scripts/set-db-provider.js <' + SUPPORTED.join('|') + '|auto>');
+  console.log('       auto reads DATABASE_URL and picks the matching provider.');
   process.exit(0);
 }
 
@@ -62,18 +111,24 @@ if (!SUPPORTED.includes(target)) {
   process.exit(2);
 }
 
-if (current === target) {
-  console.log('Provider is already "' + target + '" -- nothing to do.');
-  process.exit(0);
+apply(target);
+
+/** Write the provider into the datasource block. */
+function apply(target) {
+  if (current === target) {
+    console.log('Provider is already "' + target + '" -- nothing to do.');
+    return;
+  }
+
+  const updatedBlock = block.replace(
+    /provider\s*=\s*"\w+"/,
+    'provider = "' + target + '"',
+  );
+
+  src = src.replace(blockRe, updatedBlock);
+  fs.writeFileSync(SCHEMA, src);
+  console.log('Provider set to "' + target + '". Run `npx prisma generate` next.');
 }
-
-const updatedBlock = block.replace(
-  /provider\s*=\s*"\w+"/,
-  'provider = "' + target + '"',
-);
-
-src = src.replace(blockRe, updatedBlock);
-fs.writeFileSync(SCHEMA, src);
 
 console.log('provider: ' + current + ' -> ' + target);
 console.log('');
