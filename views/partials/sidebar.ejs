@@ -67,6 +67,16 @@
       <a href="/admin/users" class="<%= active === 'users' ? 'active' : '' %>">
         <span class="ico">◉</span> <%= t('Users') %>
       </a>
+      <%#
+        A direct Staff entry.
+        The Staff filter lived only as a tab INSIDE the users list, which meant it
+        was invisible to anyone who did not already know it was there. Staff are a
+        different job from customers -- managing access and roles, not orders -- so
+        they get their own sidebar entry that lands on the filtered list.
+      %>
+      <a href="/admin/users?group=staff">
+        <span class="ico">⚑</span> <%= t('Staff') %>
+      </a>
       <% } %>
       <% if (can ? can('subscriptions') : false) { %>
       <a href="/admin/subscriptions" class="<%= active === 'subscriptions' ? 'active' : '' %>">

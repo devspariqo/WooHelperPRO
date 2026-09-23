@@ -344,6 +344,8 @@ const BN = {
   Leads: 'লিড',
   Coupons: 'কুপন',
   Users: 'ইউজার',
+  Staff: 'স্টাফ',
+  'Staff member': 'স্টাফ সদস্য',
   Projects: 'প্রজেক্ট',
   Tickets: 'টিকেট',
   Testimonials: 'রিভিউ',

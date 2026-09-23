@@ -474,13 +474,47 @@
 }
 
 /* ============================================================
-   Segmented tabs
+   Heading scale for the panel
+
+   site.css sets a MARKETING h1 -- clamp(2rem, 4.4vw, 3.2rem), up to 51px. That is
+   right for a landing page hero and completely wrong inside the admin panel, where
+   an h1 is a page label sitting above a table, not a headline. Every admin page
+   was inheriting it.
+
+   Scoped to .admin-page/.account-page so the public hero keeps its size. This file
+   loads after site.css, so the override wins without !important.
+   ============================================================ */
+
+.admin-page h1, .account-page h1 {
+  font-size: 22px; font-weight: 700; letter-spacing: -.015em;
+  line-height: 1.25; margin: 0 0 4px;
+}
+.admin-page h2, .account-page h2 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
+.admin-page h3, .account-page h3 { font-size: 15px; font-weight: 650; }
+
+/* The detail-head is the page's main heading and can be a touch larger than a
+   plain section heading, but still nowhere near hero size. */
+.admin-page .detail-head h1, .account-page .detail-head h1 { font-size: 24px; }
+/* A subtitle directly under an h1 should read as supporting text, not a heading. */
+.admin-page h1 + .muted, .account-page h1 + .muted { font-size: 13.5px; }
+
+@media (max-width: 860px) {
+  .admin-page h1, .account-page h1 { font-size: 19px; }
+  .admin-page .detail-head h1, .account-page .detail-head h1 { font-size: 20px; }
+}
 
    Used for quick audience filters (Everyone / Staff / Customers). Visually a
    segmented control rather than page tabs, because these are filters on one
    list -- not separate destinations.
    ============================================================ */
 
+/* ============================================================
+   Segmented tabs
+
+   Used for quick audience filters (Everyone / Staff / Customers). Visually a
+   segmented control rather than page tabs, because these are filters on one
+   list -- not separate destinations.
+   ============================================================ */
 .seg-tabs {
   display: inline-flex; gap: 3px; padding: 3px;
   background: var(--bg-muted); border: 1px solid var(--border);

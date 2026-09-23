@@ -1,12 +1,29 @@
+<%
+  /*
+   * The header adapts to the active tab.
+   *
+   * "Users" as a title over a staff-filtered list is misleading -- an operator
+   * managing access needs to know they are looking at staff, not customers. The
+   * heading and the primary action both follow the filter.
+   */
+  var onStaff = filters.group === 'staff';
+%>
 <section class="detail-head">
   <div class="ident">
-    <h1>Users</h1>
+    <h1><%= onStaff ? 'Staff' : 'Users' %></h1>
     <p class="meta-line muted mb-0">
-      Customers and staff. Lifetime value counts every order except cancelled and refunded ones.
+      <% if (onStaff) { %>
+        Staff accounts and their access. Roles control what each person can see and change
+        in this panel; profile photos show wherever they appear.
+      <% } else { %>
+        Customers and staff. Lifetime value counts every order except cancelled and refunded ones.
+      <% } %>
     </p>
   </div>
   <div class="actions">
-    <a class="btn btn-primary" href="/admin/users/new">Add user</a>
+    <a class="btn btn-primary" href="/admin/users/new">
+      <%= onStaff ? 'Add staff member' : 'Add user' %>
+    </a>
   </div>
 </section>
 

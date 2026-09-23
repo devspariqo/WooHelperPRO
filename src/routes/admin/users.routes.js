@@ -61,7 +61,7 @@ router.get('/', requirePermission('users'), async (req, res, next) => {
     ]);
 
     res.render('admin/users/index', {
-      title: 'Users',
+      title: group === 'staff' ? 'Staff' : 'Users',
       layout: 'layouts/dashboard',
       bodyClass: 'admin-page',
       panel: 'admin',
