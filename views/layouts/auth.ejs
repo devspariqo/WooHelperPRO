@@ -27,9 +27,31 @@
   <style>
     /* Admin-controlled brand tokens -- see layouts/public.ejs for the rationale. */
     :root {
-      --brand-600: <%= settings.primaryColor %>;
-      --brand-500: <%= settings.primaryColor %>;
-      --brand-700: <%= settings.primaryColor %>;
+      --brand-base: <%= settings.primaryColor %>;
+      --brand-400: color-mix(in srgb, var(--brand-base) 74%, #ffffff);
+      --brand-500: var(--brand-base);
+    /*
+     * The TINT steps (50-300) are a THEME concern and must be scoped: they are
+     * pale washes behind dark text in light mode and behind light text in dark
+     * mode. Emitted unscoped mixed with #ffffff they would put a near-white block
+     * on the near-black dark background -- the same specificity trap as --text.
+     */
+    :root:not([data-theme="dark"]) {
+      --brand-50:  color-mix(in srgb, var(--brand-base) 7%, #ffffff);
+      --brand-100: color-mix(in srgb, var(--brand-base) 15%, #ffffff);
+      --brand-200: color-mix(in srgb, var(--brand-base) 30%, #ffffff);
+      --brand-300: color-mix(in srgb, var(--brand-base) 50%, #ffffff);
+    }
+    [data-theme="dark"] {
+      --brand-50:  color-mix(in srgb, var(--brand-base) 12%, #17141f);
+      --brand-100: color-mix(in srgb, var(--brand-base) 20%, #17141f);
+      --brand-200: color-mix(in srgb, var(--brand-base) 32%, #17141f);
+      --brand-300: color-mix(in srgb, var(--brand-base) 46%, #17141f);
+    }
+      --brand-600: color-mix(in srgb, var(--brand-base) 88%, #000000);
+      --brand-700: color-mix(in srgb, var(--brand-base) 74%, #000000);
+      --brand-800: color-mix(in srgb, var(--brand-base) 60%, #000000);
+      --brand-900: color-mix(in srgb, var(--brand-base) 48%, #000000);
       --accent-500: <%= settings.accentColor %>;
       --accent-600: <%= helpers.shade(settings.accentColor) %>;
       --font: '<%= settings.fontBody %>', '<%= settings.fontBodyBn %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

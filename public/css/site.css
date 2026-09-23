@@ -4,44 +4,60 @@
    ========================================================================== */
 
 :root {
-  --brand-50:  #f5f3ff;
-  --brand-100: #ede9fe;
-  --brand-200: #ddd6fe;
-  --brand-300: #c4b5fd;
-  --brand-400: #a78bfa;
-  --brand-500: #8b5cf6;
-  --brand-600: #7c3aed;
-  --brand-700: #6d28d9;
-  --brand-800: #5b21b6;
-  --brand-900: #4c1d95;
+  /* Brand scale built around #ff6600.
+     This used to be a violet ramp with #ff6600 as a secondary accent, which meant
+     the accent only ever appeared on small details. The client's accent is the
+     brand, so the ramp is derived from it and every --brand-* token now reads
+     orange. --accent-* is kept as an alias so existing rules keep working. */
+  --brand-50:  #fff5ed;
+  --brand-100: #ffe8d5;
+  --brand-200: #ffd0aa;
+  --brand-300: #ffb075;
+  --brand-400: #ff8a3d;
+  --brand-500: #ff6600;
+  --brand-600: #e65c00;
+  --brand-700: #bf4d00;
+  --brand-800: #993e00;
+  --brand-900: #7a3200;
 
   --accent-500: #ff6600;
-  --accent-600: #cc5200;
+  --accent-600: #e65c00;
 
   --ok-50: #ecfdf5;   --ok-500: #10b981;  --ok-700: #047857;
   --warn-50: #fffbeb; --warn-500: #f59e0b; --warn-700: #b45309;
   --err-50: #fef2f2;  --err-500: #ef4444;  --err-700: #b91c1c;
   --info-50: #eff6ff; --info-500: #3b82f6; --info-700: #1d4ed8;
 
+  /* Neutrals warmed very slightly to sit with the orange rather than fight it.
+     A pure grey next to #ff6600 reads cold and cheap; a hint of warmth makes the
+     accent look intentional. */
   --bg:        #ffffff;
-  --bg-soft:   #f8f7fb;
-  --bg-muted:  #f1eff7;
+  --bg-soft:   #fbf9f8;
+  --bg-muted:  #f4f1ef;
   --surface:   #ffffff;
-  --border:    #e6e3ef;
-  --border-strong: #d5d0e4;
+  --border:    #eae5e1;
+  --border-strong: #d9d2cc;
 
-  --text:      #17141f;
-  --text-soft: #4b4658;
-  --text-mute: #7b7490;
+  --text:      #1a1614;
+  --text-soft: #514a45;
+  --text-mute: #837a73;
 
-  --radius-sm: 6px;
-  --radius:    10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  /* Larger radii and softer, wider shadows -- the reference design reads as
+     "expensive" largely because nothing has a hard 6px corner or a tight shadow. */
+  --radius-sm: 8px;
+  --radius:    14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
 
-  --shadow-sm: 0 1px 2px rgba(23, 20, 31, .06);
-  --shadow:    0 4px 14px rgba(23, 20, 31, .08);
-  --shadow-lg: 0 18px 48px rgba(23, 20, 31, .12);
+  --shadow-sm: 0 1px 2px rgba(26, 22, 20, .05);
+  --shadow:    0 6px 20px -6px rgba(26, 22, 20, .10), 0 2px 6px rgba(26, 22, 20, .04);
+  --shadow-lg: 0 24px 56px -18px rgba(26, 22, 20, .18), 0 8px 20px -10px rgba(26, 22, 20, .08);
+  --shadow-brand: 0 14px 34px -12px rgba(255, 102, 0, .42);
+
+  /* Section rhythm. Generous vertical space is most of what separates a premium
+     marketing page from a cramped one. */
+  --section-y: 96px;
+  --section-y-sm: 64px;
 
   /* Public page container. 1300px gives the marketing pages room to breathe on
      large screens; the responsive rules below clamp it on narrower viewports. */
@@ -989,6 +1005,112 @@ table.data .strong { font-weight: 600; color: var(--text); }
   .whatsapp-float { padding: 13px; }
   .trust-inner { gap: 22px; }
 }
+
+/* ==========================================================================
+   Premium polish
+
+   These are refinements applied on top of the base components rather than a
+   rewrite: larger section rhythm, a marker on the section kickers, tighter
+   heading tracking, pill buttons, and softer card elevation. Changing tokens and
+   these few rules lifts every public page at once instead of restyling each one.
+   ========================================================================== */
+
+/* ---- Section rhythm ---- */
+.section { padding: var(--section-y) 0; }
+.section-head { margin-bottom: 44px; }
+.section-head.center { max-width: 720px; margin-inline: auto; text-align: center; }
+
+/* ---- Section kicker ----
+   Small caps with a short rule before it. The rule is the detail that makes a
+   kicker read as a deliberate label rather than a stray line of small text. */
+.section-kicker {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 12px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase;
+  color: var(--brand-600); margin-bottom: 12px;
+}
+.section-kicker::before {
+  content: ''; width: 22px; height: 2px; border-radius: 2px;
+  background: var(--brand-500); flex-shrink: 0;
+}
+.section-head.center .section-kicker { justify-content: center; }
+
+/* ---- Headings ----
+   Tighter tracking and a shorter line-height than default; display type at this
+   size looks loose without it. */
+h1, h2, h3 { font-family: var(--font-heading); letter-spacing: -.022em; }
+h1 { line-height: 1.1; }
+h2 { line-height: 1.16; font-size: clamp(1.6rem, 1.15rem + 1.7vw, 2.5rem); }
+h3 { line-height: 1.28; }
+
+/* ---- Buttons ----
+   Fully rounded, with the primary carrying a soft brand shadow so it reads as the
+   page's action rather than just a coloured rectangle. */
+.btn { border-radius: 999px; font-weight: 600; letter-spacing: -.005em; }
+.btn-primary {
+  box-shadow: var(--shadow-brand);
+  border-color: transparent;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 18px 40px -14px rgba(255, 102, 0, .5); }
+.btn-lg { padding: 13px 28px; font-size: 15.5px; }
+
+/* ---- Cards ----
+   Softer, wider shadow and a slight lift on hover. The border stays so cards keep
+   an edge in light mode where a shadow alone is nearly invisible. */
+.card, .svc-card, .pkg-card, .tst-card, .post-card {
+  border-radius: var(--radius-lg);
+  transition: box-shadow .22s ease, transform .22s ease, border-color .22s ease;
+}
+.svc-card:hover, .pkg-card:hover, .post-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--brand-200);
+}
+
+/* ---- Icon chips ----
+   The reference puts feature icons in a tinted rounded square. Same idea here,
+   driven off the brand token so it follows a custom primary colour. */
+.svc-icon {
+  width: 46px; height: 46px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--brand-50); color: var(--brand-600);
+  font-size: 21px; margin-bottom: 16px;
+}
+
+/* ---- Header ----
+   Slightly taller with a blur backdrop, so content scrolling under it stays
+   legible without a hard opaque bar. */
+.site-header {
+  backdrop-filter: saturate(180%) blur(12px);
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+}
+
+/* ---- Footer ----
+   The reference uses a dark multi-column footer. A fixed dark surface in both
+   themes, like the admin sidebar, because a footer that turns white in light mode
+   loses the visual full-stop. */
+.site-footer {
+  background: #17130f; color: #cfc6bd;
+  border-top: 0; margin-top: var(--section-y);
+}
+.site-footer h4 { color: #fff; font-size: 13px; letter-spacing: .07em; text-transform: uppercase; }
+.site-footer a { color: #cfc6bd; }
+.site-footer a:hover { color: #fff; }
+.site-footer .muted, .site-footer small { color: #8d8378; }
+.site-footer .brand-text strong { color: #fff; }
+.site-footer .brand-text small { color: #8d8378; }
+
+/* On dark, the logo needs its light-on-dark variant if one is set -- handled by
+   helpers.logoFor, which already resolves per theme. No filter hack needed. */
+
+@media (max-width: 860px) {
+  .section { padding: var(--section-y-sm) 0; }
+  .section-head { margin-bottom: 32px; }
+}
+
+   aspect-ratio reserves the space before the image loads, so a grid of cards
+   does not reflow as pictures arrive. object-fit: cover means an off-ratio
+   upload is cropped rather than distorting the card.
+   ========================================================================== */
 
 /* ==========================================================================
    Card artwork (services & packages)

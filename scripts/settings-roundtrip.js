@@ -161,7 +161,16 @@ function bodyFrom(row, overrides) {
 
   // ---- Rendered public HTML ----
   const home = await (await req('GET', '/')).text();
-  check('home: primary colour injected', home.includes('--brand-600: #c81e5a'));
+  // The primary colour is now the BASE of a derived ramp rather than being
+  // stamped onto --brand-600 directly, so assert on --brand-base and check that
+  // --brand-600 is derived FROM it. Asserting the old literal would fail while the
+  // behaviour is actually correct.
+  check('home: primary colour injected as the ramp base',
+    home.includes('--brand-base: #c81e5a'));
+  check('home: ramp derived from the base',
+    /--brand-600:\s*color-mix\(in srgb, var\(--brand-base\)/.test(home));
+  check('home: tint steps scoped to light mode',
+    /:root:not\(\[data-theme="dark"\]\)[\s\S]{0,400}--brand-50:/.test(home));
   check('home: accent colour injected', home.includes('--accent-500: #0ea5e9'));
   check('home: heading font requested', /family=Poppins/.test(home));
   check('home: body font requested', /family=Roboto/.test(home));
