@@ -42,7 +42,15 @@
       <div class="grid grid-3 mt-4">
         <% services.forEach(function (svc) { %>
           <article class="svc-card">
-            <div class="svc-icon"><%= svc.icon || '◆' %></div>
+            <% if (svc.imageUrl) { %>
+              <%# Card artwork. Aspect-ratio is set in CSS so the grid does not jump
+                  while images load, and loading=lazy keeps the first paint light. %>
+              <a class="svc-thumb" href="/services/<%= svc.slug %>" tabindex="-1" aria-hidden="true">
+                <img src="<%= svc.imageUrl %>" alt="" loading="lazy" decoding="async">
+              </a>
+            <% } else { %>
+              <div class="svc-icon"><%= svc.icon || '◆' %></div>
+            <% } %>
             <h3 class="mt-0"><a href="/services/<%= svc.slug %>"><%= tr(svc.title, svc.titleBn) %></a></h3>
             <p class="muted"><%= fmt.truncate(tr(svc.shortDescription, svc.shortDescBn) || tr(svc.description, svc.descriptionBn) || '', 130) %></p>
 

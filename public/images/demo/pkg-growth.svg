@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Growth Plan">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#g)"/>
+  <circle cx="668" cy="78" r="190" fill="#ffffff" opacity=".06"/>
+  <circle cx="110" cy="412" r="150" fill="#ffffff" opacity=".05"/>
+
+      <g fill="#ffffff" fill-opacity=".16">
+        <rect x="98" y="176" width="404" height="168" rx="12"/>
+        <rect x="522" y="176" width="180" height="78" rx="12"/>
+        <rect x="522" y="266" width="180" height="78" rx="12"/>
+      </g>
+      <polyline points="128,300 200,254 268,282 340,214 412,242 468,196"
+                fill="none" stroke="#ffffff" stroke-opacity=".8" stroke-width="4"
+                stroke-linecap="round" stroke-linejoin="round"/>
+      <g fill="#ffffff" fill-opacity=".85">
+        <circle cx="200" cy="254" r="6"/><circle cx="340" cy="214" r="6"/><circle cx="468" cy="196" r="6"/>
+      </g>
+  <text x="98" y="118" font-family="system-ui, -apple-system, Segoe UI, sans-serif"
+        font-size="34" font-weight="700" fill="#ffffff">Growth Plan</text>
+  <text x="98" y="150" font-family="system-ui, -apple-system, Segoe UI, sans-serif"
+        font-size="17" fill="#ffffff" fill-opacity=".78">Unlimited products and priority support</text>
+</svg>

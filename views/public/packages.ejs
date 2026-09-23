@@ -31,6 +31,12 @@
         <article class="pkg-card <%= pkg.isPopular ? 'popular' : '' %>">
           <% if (pkg.isPopular) { %><span class="pkg-ribbon"><%= t('Most popular') %></span><% } %>
 
+          <% if (pkg.imageUrl) { %>
+            <div class="pkg-thumb">
+              <img src="<%= pkg.imageUrl %>" alt="" loading="lazy" decoding="async">
+            </div>
+          <% } %>
+
           <div class="pkg-head">
             <span class="pkg-tier">
               <%= C.PACKAGE_TIER[pkg.tier] ? C.PACKAGE_TIER[pkg.tier].en : pkg.tier %>

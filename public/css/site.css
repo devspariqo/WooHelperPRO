@@ -991,9 +991,39 @@ table.data .strong { font-weight: 600; color: var(--text); }
 }
 
 /* ==========================================================================
-   FAQ accordion
+   Card artwork (services & packages)
+
+   aspect-ratio reserves the space before the image loads, so a grid of cards
+   does not reflow as pictures arrive. object-fit: cover means an off-ratio
+   upload is cropped rather than distorting the card.
    ========================================================================== */
 
+.svc-thumb, .pkg-thumb {
+  display: block; overflow: hidden;
+  border-radius: 12px; margin-bottom: 16px;
+  background: var(--bg-muted);
+  aspect-ratio: 16 / 9;
+}
+.svc-thumb img, .pkg-thumb img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform .45s cubic-bezier(.4, 0, .2, 1);
+}
+.svc-card:hover .svc-thumb img,
+.pkg-card:hover .pkg-thumb img { transform: scale(1.04); }
+
+/* The thumb is decorative (the heading right below it carries the link), so it
+   must not take a tab stop or announce itself twice. */
+.svc-thumb { cursor: pointer; }
+
+@media (prefers-reduced-motion: reduce) {
+  .svc-thumb img, .pkg-thumb img { transition: none; }
+  .svc-card:hover .svc-thumb img,
+  .pkg-card:hover .pkg-thumb img { transform: none; }
+}
+
+/* ==========================================================================
+   FAQ accordion
+   ========================================================================== */
 .faq-list { margin: 0 auto; }
 
 .faq-item {
