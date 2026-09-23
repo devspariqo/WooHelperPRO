@@ -4,18 +4,17 @@
     <a href="/" class="brand">
       <%
         /*
-         * Theme-aware logo.
+         * The sidebar is dark in BOTH themes (see the "Dark sidebar" block in
+         * dashboard.css), so it always wants the dark-background logo -- it must
+         * NOT follow the page theme. Asking for `theme` here would hand it the
+         * light logo whenever the page happens to be in light mode, drawing a
+         * logo made for white onto a near-black rail.
          *
-         * This used to hardcode `logoUrlDark || logoUrl`, on the assumption that the
-         * sidebar is always a dark surface. It is not: the sidebar background is
-         * `var(--surface)`, which is #ffffff in light mode and #17141f in dark. So
-         * the hardcoded dark logo was being drawn on a WHITE sidebar in light mode
-         * -- effectively invisible.
-         *
-         * Use the same resolver as everywhere else so the variant matches the
-         * surface it is actually drawn on.
+         * Falls back to the generic logo so a single-logo install still works.
          */
-        const sideLogo = helpers.logoFor(settings, theme);
+        const sideLogo = (settings.logoUrlDark || '').trim()
+          || (settings.logoUrl || '').trim()
+          || (settings.logoUrlLight || '').trim();
       %>
       <% if (sideLogo) { %>
         <img class="brand-logo" src="<%= sideLogo %>"

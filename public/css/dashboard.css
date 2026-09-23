@@ -48,6 +48,54 @@
 }
 .sidebar-nav a.active .ico { opacity: 1; }
 
+/* ---------------------------------------------------------------
+   Dark sidebar
+
+   The admin sidebar is dark in BOTH themes. It previously used var(--surface),
+   which is #ffffff in light mode, so the panel read as a washed-out extension of
+   the page rather than a distinct rail -- and the dark-background logo was being
+   drawn on white.
+
+   Colours are hardcoded rather than tokenised because this rail is deliberately
+   theme-INDEPENDENT: it does not follow the light/dark toggle.
+
+   This block must stay AFTER the nav rules above. Equal specificity means the
+   later rule wins, so placing it earlier silently does nothing.
+   --------------------------------------------------------------- */
+.app-sidebar {
+  --sb-bg: #14121d;
+  --sb-border: #2a2637;
+  --sb-text: #cfc9dd;
+  --sb-text-dim: #8b8399;
+  --sb-hover: #221e30;
+  background: var(--sb-bg);
+  border-right: 1px solid var(--sb-border);
+}
+
+.app-sidebar .sidebar-brand { border-bottom-color: var(--sb-border); }
+.app-sidebar .sidebar-brand .brand-text strong { color: #fff; }
+.app-sidebar .sidebar-brand .brand-text small { color: var(--sb-text-dim); }
+.app-sidebar .brand-mark {
+  background: linear-gradient(135deg, var(--brand-600), var(--brand-500));
+  color: #fff;
+}
+
+.app-sidebar .sidebar-nav a { color: var(--sb-text); }
+.app-sidebar .sidebar-nav a:hover { background: var(--sb-hover); color: #fff; }
+.app-sidebar .sidebar-nav a.active {
+  background: linear-gradient(90deg, rgba(124, 58, 237, .26), rgba(124, 58, 237, .05));
+  color: #fff;
+  box-shadow: inset 3px 0 0 var(--brand-500);
+}
+.app-sidebar .sidebar-nav a .ico { opacity: .7; }
+.app-sidebar .sidebar-nav a.active .ico,
+.app-sidebar .sidebar-nav a:hover .ico { opacity: 1; }
+.app-sidebar .sidebar-label { color: var(--sb-text-dim); }
+
+.app-sidebar .sidebar-footer { border-top-color: var(--sb-border); }
+.app-sidebar .sidebar-user { color: var(--sb-text); }
+.app-sidebar .sidebar-user .muted { color: var(--sb-text-dim); }
+
 .sidebar-footer { padding: 14px; border-top: 1px solid var(--border); flex-shrink: 0; }
 .sidebar-user { display: flex; align-items: center; gap: 10px; }
 .sidebar-user .avatar { width: 34px; height: 34px; font-size: 13px; }
